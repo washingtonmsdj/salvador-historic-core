@@ -97,6 +97,24 @@ export function terrainHeight(
   return ledgeY + (upperY - ledgeY) * t;
 }
 
+function terrainNormal(
+  config: TerrainConfig,
+  levels: SceneLevels,
+  x: number,
+  z: number,
+) {
+  const sample = 1;
+  const left = terrainHeight(config, levels, x - sample, z);
+  const right = terrainHeight(config, levels, x + sample, z);
+  const south = terrainHeight(config, levels, x, z - sample);
+  const north = terrainHeight(config, levels, x, z + sample);
+  const nx = left - right;
+  const ny = sample * 2;
+  const nz = south - north;
+  const length = Math.max(0.001, Math.hypot(nx, ny, nz));
+  return [nx / length, ny / length, nz / length] as const;
+}
+
 export function createTerrain(
   scene: Scene,
   config: TerrainConfig,
@@ -122,6 +140,7 @@ export function createTerrain(
           const x = tx + (ix / steps) * tileWidth;
           const z = tz + (iz / steps) * tileDepth;
           positions.push(x, terrainHeight(config, levels, x, z), z);
+          normals.push(...terrainNormal(config, levels, x, z));
           uvs.push(ix / steps, iz / steps);
         }
       }
@@ -136,7 +155,6 @@ export function createTerrain(
         }
       }
 
-      VertexData.ComputeNormals(positions, indices, normals);
       const vertexData = new VertexData();
       vertexData.positions = positions;
       vertexData.indices = indices;
