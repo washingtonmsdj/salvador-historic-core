@@ -229,6 +229,16 @@ if (derivedVectors?.available === true) {
     fail("derived vector featureCount does not match its collections");
   }
 
+  if (roads.length === 0 || spaces.length === 0) {
+    fail(
+      "derived vectors cannot be runtime-ready without both roads and spaces",
+    );
+  }
+
+  if (derivedVectors.metadata?.runtimeReady !== true) {
+    fail("derived vectors are available but metadata.runtimeReady is false");
+  }
+
   const inBounds = ([x, z]) =>
     Number.isFinite(x) &&
     Number.isFinite(z) &&
