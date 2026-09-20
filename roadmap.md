@@ -43,6 +43,10 @@
 - [x] Suavizar blend solo ↔ rocha por inclinação sem alterar a topografia
 - [x] Usar projeção por face na ribanceira para reduzir stretching
 - [x] Ativar ACES tone mapping e Cascaded Shadow Maps com fallback
+- [x] Adicionar macrovariação de terreno contínua em world-space sem alterar cotas GIS
+- [x] Adicionar modulação visual por altitude, inclinação e concavidade do relevo
+- [x] Ativar mipmaps, trilinear filtering e anisotropia 16× nas texturas PBR do terreno
+- [x] Elevar detail maps do terreno para 512 px mantendo o custo controlado
 
 - [x] Palácio Thomé de Souza: substituir retângulo manual pelo footprint OSM correlacionado ao lote IPHAN e proteger a correlação em CI.
 - [x] Elevador Lacerda: preservar corredores indoor OSM separadamente das ruas e renderizar a passarela superior como deck elevado caminhável.
@@ -63,6 +67,7 @@
 - [ ] Preparar substituição progressiva de blockouts por GLB
 - [ ] Adicionar LOD/HLOD de cena e culling orientado por distância sem reduzir precisão perto do jogador
 - [ ] Adicionar decals/ground scatter verificados (folhas, sujeira, pequenas pedras) sem invadir vias/footprints
+- [ ] Substituir progressivamente o albedo procedural por materiais físicos reais/CC0 de solo, rocha e contenção com albedo/normal/roughness compatíveis
 - [ ] Avaliar textura fotogramétrica/ortofoto licenciável como camada visual opcional, mantendo a geometria GIS separada
 - [ ] Executar uma auditoria final de documentação antes do merge de cada grande fase
 

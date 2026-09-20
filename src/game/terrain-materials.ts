@@ -226,14 +226,17 @@ function createDynamicTexture(
         height: size,
       },
       scene,
-      false,
+      true,
     );
 
   texture.wrapU =
     Texture.WRAP_ADDRESSMODE;
   texture.wrapV =
     Texture.WRAP_ADDRESSMODE;
-  texture.anisotropicFilteringLevel = 8;
+  texture.anisotropicFilteringLevel = 16;
+  texture.updateSamplingMode(
+    Texture.TRILINEAR_SAMPLINGMODE,
+  );
 
   return texture;
 }
