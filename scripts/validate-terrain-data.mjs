@@ -36,6 +36,20 @@ if (!Number.isFinite(terrain?.presentation?.baseY)) {
   fail("terrain base must be below the lower-city datum");
 }
 
+if (
+  !Number.isFinite(terrain?.presentation?.contourInterval) ||
+  terrain.presentation.contourInterval <= 0
+) {
+  fail("terrain.presentation.contourInterval must be greater than zero");
+}
+
+if (
+  !Number.isFinite(terrain?.presentation?.cliffOverlayOffset) ||
+  terrain.presentation.cliffOverlayOffset < 0
+) {
+  fail("terrain.presentation.cliffOverlayOffset must be zero or greater");
+}
+
 const profiles = terrain?.profiles ?? [];
 if (bounds && profiles.length > 0) {
   const first = profiles[0];
