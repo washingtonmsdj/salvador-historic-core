@@ -370,7 +370,10 @@ export function SalvadorScene() {
           { createBuildingFootprintGuides },
           { loadLiveOsmVectors },
           { loadLiveConderTerrain },
-          { deriveRuntimeBuildingBlockouts },
+          {
+            deriveRuntimeBuildingBlockouts,
+            alignEstimatedBuildingsToTerrain,
+          },
           { createElevatorBlockout, createConnectionPoints },
           { createBarriers },
           { createCameras },
@@ -459,106 +462,10 @@ export function SalvadorScene() {
 
         const groundedCuratedBuildings =
           persistentTerrainActive
-            ? data.buildings.map(
-                (building) => {
-                  const footprint =
-                    building.footprint;
-                  if (
-                    !building.estimated ||
-                    !footprint ||
-                    footprint.length < 3
-                  ) {
-                    return building;
-                  }
-
-                  let supportBase =
-                    Number.POSITIVE_INFINITY;
-                  const sampleSpacing = 2.5;
-
-                  for (
-                    let index = 0;
-                    index < footprint.length;
-                    index++
-                  ) {
-                    const start =
-                      footprint[index];
-                    const end =
-                      footprint[
-                        (index + 1) %
-                          footprint.length
-                      ];
-                    if (!start || !end) {
-                      continue;
-                    }
-
-                    const length =
-                      Math.hypot(
-                        end[0] - start[0],
-                        end[1] - start[1],
-                      );
-                    const steps =
-                      Math.max(
-                        1,
-                        Math.ceil(
-                          length /
-                            sampleSpacing,
-                        ),
-                      );
-
-                    for (
-                      let step = 0;
-                      step <= steps;
-                      step++
-                    ) {
-                      const t =
-                        step / steps;
-                      const x =
-                        start[0] +
-                        (end[0] -
-                          start[0]) *
-                          t;
-                      const z =
-                        start[1] +
-                        (end[1] -
-                          start[1]) *
-                          t;
-                      supportBase =
-                        Math.min(
-                          supportBase,
-                          terrainHeight(
-                            data.terrain,
-                            data.levels,
-                            x,
-                            z,
-                          ),
-                        );
-                    }
-                  }
-
-                  if (
-                    !Number.isFinite(
-                      supportBase,
-                    )
-                  ) {
-                    return building;
-                  }
-
-                  return {
-                    ...building,
-                    position: [
-                      building.position[0],
-                      supportBase +
-                        building.height / 2,
-                      building.position[2],
-                    ] as [
-                      number,
-                      number,
-                      number,
-                    ],
-                    source:
-                      `${building.source}; runtime vertical base grounded to minimum official terrain elevation sampled along the verified footprint boundary`,
-                  };
-                },
+            ? alignEstimatedBuildingsToTerrain(
+                data.buildings,
+                data.terrain,
+                data.levels,
               )
             : data.buildings;
 
