@@ -35,6 +35,7 @@
     "player:third-person-test": "bun scripts/test-third-person-player.ts",
     "world:scale-test": "node scripts/test-world-scale.mjs",
     "terrain:mask-test": "bun scripts/test-terrain-mask.ts",
+    "terrain:presentation-test": "node scripts/test-terrain-presentation.mjs",
     "building:grounding-test": "bun scripts/test-building-grounding.ts",
     "landmark:fidelity-test": "bun scripts/test-tome-souza-fidelity.ts",
     "road:grading-test": "bun scripts/test-road-grading.ts",
