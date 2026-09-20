@@ -1,23 +1,166 @@
 {
   "schemaVersion": 1,
-  "available": false,
-  "generatedAt": null,
-  "source": null,
+  "available": true,
+  "generatedAt": "2026-09-20T14:10:00.000Z",
+  "source": "Versioned OSM seed from public/data/osm-reference.json",
   "crs": "EPSG:32724",
   "units": "meters",
   "bounds": {
     "minX": -150,
     "maxX": 150,
-    "minZ": -230,
-    "maxZ": 230
+    "minZ": -300,
+    "maxZ": 300
   },
   "metadata": {
-    "featureCount": 0,
-    "roadCount": 0,
-    "spaceCount": 0,
-    "buildingFootprintCount": 0
+    "featureCount": 3,
+    "runtimeReady": true,
+    "coverage": "seed-partial",
+    "roadCount": 1,
+    "spaceCount": 1,
+    "buildingFootprintCount": 1
   },
-  "roads": [],
-  "spaces": [],
-  "buildingFootprints": []
+  "roads": [
+    {
+      "id": "way/258560240",
+      "name": "Rua Chile",
+      "type": "osm-secondary",
+      "width": 7,
+      "widthSource": "deterministic width for highway=secondary",
+      "source": "OpenStreetMap way/258560240",
+      "estimated": true,
+      "points": [
+        [
+          -107.166,
+          -296.277
+        ],
+        [
+          -70.212,
+          -254.61
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 258560240,
+      "osmType": "way",
+      "tags": {
+        "bicycle:conditional": "yes @ (su 07:00-16:00)",
+        "cycleway:right": "lane",
+        "description": "A rua Chile é tida como a primeira do país. A via foi fundada em 1549 pelo governador Thomé de Souza como Rua Direita dos Mercadores. O atual nome é uma homenagem a quatro embaixadores chilenos que morreram de peste bubônica no Rio, em 1902.",
+        "highway": "secondary",
+        "lanes": "2",
+        "maxspeed": "30",
+        "name": "Rua Chile",
+        "oneway": "no",
+        "oneway:bicycle": "no",
+        "postal_code": "40020-000",
+        "source": "Companhia de Desenvolvimento Urbano dos Estado da Bahia;Livro: Histórias de Salvador nos Nomes das Suas Ruas",
+        "start_date": "1549",
+        "surface": "asphalt",
+        "wikidata": "Q25442475",
+        "wikipedia": "pt:Rua Chile (Salvador)"
+      }
+    }
+  ],
+  "spaces": [
+    {
+      "id": "way/1263035782",
+      "name": "Praça Tomé de Souza",
+      "type": "osm-square",
+      "width": 0,
+      "source": "OpenStreetMap way/1263035782",
+      "estimated": false,
+      "points": [
+        [
+          47.083,
+          -50.176
+        ],
+        [
+          31.377,
+          -67.741
+        ],
+        [
+          62.095,
+          -94.584
+        ],
+        [
+          105.359,
+          -43.398
+        ],
+        [
+          73.936,
+          -16.641
+        ],
+        [
+          56.216,
+          -38.239
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 1263035782,
+      "osmType": "way",
+      "tags": {
+        "leisure": "park",
+        "name": "Praça Tomé de Souza"
+      }
+    }
+  ],
+  "buildingFootprints": [
+    {
+      "id": "way/59224731",
+      "name": "Elevador Lacerda",
+      "buildingType": "yes",
+      "footprint": [
+        [
+          -0.346,
+          -5.374
+        ],
+        [
+          1.544,
+          -3.597
+        ],
+        [
+          3.402,
+          -1.842
+        ],
+        [
+          5.423,
+          0.056
+        ],
+        [
+          0.357,
+          5.374
+        ],
+        [
+          -1.196,
+          3.917
+        ],
+        [
+          -5.412,
+          -0.056
+        ]
+      ],
+      "source": "OpenStreetMap way/59224731",
+      "osmId": 59224731,
+      "osmType": "way",
+      "tags": {
+        "addr:street": "Praça Visconde de Cayru",
+        "building": "yes",
+        "ele": "72",
+        "elevator": "yes",
+        "fee": "no",
+        "height": "72",
+        "historic": "building",
+        "layer": "2",
+        "name": "Elevador Lacerda",
+        "opening_hours": "Mo-Su 07:00-19:30",
+        "postal_code": "40015-170",
+        "start_date": "1873-12-08",
+        "tourism": "attraction",
+        "wikidata": "Q1328348",
+        "wikipedia": "pt:Elevador Lacerda"
+      },
+      "height": 72,
+      "heightEstimated": false,
+      "heightSource": "OSM height tag"
+    }
+  ]
 }
