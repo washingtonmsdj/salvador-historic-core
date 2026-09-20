@@ -45,3 +45,28 @@ export function classifyRoadSurface(
 
   return "asphalt";
 }
+
+
+export function classifyPublicSpaceSurface(
+  feature: LinearFeature,
+): RoadSurfaceKind {
+  const surface =
+    feature.tags?.["surface"]
+      ?.trim()
+      .toLocaleLowerCase("en-US");
+
+  if (surface === "asphalt") {
+    return "asphalt";
+  }
+
+  if (
+    surface === "cobblestone" ||
+    surface ===
+      "unhewn_cobblestone" ||
+    surface === "stone"
+  ) {
+    return "stone";
+  }
+
+  return "paving";
+}
