@@ -137,8 +137,15 @@ export interface TerrainConfig {
     detailTextureTiling: number;
     macroVariationScale: number;
     macroVariationStrength: number;
+    microVariationScale: number;
+    microVariationStrength: number;
     elevationTintStrength: number;
     concavityTintStrength: number;
+    weatheringElevationMax: number;
+    weatheringConcavityRadius: number;
+    weatheringStrength: number;
+    weatheringMinNormalY: number;
+    weatheringOverlayOffset: number;
     rockNormalYMax: number;
     rockBlendNormalYBand: number;
     contourInterval: number;
