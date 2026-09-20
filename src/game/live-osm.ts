@@ -130,6 +130,20 @@ function roadWidth(tags: Record<string, string>) {
     };
   }
 
+  const lanes = parseMeasurement(
+    tags["lanes"],
+  );
+  if (lanes) {
+    return {
+      width: Number(
+        (lanes * 3).toFixed(2),
+      ),
+      estimated: true,
+      source:
+        `OSM lanes=${lanes} × 3 m estimated lane width`,
+    };
+  }
+
   const width =
     vectorConfig.roadWidths[tags["highway"] ?? ""] ??
     vectorConfig.defaultRoadWidth;
