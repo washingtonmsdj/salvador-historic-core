@@ -23,7 +23,10 @@ import type {
 import type { Engine } from "@babylonjs/core/Engines/engine";
 import type { Scene } from "@babylonjs/core/scene";
 
-type CameraMode = "aerial" | "street";
+type CameraMode =
+  | "aerial"
+  | "street"
+  | "thirdPerson";
 type LoadState = "loading" | "ready" | "error";
 
 interface SalvadorSiteData {
@@ -506,6 +509,7 @@ export function SalvadorScene() {
           { createBarriers },
           { createCameras },
           { configurePlayer },
+          { createThirdPersonPlayer },
           { createDebug },
         ] = await Promise.all([
           import("@babylonjs/core/Engines/engine"),
@@ -530,6 +534,7 @@ export function SalvadorScene() {
           import("../game/barriers"),
           import("../game/cameras"),
           import("../game/player"),
+          import("../game/third-person-player"),
           import("../game/debug"),
         ]);
 
@@ -881,10 +886,68 @@ export function SalvadorScene() {
             data.terrain,
             data.levels,
           );
-        disposePlayer =
-          playerController.dispose;
+        const thirdPersonPlayer =
+          createThirdPersonPlayer({
+            scene,
+            camera:
+              cameras.thirdPerson,
+            spawn:
+              streetSpawn,
+            terrain:
+              data.terrain,
+            levels:
+              data.levels,
+          });
+        shadows.addShadowCaster(
+          thirdPersonPlayer.mesh,
+        );
+
+        let activeCameraMode:
+          CameraMode = "aerial";
+
+        const activateCamera = (
+          mode: CameraMode,
+        ) => {
+          if (
+            mode ===
+              "thirdPerson" &&
+            activeCameraMode !==
+              "thirdPerson"
+          ) {
+            thirdPersonPlayer.syncFromStreetCamera(
+              cameras.street,
+            );
+          }
+
+          if (
+            activeCameraMode ===
+              "thirdPerson" &&
+            mode !==
+              "thirdPerson"
+          ) {
+            thirdPersonPlayer.syncStreetCamera(
+              cameras.street,
+            );
+            playerController.syncToTerrain();
+          }
+
+          thirdPersonPlayer.setActive(
+            mode ===
+              "thirdPerson",
+          );
+          cameras.activate(mode);
+          activeCameraMode = mode;
+        };
+
+        disposePlayer = () => {
+          playerController.dispose();
+          thirdPersonPlayer.dispose();
+        };
         syncPlayerToActiveTerrain =
-          playerController.syncToTerrain;
+          () => {
+            playerController.syncToTerrain();
+            thirdPersonPlayer.syncToTerrain();
+          };
 
         const debug = createDebug(scene, [
           ...activeDebugBuildings,
@@ -897,7 +960,7 @@ export function SalvadorScene() {
         updateDebugItems = debug.setItems;
 
         controlsRef.current = {
-          activateCamera: cameras.activate,
+          activateCamera,
           setDebug: debug.setEnabled,
           setMapReference: (enabled) => {
             mapReferenceRuntimeEnabled = enabled;
@@ -1369,6 +1432,7 @@ export function SalvadorScene() {
         <p className="mb-2 font-semibold uppercase tracking-[0.16em] text-white/80">
           Controles
         </p>
+        <p>3ª pessoa: WASD / setas · Shift corre · mouse gira</p>
         <p>Rua: WASD / setas + mouse</p>
         <p>Aérea: arrastar + roda do mouse</p>
         <p className="mt-2 text-white/45">Y = altura · X = leste/oeste · Z = norte/sul</p>
@@ -1386,6 +1450,18 @@ export function SalvadorScene() {
           } disabled:cursor-not-allowed disabled:opacity-40`}
         >
           Vista aérea
+        </button>
+        <button
+          type="button"
+          onClick={() => changeCamera("thirdPerson")}
+          disabled={loadState !== "ready"}
+          className={`rounded-xl px-3 py-2 text-xs font-medium transition ${
+            cameraMode === "thirdPerson"
+              ? "bg-[#c9a96e] text-[#18130b]"
+              : "bg-white/5 text-white/75 hover:bg-white/10"
+          } disabled:cursor-not-allowed disabled:opacity-40`}
+        >
+          3ª pessoa
         </button>
         <button
           type="button"

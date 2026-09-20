@@ -32,6 +32,8 @@
     "road:test": "bun scripts/test-road-surface.ts",
     "road:junction-test": "bun scripts/test-road-junctions.ts",
     "player:spawn-test": "bun scripts/test-walkable-spawn.ts",
+    "player:third-person-test": "bun scripts/test-third-person-player.ts",
+    "world:scale-test": "node scripts/test-world-scale.mjs",
     "terrain:mask-test": "bun scripts/test-terrain-mask.ts",
     "building:grounding-test": "bun scripts/test-building-grounding.ts",
     "landmark:fidelity-test": "bun scripts/test-tome-souza-fidelity.ts",

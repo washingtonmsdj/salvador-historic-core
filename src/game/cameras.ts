@@ -23,6 +23,30 @@ export function createCameras(
   aerial.panningSensibility = 80;
   aerial.attachControl(canvas, true);
 
+  const thirdPerson = new ArcRotateCamera(
+    "camera-terceira-pessoa",
+    -Math.PI / 2,
+    1.02,
+    6,
+    new Vector3(
+      streetSpawn[0],
+      1.1,
+      streetSpawn[1],
+    ),
+    scene,
+  );
+  thirdPerson.lowerRadiusLimit = 3.2;
+  thirdPerson.upperRadiusLimit = 10;
+  thirdPerson.lowerBetaLimit = 0.55;
+  thirdPerson.upperBetaLimit = 1.35;
+  thirdPerson.wheelPrecision = 22;
+  thirdPerson.panningSensibility = 0;
+  thirdPerson.inertia = 0.72;
+  thirdPerson.minZ = 0.12;
+  thirdPerson.checkCollisions = true;
+  thirdPerson.collisionRadius =
+    new Vector3(0.28, 0.28, 0.28);
+
   const street = new UniversalCamera(
     "camera-praca",
     new Vector3(
@@ -48,17 +72,46 @@ export function createCameras(
   street.keysLeft = [65, 37];
   street.keysRight = [68, 39];
 
-  const activate = (mode: "aerial" | "street") => {
+  const activate = (
+    mode:
+      | "aerial"
+      | "street"
+      | "thirdPerson",
+  ) => {
     aerial.detachControl();
     street.detachControl();
+    thirdPerson.detachControl();
+
     if (mode === "aerial") {
       scene.activeCamera = aerial;
-      aerial.attachControl(canvas, true);
+      aerial.attachControl(
+        canvas,
+        true,
+      );
+    } else if (
+      mode === "thirdPerson"
+    ) {
+      scene.activeCamera =
+        thirdPerson;
+      thirdPerson.attachControl(
+        canvas,
+        true,
+      );
     } else {
       scene.activeCamera = street;
-      street.attachControl(canvas, true);
+      street.attachControl(
+        canvas,
+        true,
+      );
     }
   };
+
   activate("aerial");
-  return { aerial, street, activate };
+
+  return {
+    aerial,
+    street,
+    thirdPerson,
+    activate,
+  };
 }

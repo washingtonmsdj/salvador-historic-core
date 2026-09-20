@@ -45,6 +45,9 @@ jobs:
       - name: Validate site layout
         run: bun run layout:validate
 
+      - name: Validate metric world scale
+        run: bun run world:scale-test
+
       - name: Validate road surfaces
         run: bun run road:test
 
@@ -65,6 +68,9 @@ jobs:
 
       - name: Validate walkable player spawn
         run: bun run player:spawn-test
+
+      - name: Validate third-person player
+        run: bun run player:third-person-test
 
       - name: Validate terrain structure masks
         run: bun run terrain:mask-test
