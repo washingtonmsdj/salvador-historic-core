@@ -46,6 +46,38 @@ function distance(
   );
 }
 
+export function roadJunctionMaskPolygon(
+  junction: RoadJunction,
+  padding: number,
+  segments = 24,
+): Point2[] {
+  const radius =
+    junction.radius +
+    Math.max(0, padding);
+  const count = Math.max(
+    12,
+    Math.min(64, segments),
+  );
+
+  return Array.from(
+    { length: count },
+    (_, index): Point2 => {
+      const angle =
+        (index / count) *
+        Math.PI *
+        2;
+      return [
+        junction.center[0] +
+          Math.cos(angle) *
+            radius,
+        junction.center[1] +
+          Math.sin(angle) *
+            radius,
+      ];
+    },
+  );
+}
+
 export function deriveRoadJunctions(
   roads: LinearFeature[],
   {
