@@ -179,6 +179,9 @@ export function SalvadorScene() {
               derivedVectors.buildingFootprints,
               data.terrain,
               data.levels,
+              [...data.buildings, ...data.elevator].flatMap(
+                (item) => (item.footprint ? [item.footprint] : []),
+              ),
             )
           : null;
         const curatedBuildings = derivedBuildingResult
