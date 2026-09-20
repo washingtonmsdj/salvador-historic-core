@@ -61,7 +61,6 @@ export interface TerrainConfig {
     textureScale: number;
     rockNormalYMax: number;
     upperElevationMin: number;
-    lowerElevationMax: number;
   };
   source: string;
   estimated: boolean;
