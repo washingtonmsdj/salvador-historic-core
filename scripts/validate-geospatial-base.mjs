@@ -205,6 +205,47 @@ if (!roadSurfacePolicy) {
 
   if (
     !Number.isFinite(
+      roadSurfacePolicy.maxLongitudinalSlope,
+    ) ||
+    roadSurfacePolicy.maxLongitudinalSlope <= 0 ||
+    roadSurfacePolicy.maxLongitudinalSlope > 0.2
+  ) {
+    fail(
+      "road maxLongitudinalSlope must be > 0 and <= 20%",
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      roadSurfacePolicy.longitudinalProfileIterations,
+    ) ||
+    roadSurfacePolicy.longitudinalProfileIterations < 2 ||
+    roadSurfacePolicy.longitudinalProfileIterations > 16
+  ) {
+    fail(
+      "road longitudinalProfileIterations must be an integer between 2 and 16",
+    );
+  }
+
+  if (
+    !Array.isArray(
+      roadSurfacePolicy.longitudinalProfileFallbackOsmIds,
+    ) ||
+    roadSurfacePolicy.longitudinalProfileFallbackOsmIds.some(
+      (id) => !Number.isInteger(id) || id <= 0,
+    ) ||
+    new Set(
+      roadSurfacePolicy.longitudinalProfileFallbackOsmIds,
+    ).size !==
+      roadSurfacePolicy.longitudinalProfileFallbackOsmIds.length
+  ) {
+    fail(
+      "road longitudinalProfileFallbackOsmIds must contain unique positive OSM ids",
+    );
+  }
+
+  if (
+    !Number.isFinite(
       roadSurfacePolicy.supportWallThreshold,
     ) ||
     roadSurfacePolicy.supportWallThreshold < 0.05 ||
@@ -418,6 +459,14 @@ if (!liveTerrainPreview) {
       "live terrain contourSampleSpacing must be > 0 and <= gridSpacing",
     );
   }
+}
+
+if (
+  manifest.vectorDerivation?.excludeIndoorHighways !== true
+) {
+  fail(
+    "vector derivation must exclude indoor highway features from terrain roads",
+  );
 }
 
 const buildingPolicy = manifest.buildingBlockoutPolicy;
@@ -920,6 +969,12 @@ if (derivedVectors?.available === true) {
     z <= bounds.maxZ + 0.001;
 
   for (const road of roads) {
+    if (road.tags?.indoor === "yes") {
+      fail(
+        `${road.id} is indoor and must not be derived as a terrain road`,
+      );
+    }
+
     if (
       !Number.isFinite(road.width) ||
       road.width <= 0 ||

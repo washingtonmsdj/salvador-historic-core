@@ -14,6 +14,9 @@
 - [x] Renderizar vias sobre o terreno ativo com largura/provenance preservadas
 - [x] Classificar materiais viários a partir das tags OSM
 - [x] Limitar crossfall e criar suporte somente quando necessário
+- [x] Limitar perfil longitudinal caminhável a 14% sem cortar o terreno oficial
+- [x] Auditar capacidade combinada de crossfall, longitudinal e suporte
+- [x] Excluir `indoor=yes` da derivação de pistas de terreno sem perder a feature normalizada
 - [x] Derivar junctions apenas de endpoints compatíveis
 - [x] Ajustar junctions às bordas graduadas das vias
 - [x] Sincronizar spawn/player com superfícies caminháveis reais
@@ -39,6 +42,7 @@
 ## Próximas prioridades
 
 - [ ] Fazer revisão visual sistemática contra ortofoto/mapa e referências de rua
+- [ ] Modelar especificamente as vias listadas em `longitudinalProfileFallbackOsmIds` para reduzir/remover exceções sem aumentar tolerâncias
 - [ ] Corrigir individualmente qualquer trecho em que a geometria fonte esteja incompleta ou classificada incorretamente
 - [ ] Modelar fundações específicas para footprints em encostas fortes
 - [ ] Substituir blockouts importantes por footprints/modelos arquitetônicos verificados

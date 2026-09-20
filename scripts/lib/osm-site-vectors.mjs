@@ -274,6 +274,21 @@ function buildingHeight(tags, config) {
   };
 }
 
+function isTerrainRoad(tags, config) {
+  if (!tags.highway) {
+    return false;
+  }
+
+  if (
+    config.excludeIndoorHighways !== false &&
+    tags.indoor === "yes"
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 function isSquare(tags) {
   return (
     tags.place === "square" ||
@@ -303,7 +318,7 @@ export function deriveOsmSiteVectors({
 
     if (
       feature.geometryType === "polyline" &&
-      tags.highway &&
+      isTerrainRoad(tags, config) &&
       points.length >= 2
     ) {
       const width = roadWidth(tags, config);

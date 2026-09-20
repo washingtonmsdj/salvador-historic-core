@@ -94,13 +94,14 @@
       "steps": 2
     },
     "buildingLevelHeight": 3,
+    "excludeIndoorHighways": true,
     "criticalRoadNames": [
       "Rua Chile",
       "Ladeira da Montanha",
       "Rua da Conceição da Praia",
       "Avenida Lafayete Coutinho"
     ],
-    "notes": "Road centerlines and polygons are clipped to the project perimeter. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated. Complete coverage requires every critical road name to be present."
+    "notes": "Road centerlines and polygons are clipped to the project perimeter. Indoor highway features remain preserved in normalized OSM but are excluded from terrain-road derivation. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated. Complete coverage requires every critical road name to be present."
   },
   "buildingBlockoutPolicy": {
     "maxAutoFoundationRelief": 0.75,
@@ -146,13 +147,22 @@
     "surfaceGap": 0.045,
     "maxMiterScale": 2.2,
     "maxCrossSlope": 0.06,
-    "notes": "Gameplay road mesh follows OSM centerlines and active terrain. Longitudinal smoothing may only raise local depressions by up to 0.12 m and never cuts below official terrain. Crossfall is capped at 6% by preserving the higher terrain edge and raising only the lower edge. Where this creates more than 0.18 m of support, a terrain-connected retaining skirt is rendered; automatic road fill is limited to 12 m. Compatible road endpoints receive a junction deck fitted to their graded road-edge elevations, capped at 14% plane slope. Junction terrain is masked only beneath the deck using an inset footprint plus adaptive boundary refinement, allowing at most 0.75 m local cut and 3 m local fill, with a perimeter retaining/cut wall; junction-to-road edge mismatch must remain <= 0.15 m. These are rendering/gameplay constraints, not surveyed civil-engineering elevations.",
+    "notes": "Gameplay road mesh follows OSM centerlines and active terrain. Longitudinal grading uses a raise-only constrained profile capped at 14% whenever crossfall and total support remain within policy; profiles that exceed support capacity or destabilize a connected junction fall back conservatively and are explicitly audited. The older 0.12 m local smoothing remains only on fallback segments and never cuts below official terrain. Crossfall is capped at 6% by preserving the higher terrain edge and raising only the lower edge. Where this creates more than 0.18 m of support, a terrain-connected retaining skirt is rendered; automatic road fill is limited to 12 m. Compatible road endpoints receive a junction deck fitted to their graded road-edge elevations, capped at 14% plane slope. Junction terrain is masked only beneath the deck using an inset footprint plus adaptive boundary refinement, allowing at most 0.75 m local cut and 3 m local fill, with a perimeter retaining/cut wall; junction-to-road edge mismatch must remain <= 0.15 m. These are rendering/gameplay constraints, not surveyed civil-engineering elevations.",
     "junctionSnapDistance": 0.35,
     "junctionOverlap": 0.35,
     "junctionSurfaceOffset": 0.008,
     "junctionMaxSegments": 28,
     "maxGradeSmoothingRaise": 0.12,
     "maxSupportedFillHeight": 12,
+    "maxLongitudinalSlope": 0.14,
+    "longitudinalProfileIterations": 8,
+    "longitudinalProfileFallbackOsmIds": [
+      145218127,
+      231091555,
+      312006925,
+      396045001,
+      421206045
+    ],
     "supportWallThreshold": 0.18,
     "supportWallTextureRepeatMeters": 3,
     "supportWallSink": 0.06,

@@ -12,7 +12,7 @@
     "maxZ": 300
   },
   "metadata": {
-    "featureCount": 327,
+    "featureCount": 324,
     "runtimeReady": true,
     "coverage": "complete",
     "criticalRoadCoverage": {
@@ -21,9 +21,10 @@
       "missing": [],
       "complete": true
     },
-    "roadCount": 119,
+    "roadCount": 116,
     "spaceCount": 6,
-    "buildingFootprintCount": 202
+    "buildingFootprintCount": 202,
+    "excludedIndoorHighwayCount": 3
   },
   "roads": [
     {
@@ -1354,64 +1355,6 @@
       "tags": {
         "highway": "service",
         "name": "Rua Rodrigo Silva"
-      }
-    },
-    {
-      "id": "way/1455480196",
-      "name": "Via OSM way/1455480196",
-      "type": "osm-corridor",
-      "width": 5,
-      "widthSource": "deterministic width for highway=corridor",
-      "source": "OpenStreetMap way/1455480196",
-      "estimated": true,
-      "points": [
-        [
-          52.185,
-          -47.487
-        ],
-        [
-          39.926,
-          -38.34
-        ]
-      ],
-      "elevationMode": "terrain",
-      "osmId": 1455480196,
-      "osmType": "way",
-      "tags": {
-        "highway": "corridor",
-        "indoor": "yes",
-        "layer": "1"
-      }
-    },
-    {
-      "id": "way/1455480198",
-      "name": "Via OSM way/1455480198",
-      "type": "osm-corridor",
-      "width": 5,
-      "widthSource": "deterministic width for highway=corridor",
-      "source": "OpenStreetMap way/1455480198",
-      "estimated": true,
-      "points": [
-        [
-          3.402,
-          -1.842
-        ],
-        [
-          1,
-          1.1590000000000003
-        ],
-        [
-          -1.1959999999999997,
-          3.917
-        ]
-      ],
-      "elevationMode": "terrain",
-      "osmId": 1455480198,
-      "osmType": "way",
-      "tags": {
-        "highway": "corridor",
-        "indoor": "yes",
-        "layer": "1"
       }
     },
     {
@@ -3526,34 +3469,6 @@
         "parking:left": "yes",
         "parking:left:orientation": "parallel",
         "surface": "asphalt"
-      }
-    },
-    {
-      "id": "way/59409445",
-      "name": "Via OSM way/59409445",
-      "type": "osm-corridor",
-      "width": 5,
-      "widthSource": "deterministic width for highway=corridor",
-      "source": "OpenStreetMap way/59409445",
-      "estimated": true,
-      "points": [
-        [
-          39.926,
-          -38.34
-        ],
-        [
-          3.402000000000001,
-          -1.8419999999999987
-        ]
-      ],
-      "elevationMode": "terrain",
-      "osmId": 59409445,
-      "osmType": "way",
-      "tags": {
-        "bridge": "yes",
-        "highway": "corridor",
-        "indoor": "yes",
-        "layer": "1"
       }
     },
     {
