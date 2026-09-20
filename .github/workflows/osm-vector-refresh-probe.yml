@@ -1,0 +1,77 @@
+name: OSM Complete Snapshot Probe
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.head_ref == 'feat/terrain-road-walkability' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Refresh OSM vectors
+        run: |
+          bun run geospatial:import:osm
+          bun run geospatial:derive:vectors
+
+      - name: Require complete critical-road coverage
+        run: |
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const vectors = JSON.parse(
+            fs.readFileSync(
+              "geospatial/derived/site-vectors.json",
+              "utf8"
+            )
+          );
+          const coverage =
+            vectors.metadata?.criticalRoadCoverage;
+          console.log(
+            JSON.stringify(coverage, null, 2)
+          );
+          if (
+            !coverage?.complete ||
+            coverage.found !== coverage.total
+          ) {
+            process.exit(1);
+          }
+          NODE
+
+      - name: Rebuild and validate runtime
+        run: |
+          bun run geospatial:build
+          bun run geospatial:validate
+
+      - name: Commit complete OSM snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add             geospatial/raw/osm/overpass.json             geospatial/normalized/osm/site.json             geospatial/derived/site-vectors.json             src/data/geospatial-base.json
+          if git diff --cached --quiet; then
+            echo "No OSM changes to commit."
+            exit 0
+          fi
+          git commit -m "Materialize complete project OSM vectors"
+          git push origin HEAD:${{ github.head_ref }}
