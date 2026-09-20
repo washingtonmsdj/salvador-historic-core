@@ -19,7 +19,7 @@ A cena já opera prioritariamente com uma base geoespacial persistente e version
 - junctions viários derivados apenas de endpoints compatíveis;
 - player sincronizado com a superfície caminhável real da cena;
 - terreno procedural e consultas live mantidos somente como fallback/diagnóstico;
-- terreno renderizado com PBR multiescala, normal/detail/roughness procedural tileable, blend suave de ribanceira, ACES tone mapping e sombras solares em cascata quando suportadas.
+- terreno renderizado com PBR multiescala, normal/detail/roughness procedural tileable, macrovariação contínua em world-space, resposta visual a altitude/inclinação/concavidade, mipmaps, anisotropia 16×, blend suave de ribanceira, ACES tone mapping e sombras solares em cascata quando suportadas.
 
 A base persistente é validada por CI antes de ser considerada pronta para runtime.
 
