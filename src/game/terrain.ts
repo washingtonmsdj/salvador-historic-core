@@ -827,7 +827,16 @@ export function createTerrain(
           const z = tz + (iz / steps) * tileDepth;
           positions.push(x, terrainHeight(config, levels, x, z), z);
           normals.push(...terrainNormal(config, levels, x, z));
-          uvs.push(ix / steps, iz / steps);
+          const textureMeters =
+            Math.max(
+              1,
+              config.presentation
+                .textureScale,
+            );
+          uvs.push(
+            x / textureMeters,
+            z / textureMeters,
+          );
         }
       }
 
@@ -864,6 +873,7 @@ export function createTerrain(
         runtimeDerived:
           activeTerrain ===
           runtimeDerivedTerrain,
+        walkableSurface: true,
       };
 
       const surface = createSurfaceMesh(
