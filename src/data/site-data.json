@@ -146,7 +146,7 @@
       "contourInterval": 10,
       "cliffOverlayOffset": 0.06,
       "textureResolution": 512,
-      "detailTextureResolution": 256,
+      "detailTextureResolution": 512,
       "detailTextureTiling": 12,
       "macroVariationScale": 96,
       "macroVariationStrength": 0.14,
