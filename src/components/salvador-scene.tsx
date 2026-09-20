@@ -241,7 +241,8 @@ export function SalvadorScene() {
   const [cameraMode, setCameraMode] = useState<CameraMode>("aerial");
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
-  const [mapReferenceEnabled, setMapReferenceEnabled] = useState(true);
+  const [mapReferenceEnabled, setMapReferenceEnabled] =
+    useState(false);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [liveOsmState, setLiveOsmState] = useState<
@@ -412,7 +413,7 @@ export function SalvadorScene() {
           data.terrain,
           data.levels,
         );
-        let mapReferenceRuntimeEnabled = true;
+        let mapReferenceRuntimeEnabled = false;
         mapReference.setEnabled(
           mapReferenceRuntimeEnabled,
         );
