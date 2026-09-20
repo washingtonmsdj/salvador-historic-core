@@ -26,7 +26,7 @@
       "source": "OpenStreetMap way 59224731 centroid",
       "estimated": false
     },
-    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements. Unverified generic plaza building placeholders and the provisional Ladeira da Montanha ribbon were removed rather than rendered with invented placement. Palácio Thomé de Souza horizontal blockout now follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); only vertical height remains estimated. TPTS terrain is flattened as a data-driven upper-city plateau following the IPHAN 46 x 50 m envelope; its local elevation remains estimated. Project Z perimeter expanded to ±300 m so the versioned verified Rua Chile OSM segment is inside the scene; procedural profiles beyond the previous ±230 m remain fallback-only."
+    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements. Unverified generic plaza building placeholders and the provisional Ladeira da Montanha ribbon were removed rather than rendered with invented placement. Palácio Thomé de Souza horizontal blockout now follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); only vertical height remains estimated. TPTS terrain is flattened as a data-driven upper-city plateau following the IPHAN 46 x 50 m envelope; its local elevation remains estimated. Project Z perimeter expanded to ±300 m so the versioned verified Rua Chile OSM segment is inside the scene; procedural profiles beyond the previous ±230 m remain fallback-only. Manual/extrapolated road ribbons and generic Rua Chile building blocks were removed from fallback rendering; roads and context-building placement must come from versioned or live geospatial geometry."
   },
   "levels": {
     "lowerCity": {
@@ -484,66 +484,6 @@
       "estimated": true
     },
     {
-      "id": "rua-chile-01",
-      "name": "Edifício Rua Chile 01",
-      "type": "rua-chile",
-      "position": [
-        44.59,
-        75,
-        -126
-      ],
-      "rotation": [
-        0,
-        -0.8503,
-        0
-      ],
-      "width": 32,
-      "depth": 18,
-      "height": 20,
-      "source": "Blockout aligned to extrapolated axis of verified OpenStreetMap Rua Chile way 258560240; dimensions remain estimated",
-      "estimated": true
-    },
-    {
-      "id": "rua-chile-02",
-      "name": "Edifício Rua Chile 02",
-      "type": "rua-chile",
-      "position": [
-        14.74,
-        74,
-        -160
-      ],
-      "rotation": [
-        0,
-        -0.8503,
-        0
-      ],
-      "width": 31,
-      "depth": 17,
-      "height": 18,
-      "source": "Blockout aligned to extrapolated axis of verified OpenStreetMap Rua Chile way 258560240; dimensions remain estimated",
-      "estimated": true
-    },
-    {
-      "id": "rua-chile-03",
-      "name": "Edifício Rua Chile 03",
-      "type": "rua-chile",
-      "position": [
-        -15.11,
-        73.5,
-        -194
-      ],
-      "rotation": [
-        0,
-        -0.8503,
-        0
-      ],
-      "width": 30,
-      "depth": 18,
-      "height": 17,
-      "source": "Blockout aligned to extrapolated axis of verified OpenStreetMap Rua Chile way 258560240; dimensions remain estimated",
-      "estimated": true
-    },
-    {
       "id": "mercado-modelo",
       "name": "Mercado Modelo",
       "type": "market",
@@ -682,82 +622,7 @@
       ]
     }
   ],
-  "roads": [
-    {
-      "id": "rua-chile",
-      "name": "Rua Chile",
-      "type": "road",
-      "elevationMode": "upper",
-      "width": 8,
-      "source": "Axis extrapolated from verified OpenStreetMap way 258560240; extrapolated north segment remains estimated",
-      "estimated": true,
-      "points": [
-        [
-          -36.18,
-          -218
-        ],
-        [
-          -2.82,
-          -180
-        ],
-        [
-          30.54,
-          -142
-        ],
-        [
-          63.02,
-          -105
-        ],
-        [
-          82.34,
-          -83
-        ]
-      ]
-    },
-    {
-      "id": "via-inferior-elevador",
-      "name": "Via inferior junto ao Elevador",
-      "type": "road",
-      "elevationMode": "lower",
-      "width": 11,
-      "source": "Provisional lower-city gameplay corridor constrained to avoid verified Elevador and Mercado Modelo footprints; exact OSM road alignment pending import",
-      "estimated": true,
-      "points": [
-        [
-          -76,
-          -130
-        ],
-        [
-          -55,
-          -68
-        ],
-        [
-          -39,
-          -12
-        ],
-        [
-          -36,
-          45
-        ],
-        [
-          -28,
-          80
-        ],
-        [
-          -22,
-          120
-        ],
-        [
-          -18,
-          165
-        ],
-        [
-          -20,
-          220
-        ]
-      ]
-    }
-  ],
+  "roads": [],
   "barriers": [
     {
       "id": "retaining-wall-north",
@@ -864,13 +729,6 @@
       "rotationY": -0.8503,
       "source": "OpenStreetMap way 258560240 projected to local metres",
       "estimated": false
-    },
-    "lowerRoadMarketClearance": {
-      "roadId": "via-inferior-elevador",
-      "buildingId": "mercado-modelo",
-      "minimumCenterlineClearance": 10,
-      "source": "Gameplay/blockout clearance around verified Mercado Modelo footprint",
-      "estimated": true
     },
     "palacioThomeSite": {
       "polygon": [
