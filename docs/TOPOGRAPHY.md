@@ -39,7 +39,7 @@ por endpoint/arquivo estável, ele deve ter precedência sobre o blockout.
 O repositório inclui:
 
 ```bash
-bun run terrain:import:conder
+npm run terrain:import:conder
 ```
 
 O importador:
