@@ -82,6 +82,8 @@ const SPACE_SURFACE_GAP =
   publicSpaceSurfacePolicy.surfaceGap;
 const SPACE_TEXTURE_REPEAT_METERS =
   publicSpaceSurfacePolicy.textureRepeatMeters;
+const SPACE_SURFACE_OVERRIDES =
+  publicSpaceSurfacePolicy.hardSurfaceOverrides;
 
 function smoothCenterHeights(
   centers: Point2[],
@@ -1215,6 +1217,7 @@ export function createSpaces(
     const surfaceKind =
       classifyPublicSpaceSurface(
         space,
+        SPACE_SURFACE_OVERRIDES,
       );
 
     if (!surfaceKind) {
