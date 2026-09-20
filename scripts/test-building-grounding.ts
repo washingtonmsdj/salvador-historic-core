@@ -1,9 +1,12 @@
 import siteData from "../src/data/site-data.json";
 import {
   alignEstimatedBuildingsToTerrain,
+  deriveRuntimeBuildingBlockouts,
   sampleTerrainFootprint,
 } from "../src/game/derived-buildings";
 import type {
+  DerivedBuildingFootprint,
+  LinearFeature,
   MeasuredObject,
   SceneLevels,
   TerrainConfig,
@@ -106,3 +109,64 @@ if (movedCount < 1) {
 console.log(
   `Building grounding test passed. materially moved=${movedCount}`,
 );
+
+
+const syntheticRoad: LinearFeature = {
+  id: "synthetic-road",
+  name: "Synthetic road",
+  type: "osm-residential",
+  width: 6,
+  source: "test",
+  estimated: true,
+  points: [
+    [-10, 0],
+    [10, 0],
+  ],
+  elevationMode: "terrain",
+  osmId: 990001,
+  osmType: "way",
+  tags: {
+    highway: "residential",
+  },
+};
+
+const syntheticBuilding:
+  DerivedBuildingFootprint = {
+    id: "way/990002",
+    name: "Synthetic road-conflict building",
+    buildingType: "yes",
+    footprint: [
+      [-2, -1],
+      [2, -1],
+      [2, 1],
+      [-2, 1],
+    ],
+    source: "test",
+    osmId: 990002,
+    osmType: "way",
+    tags: {
+      building: "yes",
+    },
+    height: 6,
+    heightEstimated: true,
+    heightSource: "test height",
+  };
+
+const roadConflict =
+  deriveRuntimeBuildingBlockouts(
+    [syntheticBuilding],
+    data.terrain,
+    data.levels,
+    [],
+    [],
+    [syntheticRoad],
+  );
+
+if (
+  roadConflict.buildings.length !== 0 ||
+  roadConflict.skipped.overlapsRoadSurface !== 1
+) {
+  throw new Error(
+    "A building footprint overlapping the rendered road surface must not be promoted to a collidable blockout.",
+  );
+}

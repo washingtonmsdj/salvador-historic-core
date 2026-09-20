@@ -107,6 +107,7 @@
   },
   "buildingBlockoutPolicy": {
     "maxAutoFoundationRelief": 0.75,
+    "minAutoRoadClearance": 0.15,
     "excludedOsmIds": [
       59224731,
       59392558,
@@ -123,7 +124,7 @@
     "removeFallbackTypesWhenActive": [
       "rua-chile"
     ],
-    "notes": "Automatic building volumes require a real OSM footprint plus explicit height or building:levels-derived height. Footprints crossing more than 0.75 m of terrain relief are skipped for manual foundation/model handling."
+    "notes": "Automatic building volumes require a real OSM footprint plus explicit height or building:levels-derived height. Footprints crossing more than 0.75 m of terrain relief are skipped for manual foundation/model handling. A footprint that overlaps the rendered road/junction surface expanded by 0.15 m is preserved as source data but is not promoted to a collidable 3D blockout."
   },
   "rasterReference": {
     "provider": "OpenStreetMap Standard",

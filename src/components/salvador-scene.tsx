@@ -433,6 +433,7 @@ export function SalvadorScene() {
     noHeight: 0,
     excessiveRelief: 0,
     protected: 0,
+    roadConflict: 0,
   });
 
   useEffect(() => {
@@ -592,8 +593,25 @@ export function SalvadorScene() {
                 (item) => (item.footprint ? [item.footprint] : []),
               ),
               groundedCuratedBuildings,
+              runtimeRoads,
             )
           : null;
+
+        if (derivedBuildingResult) {
+          setLiveBuildingStats({
+            promoted:
+              derivedBuildingResult.buildings.length,
+            noHeight:
+              derivedBuildingResult.skipped.noHeight,
+            excessiveRelief:
+              derivedBuildingResult.skipped.excessiveRelief,
+            protected:
+              derivedBuildingResult.skipped.excluded +
+              derivedBuildingResult.skipped.overlapsReserved,
+            roadConflict:
+              derivedBuildingResult.skipped.overlapsRoadSurface,
+          });
+        }
         const replacedFallbackIds = new Set(
           derivedBuildingResult?.replacedFallbackIds ?? [],
         );
@@ -708,6 +726,7 @@ export function SalvadorScene() {
               data.levels,
               reservedFootprints,
               groundedCuratedBuildings,
+              activeRoadFeatures,
             );
           const replacedIds = new Set(
             result.replacedFallbackIds,
@@ -754,6 +773,8 @@ export function SalvadorScene() {
             protected:
               result.skipped.excluded +
               result.skipped.overlapsReserved,
+            roadConflict:
+              result.skipped.overlapsRoadSurface,
           });
         };
 
@@ -1244,6 +1265,9 @@ export function SalvadorScene() {
             )}
             {liveBuildingStats.protected > 0 && (
               <> · {liveBuildingStats.protected} protegidos</>
+            )}
+            {liveBuildingStats.roadConflict > 0 && (
+              <> · {liveBuildingStats.roadConflict} sobre via</>
             )}
           </div>
         </div>

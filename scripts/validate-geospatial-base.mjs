@@ -503,6 +503,16 @@ if (!buildingPolicy) {
   }
 
   if (
+    !Number.isFinite(buildingPolicy.minAutoRoadClearance) ||
+    buildingPolicy.minAutoRoadClearance < 0 ||
+    buildingPolicy.minAutoRoadClearance > 1
+  ) {
+    fail(
+      "building minAutoRoadClearance must be between 0 and 1 metre",
+    );
+  }
+
+  if (
     !Array.isArray(buildingPolicy.excludedOsmIds) ||
     new Set(buildingPolicy.excludedOsmIds).size !==
       buildingPolicy.excludedOsmIds.length

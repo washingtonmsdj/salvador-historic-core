@@ -4,8 +4,16 @@ import {
   pointInPolygon,
   polygonsOverlap,
 } from "./geometry-2d";
+import {
+  deriveRoadJunctions,
+  roadJunctionSurfacePolygon,
+} from "./road-junctions";
+import {
+  roadFootprintPolygon,
+} from "./road-path";
 import type {
   DerivedBuildingFootprint,
+  LinearFeature,
   MeasuredObject,
   Point2,
   SceneLevels,
@@ -14,13 +22,23 @@ import type {
 
 interface BuildingPolicy {
   maxAutoFoundationRelief: number;
+  minAutoRoadClearance: number;
   excludedOsmIds: number[];
   excludedNames: string[];
   removeFallbackTypesWhenActive: string[];
 }
 
+interface RoadSurfacePolicy {
+  sampleSpacing: number;
+  maxMiterScale: number;
+  junctionSnapDistance: number;
+  junctionOverlap: number;
+}
+
 const policy =
   buildingPolicyData.buildingBlockoutPolicy as BuildingPolicy;
+const roadSurfacePolicy =
+  buildingPolicyData.roadSurfacePolicy as RoadSurfacePolicy;
 
 function polygonCentroid(points: Point2[]): Point2 {
   if (points.length === 0) return [0, 0];
@@ -266,20 +284,71 @@ export function alignEstimatedBuildingsToTerrain(
   );
 }
 
+function buildRoadSurfaceFootprints(
+  roads: LinearFeature[],
+) {
+  const clearance =
+    Math.max(
+      0,
+      policy.minAutoRoadClearance,
+    );
+  const ribbons =
+    roads.flatMap((road) => {
+      const footprint =
+        roadFootprintPolygon(
+          road.points,
+          road.width,
+          roadSurfacePolicy.sampleSpacing,
+          roadSurfacePolicy.maxMiterScale,
+          clearance,
+        );
+      return footprint.length >= 3
+        ? [footprint]
+        : [];
+    });
+  const junctions =
+    deriveRoadJunctions(
+      roads,
+      {
+        snapDistance:
+          roadSurfacePolicy.junctionSnapDistance,
+        overlap:
+          roadSurfacePolicy.junctionOverlap,
+      },
+    ).map((junction) =>
+      roadJunctionSurfacePolygon(
+        junction,
+        clearance,
+        32,
+      ),
+    );
+
+  return [
+    ...ribbons,
+    ...junctions,
+  ];
+}
+
 export function deriveRuntimeBuildingBlockouts(
   footprints: DerivedBuildingFootprint[],
   terrain: TerrainConfig,
   levels: SceneLevels,
   reservedFootprints: Point2[][] = [],
   fallbackBuildings: MeasuredObject[] = [],
+  roads: LinearFeature[] = [],
 ) {
   const buildings: MeasuredObject[] = [];
+  const roadSurfaceFootprints =
+    buildRoadSurfaceFootprints(
+      roads,
+    );
   const skipped = {
     excluded: 0,
     noHeight: 0,
     invalidFootprint: 0,
     excessiveRelief: 0,
     overlapsReserved: 0,
+    overlapsRoadSurface: 0,
   };
 
   for (const item of footprints) {
@@ -310,6 +379,19 @@ export function deriveRuntimeBuildingBlockouts(
       )
     ) {
       skipped.overlapsReserved += 1;
+      continue;
+    }
+
+    if (
+      roadSurfaceFootprints.some(
+        (roadSurface) =>
+          polygonsOverlap(
+            item.footprint,
+            roadSurface,
+          ),
+      )
+    ) {
+      skipped.overlapsRoadSurface += 1;
       continue;
     }
 
