@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import derivedTerrainData from "../../geospatial/derived/terrain.json";
 import derivedVectorsData from "../../geospatial/derived/site-vectors.json";
 import manifestData from "../../geospatial/manifest.json";
 import geospatialBase from "../data/geospatial-base.json";
@@ -73,6 +74,21 @@ interface GeospatialBaseRuntime {
   };
 }
 
+interface DerivedTerrainRuntime {
+  available: boolean;
+  source: string;
+  grid: null | {
+    spacing: number;
+    columns: number;
+    rows: number;
+    vertexCount: number;
+  };
+  statistics?: {
+    contourCount: number;
+    localHeightMax: number;
+  };
+}
+
 interface DerivedSiteVectors {
   available: boolean;
   metadata?: {
@@ -88,8 +104,15 @@ interface DerivedSiteVectors {
 const data = siteData as unknown as SalvadorSiteData;
 const geo =
   geospatialBase as unknown as GeospatialBaseRuntime;
+const derivedTerrain =
+  derivedTerrainData as unknown as DerivedTerrainRuntime;
 const derivedVectors =
   derivedVectorsData as unknown as DerivedSiteVectors;
+const persistentTerrainActive =
+  geo.terrain.active ===
+    "geospatial-derived" &&
+  geo.terrain.fallbackActive === false &&
+  derivedTerrain.available;
 function normalizeFeatureName(name: string) {
   return name.trim().toLocaleLowerCase("pt-BR");
 }
@@ -210,14 +233,33 @@ export function SalvadorScene() {
   });
   const [liveTerrainState, setLiveTerrainState] = useState<
     "loading" | "active" | "cached" | "unavailable"
-  >("loading");
-  const [liveTerrainProvider, setLiveTerrainProvider] =
-    useState("—");
-  const [liveTerrainStats, setLiveTerrainStats] = useState({
-    contours: 0,
-    columns: 0,
-    rows: 0,
-    maxHeight: 0,
+  >(
+    persistentTerrainActive
+      ? "active"
+      : "loading",
+  );
+  const [
+    liveTerrainProvider,
+    setLiveTerrainProvider,
+  ] = useState(
+    persistentTerrainActive
+      ? "Versionado · CONDER"
+      : "—",
+  );
+  const [
+    liveTerrainStats,
+    setLiveTerrainStats,
+  ] = useState({
+    contours:
+      derivedTerrain.statistics
+        ?.contourCount ?? 0,
+    columns:
+      derivedTerrain.grid?.columns ?? 0,
+    rows:
+      derivedTerrain.grid?.rows ?? 0,
+    maxHeight:
+      derivedTerrain.statistics
+        ?.localHeightMax ?? 0,
   });
   const [liveBuildingStats, setLiveBuildingStats] = useState({
     promoted: 0,
@@ -697,7 +739,8 @@ export function SalvadorScene() {
             }
           });
 
-        void loadLiveConderTerrain({
+        if (!persistentTerrainActive) {
+          void loadLiveConderTerrain({
           origin: {
             easting: geo.origin.easting,
             northing: geo.origin.northing,
@@ -828,6 +871,7 @@ export function SalvadorScene() {
               );
             }
           });
+        }
       } catch (error) {
         console.error("Failed to initialize Salvador 3D scene", error);
         if (!disposed) {
@@ -979,7 +1023,7 @@ export function SalvadorScene() {
               )}
           </div>
           <div className="mt-1 text-white/45">
-            CONDER ao vivo:{" "}
+            Terreno CONDER:{" "}
             {liveTerrainState === "loading"
               ? "carregando"
               : liveTerrainState === "active"
