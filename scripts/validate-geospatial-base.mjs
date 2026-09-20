@@ -154,13 +154,13 @@ if (!roadSurfacePolicy) {
 
   if (
     !Number.isFinite(
-      roadSurfacePolicy.maxGradeSmoothingDeviation,
+      roadSurfacePolicy.maxGradeSmoothingRaise,
     ) ||
-    roadSurfacePolicy.maxGradeSmoothingDeviation < 0 ||
-    roadSurfacePolicy.maxGradeSmoothingDeviation > 0.25
+    roadSurfacePolicy.maxGradeSmoothingRaise < 0 ||
+    roadSurfacePolicy.maxGradeSmoothingRaise > 0.25
   ) {
     fail(
-      "road maxGradeSmoothingDeviation must be between 0 and 0.25 metres",
+      "road maxGradeSmoothingRaise must be between 0 and 0.25 metres",
     );
   }
 
