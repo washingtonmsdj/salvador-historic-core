@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "available": false,
-  "generatedAt": "2026-09-20T16:57:52.441Z",
+  "available": true,
+  "generatedAt": "2026-09-20T16:59:36.229Z",
   "source": "OpenStreetMap via Overpass API",
   "crs": "EPSG:32724",
   "units": "meters",
@@ -12,8 +12,8 @@
     "maxZ": 300
   },
   "metadata": {
-    "featureCount": 321,
-    "runtimeReady": false,
+    "featureCount": 327,
+    "runtimeReady": true,
     "coverage": "complete",
     "criticalRoadCoverage": {
       "found": 4,
@@ -22,7 +22,7 @@
       "complete": true
     },
     "roadCount": 119,
-    "spaceCount": 0,
+    "spaceCount": 6,
     "buildingFootprintCount": 202
   },
   "roads": [
@@ -4007,7 +4007,473 @@
       }
     }
   ],
-  "spaces": [],
+  "spaces": [
+    {
+      "id": "way/1219371199",
+      "name": "Espaço OSM way/1219371199",
+      "type": "osm-park",
+      "width": 0,
+      "source": "OpenStreetMap way/1219371199",
+      "estimated": false,
+      "points": [
+        [
+          114.704,
+          91.04
+        ],
+        [
+          99.568,
+          70.643
+        ],
+        [
+          112.568,
+          63.142
+        ],
+        [
+          118.573,
+          66.703
+        ],
+        [
+          124.888,
+          85.402
+        ],
+        [
+          123.134,
+          86.622
+        ],
+        [
+          117.036,
+          90.914
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 1219371199,
+      "osmType": "way",
+      "tags": {
+        "leisure": "park"
+      }
+    },
+    {
+      "id": "way/1263035782",
+      "name": "Praça Tomé de Souza",
+      "type": "osm-park",
+      "width": 0,
+      "source": "OpenStreetMap way/1263035782",
+      "estimated": false,
+      "points": [
+        [
+          47.083,
+          -50.176
+        ],
+        [
+          31.377,
+          -67.741
+        ],
+        [
+          62.095,
+          -94.584
+        ],
+        [
+          105.359,
+          -43.398
+        ],
+        [
+          73.936,
+          -16.641
+        ],
+        [
+          56.216,
+          -38.239
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 1263035782,
+      "osmType": "way",
+      "tags": {
+        "leisure": "park",
+        "name": "Praça Tomé de Souza"
+      }
+    },
+    {
+      "id": "way/131558750",
+      "name": "Praça Castro Alves",
+      "type": "osm-park",
+      "width": 0,
+      "source": "OpenStreetMap way/131558750",
+      "estimated": false,
+      "points": [
+        [
+          -150,
+          -300
+        ],
+        [
+          -150,
+          -288.1544803652968
+        ],
+        [
+          -135.95,
+          -279.202
+        ],
+        [
+          -128.146,
+          -287.445
+        ],
+        [
+          -118.536,
+          -298.577
+        ],
+        [
+          -120.18588651709867,
+          -300
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 131558750,
+      "osmType": "way",
+      "tags": {
+        "description": "A Praça Castro Alves é um logradouro situado na cidade de Salvador, capital do estado brasileiro da Bahia, localizada na parte central do antigo centro urbano, na Cidade Alta.",
+        "leisure": "park",
+        "name": "Praça Castro Alves",
+        "wikidata": "Q10353259",
+        "wikimedia_commons": "Category:Praça Castro Alves (Salvador)",
+        "wikipedia": "pt:Praça Castro Alves"
+      }
+    },
+    {
+      "id": "way/154743324",
+      "name": "Praça Cairu",
+      "type": "osm-park",
+      "width": 0,
+      "source": "OpenStreetMap way/154743324",
+      "estimated": false,
+      "points": [
+        [
+          -28.694,
+          121.671
+        ],
+        [
+          -29.53,
+          120.909
+        ],
+        [
+          -32.959,
+          120.02
+        ],
+        [
+          -47.727,
+          105.218
+        ],
+        [
+          -64.243,
+          88.672
+        ],
+        [
+          -94.977,
+          118.966
+        ],
+        [
+          -100.021,
+          123.941
+        ],
+        [
+          -102.3,
+          128.933
+        ],
+        [
+          -102.676,
+          130.769
+        ],
+        [
+          -102.863,
+          135.392
+        ],
+        [
+          -102.949,
+          141.597
+        ],
+        [
+          -102.007,
+          146.306
+        ],
+        [
+          -100.264,
+          150.173
+        ],
+        [
+          -97.329,
+          153.872
+        ],
+        [
+          -94.918,
+          155.648
+        ],
+        [
+          -91.259,
+          157.599
+        ],
+        [
+          -86.614,
+          159.017
+        ],
+        [
+          -81.754,
+          159.704
+        ],
+        [
+          -77.101,
+          159.806
+        ],
+        [
+          -72.267,
+          158.48
+        ],
+        [
+          -68.434,
+          155.1
+        ],
+        [
+          -64.299,
+          150.89
+        ],
+        [
+          -62.495,
+          152.59
+        ],
+        [
+          -61.832,
+          153.429
+        ],
+        [
+          -150,
+          238.52717666925963
+        ],
+        [
+          -150,
+          169.96095148093355
+        ],
+        [
+          -119.604,
+          137.802
+        ],
+        [
+          -118.588,
+          135.809
+        ],
+        [
+          -112.587,
+          120.426
+        ],
+        [
+          -113.024,
+          118.845
+        ],
+        [
+          -132.672,
+          98.324
+        ],
+        [
+          -133,
+          96.975
+        ],
+        [
+          -132.913,
+          85.806
+        ],
+        [
+          -132.264,
+          85.141
+        ],
+        [
+          -122.994,
+          94.778
+        ],
+        [
+          -119.605,
+          91.653
+        ],
+        [
+          -118.453,
+          92.878
+        ],
+        [
+          -112.553,
+          87.138
+        ],
+        [
+          -113.792,
+          86.079
+        ],
+        [
+          -85.8,
+          57.084
+        ],
+        [
+          -86.435,
+          53.613
+        ],
+        [
+          -105.847,
+          31.996
+        ],
+        [
+          -107.159,
+          32.087
+        ],
+        [
+          -109.391,
+          33.474
+        ],
+        [
+          -110.844,
+          33.543
+        ],
+        [
+          -132.9,
+          12.949
+        ],
+        [
+          -133.391,
+          11.313
+        ],
+        [
+          -127.038,
+          4.378
+        ],
+        [
+          -127.218,
+          0.585
+        ],
+        [
+          -127.395,
+          -1.096
+        ],
+        [
+          -104.988,
+          -23.754
+        ],
+        [
+          -101.127,
+          -23.982
+        ],
+        [
+          -15.947,
+          54.784
+        ],
+        [
+          -12.227,
+          60.693
+        ],
+        [
+          -7.503,
+          69.421
+        ],
+        [
+          -6.693,
+          73.345
+        ],
+        [
+          -6.667,
+          81.13
+        ],
+        [
+          -8.103,
+          90.611
+        ],
+        [
+          -10.062,
+          98.179
+        ],
+        [
+          -14.136,
+          105.895
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 154743324,
+      "osmType": "way",
+      "tags": {
+        "leisure": "park",
+        "name": "Praça Cairu",
+        "official_name": "Praça Visconde de Cairu",
+        "wikidata": "Q10353251",
+        "wikimedia_commons": "Category:Praça Cairu",
+        "wikipedia": "pt:Praça Visconde de Cairu"
+      }
+    },
+    {
+      "id": "way/154743345",
+      "name": "Praça da Inglaterra",
+      "type": "osm-park",
+      "width": 0,
+      "source": "OpenStreetMap way/154743345",
+      "estimated": false,
+      "points": [
+        [
+          26.768726233650625,
+          300
+        ],
+        [
+          56.167,
+          271.192
+        ],
+        [
+          58.552,
+          271
+        ],
+        [
+          83.674,
+          295.425
+        ],
+        [
+          83.852,
+          297.482
+        ],
+        [
+          80.61960739583495,
+          300
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 154743345,
+      "osmType": "way",
+      "tags": {
+        "leisure": "park",
+        "name": "Praça da Inglaterra"
+      }
+    },
+    {
+      "id": "way/59981415",
+      "name": "Praça da Sé",
+      "type": "osm-park",
+      "width": 0,
+      "source": "OpenStreetMap way/59981415",
+      "estimated": false,
+      "points": [
+        [
+          150,
+          62.311916957316065
+        ],
+        [
+          144.754,
+          66.542
+        ],
+        [
+          150,
+          72.00119992283456
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 59981415,
+      "osmType": "way",
+      "tags": {
+        "leisure": "park",
+        "name": "Praça da Sé",
+        "tourism": "attraction",
+        "wikidata": "Q3401486",
+        "wikimedia_commons": "Category:Praça da Sé (Salvador)",
+        "wikipedia": "pt:Praça da Sé (Salvador)"
+      }
+    }
+  ],
   "buildingFootprints": [
     {
       "id": "way/1024245685",
