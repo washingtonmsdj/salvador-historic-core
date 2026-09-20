@@ -12,7 +12,7 @@
     "maxZ": 300
   },
   "metadata": {
-    "featureCount": 324,
+    "featureCount": 327,
     "runtimeReady": true,
     "coverage": "complete",
     "criticalRoadCoverage": {
@@ -25,7 +25,8 @@
     "spaceCount": 6,
     "buildingFootprintCount": 202,
     "excludedIndoorHighwayCount": 3,
-    "laneDerivedRoadCount": 35
+    "laneDerivedRoadCount": 35,
+    "elevatedCorridorCount": 3
   },
   "roads": [
     {
@@ -11813,6 +11814,91 @@
       "height": null,
       "heightEstimated": true,
       "heightSource": "height unavailable"
+    }
+  ],
+  "elevatedCorridors": [
+    {
+      "id": "way/1455480196",
+      "name": "Corredor OSM way/1455480196",
+      "type": "osm-indoor-corridor",
+      "width": 3,
+      "widthSource": "deterministic indoor corridor width",
+      "source": "OpenStreetMap way/1455480196",
+      "estimated": true,
+      "points": [
+        [
+          52.185,
+          -47.487
+        ],
+        [
+          39.926,
+          -38.34
+        ]
+      ],
+      "osmId": 1455480196,
+      "osmType": "way",
+      "tags": {
+        "highway": "corridor",
+        "indoor": "yes",
+        "layer": "1"
+      }
+    },
+    {
+      "id": "way/1455480198",
+      "name": "Corredor OSM way/1455480198",
+      "type": "osm-indoor-corridor",
+      "width": 3,
+      "widthSource": "deterministic indoor corridor width",
+      "source": "OpenStreetMap way/1455480198",
+      "estimated": true,
+      "points": [
+        [
+          3.402,
+          -1.842
+        ],
+        [
+          1,
+          1.159
+        ],
+        [
+          -1.196,
+          3.917
+        ]
+      ],
+      "osmId": 1455480198,
+      "osmType": "way",
+      "tags": {
+        "highway": "corridor",
+        "indoor": "yes",
+        "layer": "1"
+      }
+    },
+    {
+      "id": "way/59409445",
+      "name": "Corredor OSM way/59409445",
+      "type": "osm-indoor-corridor",
+      "width": 3,
+      "widthSource": "deterministic indoor corridor width",
+      "source": "OpenStreetMap way/59409445",
+      "estimated": true,
+      "points": [
+        [
+          39.926,
+          -38.34
+        ],
+        [
+          3.402,
+          -1.842
+        ]
+      ],
+      "osmId": 59409445,
+      "osmType": "way",
+      "tags": {
+        "bridge": "yes",
+        "highway": "corridor",
+        "indoor": "yes",
+        "layer": "1"
+      }
     }
   ]
 }
