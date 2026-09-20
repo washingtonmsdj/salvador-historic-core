@@ -162,6 +162,8 @@ export function SalvadorScene() {
     spaces: 0,
     buildings: 0,
   });
+  const [liveOsmProvider, setLiveOsmProvider] =
+    useState("—");
   const [liveTerrainState, setLiveTerrainState] = useState<
     "loading" | "active" | "cached" | "unavailable"
   >("loading");
@@ -574,6 +576,13 @@ export function SalvadorScene() {
               buildings:
                 live.buildingFootprints.length,
             });
+            setLiveOsmProvider(
+              live.endpoint.includes(
+                "api.openstreetmap.org",
+              )
+                ? "API bbox"
+                : "Overpass",
+            );
             setLiveOsmState(
               live.source === "session-cache"
                 ? "cached"
@@ -842,7 +851,8 @@ export function SalvadorScene() {
             {(liveOsmState === "active" ||
               liveOsmState === "cached") && (
               <>
-                {" "}· {liveOsmCounts.roads} ruas ·{" "}
+                {" "}· {liveOsmProvider} ·{" "}
+                {liveOsmCounts.roads} ruas ·{" "}
                 {liveOsmCounts.spaces} áreas ·{" "}
                 {liveOsmCounts.buildings} footprints
               </>
