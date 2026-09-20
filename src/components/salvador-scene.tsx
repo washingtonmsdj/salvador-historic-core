@@ -891,8 +891,6 @@ export function SalvadorScene() {
               data.levels,
             );
 
-            syncPlayerToActiveTerrain?.();
-
             for (const mesh of spaceMeshes) {
               mesh.dispose();
             }
@@ -902,6 +900,8 @@ export function SalvadorScene() {
               data.terrain,
               data.levels,
             );
+
+            syncPlayerToActiveTerrain?.();
 
             for (const mesh of buildingGuideMeshes) {
               mesh.dispose();
