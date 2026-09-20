@@ -13,7 +13,8 @@ import { assertUsableOverpassPayload } from "./lib/overpass-integrity.mjs";
 
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ];
 
 const { manifest, origin, bounds, projected } =
@@ -90,7 +91,7 @@ const query = `
   way["leisure"="park"](${bbox});
   way["place"="square"](${bbox});
 );
-out geom center tags;
+out body geom;
 `.trim();
 
 async function queryOverpass() {
@@ -101,8 +102,11 @@ async function queryOverpass() {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
+          accept: "application/json",
           "content-type":
             "application/x-www-form-urlencoded;charset=UTF-8",
+          "user-agent":
+            "salvador-historic-core/1.0 (+https://github.com/washingtonmsdj/salvador-historic-core)",
         },
         body: new URLSearchParams({ data: query }),
       });
