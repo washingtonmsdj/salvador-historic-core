@@ -69,5 +69,8 @@ jobs:
       - name: Validate building grounding
         run: bun run building:grounding-test
 
+      - name: Validate landmark GIS fidelity
+        run: bun run landmark:fidelity-test
+
       - name: Build
         run: bun run build
