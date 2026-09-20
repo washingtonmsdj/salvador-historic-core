@@ -23,6 +23,9 @@
 - [ ] Avaliar MDT/LiDAR municipal como fonte altimétrica preferencial quando houver endpoint/arquivo estável
 - [ ] Substituir os blockouts retangulares de edificações por footprints poligonais verificados
 - [x] Corrigir enquadramento, contraste e elementos provisórios que tornavam a cena ilegível
+- [x] Centralizar o perímetro no Elevador e fechar a maquete com base/paredes laterais
+- [x] Adicionar materiais e texturas procedurais distintos para Cidade Alta, escarpa e Cidade Baixa
+- [x] Adicionar validação automática dos limites e da centralização do terreno
 - [ ] Validar orientação, escala e alinhamento visual dos marcos principais contra referências verificadas
 - [ ] Adicionar testes de integridade dos dados e build em CI
 - [ ] Validar desktop, celular, desempenho e acessibilidade dos controles
