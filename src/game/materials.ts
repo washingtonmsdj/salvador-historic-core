@@ -4,7 +4,7 @@ import type { Scene } from "@babylonjs/core/scene";
 
 const COLORS = {
   terrain: "#667468",
-  road: "#4f5557",
+  road: "#686d6b",
   square: "#d5cbb7",
   building: "#c6aa7b",
   civic: "#b89462",
