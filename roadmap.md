@@ -31,7 +31,8 @@
 - [x] Alinhar blockouts da Rua Chile a um único eixo OSM verificado
 - [x] Remover placeholders urbanos sem identidade/alinhamento verificável
 - [x] Preparar importador OSM do recorte com fallback de endpoint e conversão para metros locais
-- [ ] Rodar importador OSM e promover traçado verificável da Ladeira da Montanha antes de recolocá-la na cena
+- [x] Carregar Ladeira da Montanha apenas de fonte OSM live/API bbox e auditar presença no Preview
+- [ ] Rodar importador OSM persistente e versionar o traçado completo da Ladeira da Montanha
 - [x] Nivelar o envelope TPTS 46 x 50 m como patamar coerente com a Praça no blockout
 - [ ] Validar orientação, escala e alinhamento visual dos marcos principais contra referências verificadas
 - [ ] Restaurar typecheck/lint/build em CI quando o runner hospedado estiver disponível
@@ -49,6 +50,8 @@
 - [x] Expor no runtime quando terreno/vetores ainda estão em fallback
 - [x] Ativar seed OSM versionada parcial para Rua Chile, Praça Tomé e Elevador
 - [x] Carregar OSM ao vivo no Preview com fallback para a seed versionada
+- [x] Adicionar fallback da API bbox oficial do OSM quando Overpass falhar
+- [x] Expor coordenadas WGS84/UTM nos quatro cantos e transformação inversa para qualquer X/Z
 - [x] Promover footprints OSM live com altura para blockouts sobre terrain geoespacial
 - [ ] Executar importação OSM completa do recorte e revisar features
 - [x] Visualizar curvas CONDER ao vivo como heightfield temporário no Preview
