@@ -98,6 +98,12 @@ contours.sort(
   (a, b) => a.elevation - b.elevation || a.id.localeCompare(b.id),
 );
 
+if (contours.length < 2) {
+  throw new Error(
+    `CONDER returned only ${contours.length} usable contour paths; refusing to promote terrain input.`,
+  );
+}
+
 const output = {
   metadata: {
     source:
