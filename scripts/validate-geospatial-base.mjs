@@ -332,6 +332,18 @@ if (!roadSurfacePolicy) {
       "road junctionTerrainMaskPadding must be between 0 and 0.5 metres",
     );
   }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionMaxRoadEdgeDelta,
+    ) ||
+    roadSurfacePolicy.junctionMaxRoadEdgeDelta < 0 ||
+    roadSurfacePolicy.junctionMaxRoadEdgeDelta > 0.3
+  ) {
+    fail(
+      "road junctionMaxRoadEdgeDelta must be between 0 and 0.3 metres",
+    );
+  }
 }
 
 const liveTerrainPreview =
