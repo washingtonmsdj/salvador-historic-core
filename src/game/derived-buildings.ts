@@ -519,10 +519,12 @@ export function deriveRuntimeBuildingBlockouts(
       depth: dimensions.depth,
       height,
       footprint: item.footprint,
-      foundationBottomY:
-        useSteppedFoundation
-          ? stats.minGround
-          : undefined,
+      ...(useSteppedFoundation
+        ? {
+            foundationBottomY:
+              stats.minGround,
+          }
+        : {}),
       source: [
         item.source,
         item.heightSource,
