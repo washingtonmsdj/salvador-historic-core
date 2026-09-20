@@ -231,6 +231,54 @@ if (!terrainPresentation) {
 
   if (
     !Number.isFinite(
+      terrainPresentation.macroVariationScale,
+    ) ||
+    terrainPresentation.macroVariationScale < 30 ||
+    terrainPresentation.macroVariationScale > 250
+  ) {
+    fail(
+      "terrain macroVariationScale must be between 30 and 250 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      terrainPresentation.macroVariationStrength,
+    ) ||
+    terrainPresentation.macroVariationStrength < 0 ||
+    terrainPresentation.macroVariationStrength > 0.3
+  ) {
+    fail(
+      "terrain macroVariationStrength must be between 0 and 0.3",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      terrainPresentation.elevationTintStrength,
+    ) ||
+    terrainPresentation.elevationTintStrength < 0 ||
+    terrainPresentation.elevationTintStrength > 0.2
+  ) {
+    fail(
+      "terrain elevationTintStrength must be between 0 and 0.2",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      terrainPresentation.concavityTintStrength,
+    ) ||
+    terrainPresentation.concavityTintStrength < 0 ||
+    terrainPresentation.concavityTintStrength > 0.25
+  ) {
+    fail(
+      "terrain concavityTintStrength must be between 0 and 0.25",
+    );
+  }
+
+  if (
+    !Number.isFinite(
       terrainPresentation.rockBlendNormalYBand,
     ) ||
     terrainPresentation.rockBlendNormalYBand <= 0 ||
