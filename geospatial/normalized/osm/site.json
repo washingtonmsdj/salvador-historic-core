@@ -20,7 +20,17 @@
     "featureCount": 3,
     "namedTargetCount": 3,
     "coverage": "seed-partial",
-    "notes": "Partial seed only. Full bbox import is still pending."
+    "notes": "Partial seed only. Full bbox import is still pending.",
+    "criticalRoadCoverage": {
+      "found": 1,
+      "total": 4,
+      "missing": [
+        "Ladeira da Montanha",
+        "Rua da Conceição da Praia",
+        "Avenida Lafayete Coutinho"
+      ],
+      "complete": false
+    }
   },
   "namedTargets": [
     {
