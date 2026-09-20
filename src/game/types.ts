@@ -55,6 +55,14 @@ export interface TerrainConfig {
     risePerMeterZ: number;
     maxVariation: number;
   };
+  presentation: {
+    baseY: number;
+    perimeterSampleSpacing: number;
+    textureScale: number;
+    rockNormalYMax: number;
+    upperElevationMin: number;
+    lowerElevationMax: number;
+  };
   source: string;
   estimated: boolean;
 }
