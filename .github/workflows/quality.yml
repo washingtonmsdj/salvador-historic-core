@@ -48,6 +48,9 @@ jobs:
       - name: Validate road junctions
         run: bun run road:junction-test
 
+      - name: Validate junction surface planes
+        run: bun run road:junction-surface-test
+
       - name: Validate terrain-safe road grading
         run: bun run road:grading-test
 
