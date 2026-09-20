@@ -352,14 +352,15 @@ export function SalvadorScene() {
           },
         })
           .then((live) => {
-            if (disposed || !scene) return;
+            const liveScene = scene;
+            if (disposed || !liveScene) return;
 
             if (live.roads.length > 0) {
               for (const mesh of roadMeshes) {
                 mesh.dispose();
               }
               roadMeshes = createRoads(
-                scene,
+                liveScene,
                 live.roads,
                 data.terrain,
                 data.levels,
@@ -371,7 +372,7 @@ export function SalvadorScene() {
                 mesh.dispose();
               }
               spaceMeshes = createSpaces(
-                scene,
+                liveScene,
                 live.spaces,
                 data.terrain,
                 data.levels,
@@ -379,7 +380,7 @@ export function SalvadorScene() {
             }
 
             createBuildingFootprintGuides(
-              scene,
+              liveScene,
               live.buildingFootprints,
               data.terrain,
               data.levels,
@@ -524,8 +525,16 @@ export function SalvadorScene() {
             {derivedVectors.metadata?.buildingFootprintCount ?? 0} edifícios
           </div>
           <div className="mt-1 text-white/45">
-            OSM live: {liveOsmState}
-            {liveOsmState !== "unavailable" && (
+            OSM ao vivo:{" "}
+            {liveOsmState === "loading"
+              ? "carregando"
+              : liveOsmState === "active"
+                ? "ativo"
+                : liveOsmState === "cached"
+                  ? "cache da sessão"
+                  : "indisponível — usando seed"}
+            {(liveOsmState === "active" ||
+              liveOsmState === "cached") && (
               <>
                 {" "}· {liveOsmCounts.roads} ruas ·{" "}
                 {liveOsmCounts.spaces} áreas ·{" "}
