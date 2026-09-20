@@ -82,7 +82,19 @@ function createTerrainMaterial(
   striated = false,
   alpha = 1,
 ) {
-  const material = new StandardMaterial(name, scene);
+  const existing =
+    scene.getMaterialByName(name);
+  if (
+    existing instanceof
+    StandardMaterial
+  ) {
+    return existing;
+  }
+
+  const material = new StandardMaterial(
+    name,
+    scene,
+  );
   material.diffuseTexture = createSurfaceTexture(
     scene,
     `${name}-diffuse`,
@@ -135,9 +147,28 @@ export function createTerrainMaterials(scene: Scene, config: TerrainConfig) {
     0.58,
   );
 
-  const base = new StandardMaterial("terrain-base", scene);
-  base.diffuseColor = new Color3(0.26, 0.24, 0.21);
-  base.emissiveColor = new Color3(0.018, 0.016, 0.014);
+  const existingBase =
+    scene.getMaterialByName(
+      "terrain-base",
+    );
+  const base =
+    existingBase instanceof
+    StandardMaterial
+      ? existingBase
+      : new StandardMaterial(
+          "terrain-base",
+          scene,
+        );
+  base.diffuseColor = new Color3(
+    0.26,
+    0.24,
+    0.21,
+  );
+  base.emissiveColor = new Color3(
+    0.018,
+    0.016,
+    0.014,
+  );
   base.specularColor = Color3.Black();
 
   surface.backFaceCulling = false;
