@@ -71,10 +71,89 @@ function isExcluded(item: DerivedBuildingFootprint) {
   );
 }
 
+function pointInPolygon(point: Point2, polygon: Point2[]) {
+  let inside = false;
+  const [x, z] = point;
+
+  for (
+    let index = 0, previous = polygon.length - 1;
+    index < polygon.length;
+    previous = index++
+  ) {
+    const current = polygon[index];
+    const before = polygon[previous];
+    if (!current || !before) continue;
+
+    const intersects =
+      current[1] > z !== before[1] > z &&
+      x <
+        ((before[0] - current[0]) *
+          (z - current[1])) /
+          (before[1] - current[1] || Number.EPSILON) +
+          current[0];
+
+    if (intersects) inside = !inside;
+  }
+
+  return inside;
+}
+
+function orientation(a: Point2, b: Point2, c: Point2) {
+  return (
+    (b[0] - a[0]) * (c[1] - a[1]) -
+    (b[1] - a[1]) * (c[0] - a[0])
+  );
+}
+
+function segmentsIntersect(
+  a: Point2,
+  b: Point2,
+  c: Point2,
+  d: Point2,
+) {
+  const abC = orientation(a, b, c);
+  const abD = orientation(a, b, d);
+  const cdA = orientation(c, d, a);
+  const cdB = orientation(c, d, b);
+
+  return abC * abD <= 0 && cdA * cdB <= 0;
+}
+
+function polygonsOverlap(a: Point2[], b: Point2[]) {
+  if (a.some((point) => pointInPolygon(point, b))) {
+    return true;
+  }
+
+  if (b.some((point) => pointInPolygon(point, a))) {
+    return true;
+  }
+
+  for (let aIndex = 0; aIndex < a.length; aIndex++) {
+    const aStart = a[aIndex];
+    const aEnd = a[(aIndex + 1) % a.length];
+    if (!aStart || !aEnd) continue;
+
+    for (let bIndex = 0; bIndex < b.length; bIndex++) {
+      const bStart = b[bIndex];
+      const bEnd = b[(bIndex + 1) % b.length];
+      if (
+        bStart &&
+        bEnd &&
+        segmentsIntersect(aStart, aEnd, bStart, bEnd)
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 export function deriveRuntimeBuildingBlockouts(
   footprints: DerivedBuildingFootprint[],
   terrain: TerrainConfig,
   levels: SceneLevels,
+  reservedFootprints: Point2[][] = [],
 ) {
   const buildings: MeasuredObject[] = [];
   const skipped = {
@@ -82,6 +161,7 @@ export function deriveRuntimeBuildingBlockouts(
     noHeight: 0,
     invalidFootprint: 0,
     excessiveRelief: 0,
+    overlapsReserved: 0,
   };
 
   for (const item of footprints) {
@@ -91,8 +171,9 @@ export function deriveRuntimeBuildingBlockouts(
     }
 
     if (
+      typeof item.height !== "number" ||
       !Number.isFinite(item.height) ||
-      (item.height ?? 0) <= 0
+      item.height <= 0
     ) {
       skipped.noHeight += 1;
       continue;
@@ -100,6 +181,17 @@ export function deriveRuntimeBuildingBlockouts(
 
     if (!Array.isArray(item.footprint) || item.footprint.length < 3) {
       skipped.invalidFootprint += 1;
+      continue;
+    }
+
+    if (
+      reservedFootprints.some(
+        (reserved) =>
+          reserved.length >= 3 &&
+          polygonsOverlap(item.footprint, reserved),
+      )
+    ) {
+      skipped.overlapsReserved += 1;
       continue;
     }
 
@@ -123,7 +215,7 @@ export function deriveRuntimeBuildingBlockouts(
       samples.reduce((sum, value) => sum + value, 0) /
       samples.length;
     const dimensions = boundsOf(item.footprint);
-    const height = item.height as number;
+    const height = item.height;
 
     buildings.push({
       id: `osm-building-${item.osmType}-${item.osmId}`,
