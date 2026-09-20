@@ -51,5 +51,8 @@ jobs:
       - name: Validate walkable player spawn
         run: bun run player:spawn-test
 
+      - name: Validate terrain structure masks
+        run: bun run terrain:mask-test
+
       - name: Build
         run: bun run build
