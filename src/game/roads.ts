@@ -74,19 +74,22 @@ export function createRoads(
   levels: SceneLevels,
 ) {
   return roads.flatMap((road) =>
-    road.points
-      .slice(0, -1)
-      .map((point, index) =>
+    road.points.slice(0, -1).flatMap((point, index) => {
+      const nextPoint = road.points[index + 1];
+      if (!nextPoint) return [];
+
+      return [
         createSegment(
           scene,
           road,
           point,
-          road.points[index + 1],
+          nextPoint,
           index,
           terrain,
           levels,
         ),
-      ),
+      ];
+    }),
   );
 }
 
