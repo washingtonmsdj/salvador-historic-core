@@ -14,7 +14,12 @@
     "terrain:import:conder": "node scripts/import-conder-contours.mjs",
     "terrain:validate": "node scripts/validate-terrain-data.mjs",
     "layout:validate": "node scripts/validate-site-layout.mjs",
-    "site:import:osm": "node scripts/import-osm-site.mjs"
+    "site:import:osm": "node scripts/import-osm-site.mjs",
+    "geospatial:import:osm": "node scripts/import-osm-site.mjs",
+    "geospatial:import:conder": "node scripts/import-conder-contours.mjs",
+    "geospatial:build": "node scripts/build-geospatial-base.mjs",
+    "geospatial:validate": "node scripts/validate-geospatial-base.mjs",
+    "geospatial:refresh": "node scripts/import-osm-site.mjs && node scripts/import-conder-contours.mjs && node scripts/build-geospatial-base.mjs && node scripts/validate-geospatial-base.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"

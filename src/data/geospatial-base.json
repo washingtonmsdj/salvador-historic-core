@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": null,
+  "crs": "EPSG:32724",
+  "units": "meters",
+  "origin": {
+    "latitude": -12.9740882,
+    "longitude": -38.5133597,
+    "easting": 552777.9809,
+    "northing": 8565679.442
+  },
+  "perimeter": {
+    "minX": -150,
+    "maxX": 150,
+    "minZ": -230,
+    "maxZ": 230
+  },
+  "sources": {
+    "osm": {
+      "kind": "osm",
+      "available": false,
+      "featureCount": 0
+    },
+    "contours": {
+      "kind": "conder-contours",
+      "available": false,
+      "featureCount": 0
+    }
+  },
+  "terrain": {
+    "preferred": "official-dem-or-contours",
+    "active": "procedural-fallback",
+    "fallbackActive": true
+  },
+  "vectors": {
+    "preferred": "osm",
+    "active": "site-data-fallback",
+    "fallbackActive": true
+  },
+  "derived": {
+    "terrain": {
+      "kind": "terrain-derived",
+      "available": false,
+      "featureCount": 0
+    },
+    "vectors": {
+      "kind": "vectors-derived",
+      "available": false,
+      "featureCount": 0
+    }
+  }
+}
