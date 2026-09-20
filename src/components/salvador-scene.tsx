@@ -55,6 +55,7 @@ export function SalvadorScene() {
           { Scene },
           { HemisphericLight },
           { DirectionalLight },
+          { ShadowGenerator },
           { Vector3 },
           { Color4 },
           { createTerrain },
@@ -70,6 +71,7 @@ export function SalvadorScene() {
           import("@babylonjs/core/scene"),
           import("@babylonjs/core/Lights/hemisphericLight"),
           import("@babylonjs/core/Lights/directionalLight"),
+          import("@babylonjs/core/Lights/Shadows/shadowGenerator"),
           import("@babylonjs/core/Maths/math.vector"),
           import("@babylonjs/core/Maths/math.color"),
           import("../game/terrain"),
@@ -112,13 +114,31 @@ export function SalvadorScene() {
         sun.position = new Vector3(120, 180, -80);
         sun.intensity = 0.82;
 
-        createTerrain(scene, data.terrain, data.levels);
+        const terrainMeshes = createTerrain(scene, data.terrain, data.levels);
         createSpaces(scene, data.spaces);
         createRoads(scene, data.roads, data.terrain, data.levels);
-        createBuildings(scene, data.buildings);
-        createElevatorBlockout(scene, data.elevator);
+        const buildingMeshes = createBuildings(scene, data.buildings);
+        const elevatorMeshes = createElevatorBlockout(scene, data.elevator);
         createConnectionPoints(scene, data.landmarks);
-        createBarriers(scene, data.barriers);
+        const barrierMeshes = createBarriers(scene, data.barriers);
+
+        const shadows = new ShadowGenerator(2048, sun);
+        shadows.useBlurExponentialShadowMap = true;
+        shadows.blurKernel = 24;
+        shadows.bias = 0.0005;
+        shadows.normalBias = 0.025;
+
+        for (const mesh of [
+          ...buildingMeshes,
+          ...elevatorMeshes,
+          ...barrierMeshes,
+        ]) {
+          shadows.addShadowCaster(mesh);
+        }
+
+        for (const mesh of terrainMeshes) {
+          mesh.receiveShadows = true;
+        }
 
         const cameras = createCameras(scene, canvas);
         configurePlayer(scene, cameras.street);

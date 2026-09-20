@@ -11,9 +11,9 @@
     "upperCity": { "elevation": 65, "source": "IPHAN historical description: Cidade Alta approximately 65 m above the port; local blockout datum, not a surveyed point elevation", "estimated": true }
   },
   "terrain": {
-    "tileSize": 60,
-    "subdivisionsPerTile": 16,
-    "bounds": { "minX": -130, "maxX": 170, "minZ": -230, "maxZ": 220 },
+    "tileSize": 50,
+    "subdivisionsPerTile": 20,
+    "bounds": { "minX": -150, "maxX": 150, "minZ": -230, "maxZ": 230 },
     "profiles": [
       { "z": -230, "toeX": -122, "cliffX": -98, "shoulderX": -72 },
       { "z": -190, "toeX": -102, "cliffX": -78, "shoulderX": -52 },
@@ -25,10 +25,17 @@
       { "z": 45, "toeX": 12, "cliffX": 30, "shoulderX": 48 },
       { "z": 90, "toeX": 18, "cliffX": 38, "shoulderX": 58 },
       { "z": 150, "toeX": 22, "cliffX": 42, "shoulderX": 62 },
-      { "z": 220, "toeX": 26, "cliffX": 46, "shoulderX": 66 }
+      { "z": 230, "toeX": 26, "cliffX": 46, "shoulderX": 66 }
     ],
     "lowerGrade": { "risePerMeterX": 0.004, "maxRise": 1.2 },
     "upperGrade": { "risePerMeterX": 0.002, "risePerMeterZ": -0.001, "maxVariation": 1.5 },
+    "presentation": {
+      "baseY": -14,
+      "perimeterSampleSpacing": 5,
+      "textureScale": 5,
+      "rockNormalYMax": 0.84,
+      "upperElevationMin": 32
+    },
     "source": "Provisional 2D escarpment control profiles prepared for blockout. CONDER Cartografia Sistemática 1992 REL_Curva_Nivel_L is the official contour reference to import next; profiles must not be treated as surveyed contours.",
     "estimated": true
   },

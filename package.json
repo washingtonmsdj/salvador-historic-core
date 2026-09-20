@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "terrain:import:conder": "node scripts/import-conder-contours.mjs"
+    "terrain:import:conder": "node scripts/import-conder-contours.mjs",
+    "terrain:validate": "node scripts/validate-terrain-data.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
