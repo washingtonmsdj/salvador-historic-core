@@ -93,7 +93,13 @@
       "steps": 2
     },
     "buildingLevelHeight": 3,
-    "notes": "Road centerlines and polygons are clipped to the project perimeter. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated."
+    "criticalRoadNames": [
+      "Rua Chile",
+      "Ladeira da Montanha",
+      "Rua da Conceição da Praia",
+      "Avenida Lafayete Coutinho"
+    ],
+    "notes": "Road centerlines and polygons are clipped to the project perimeter. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated. Complete coverage requires every critical road name to be present."
   },
   "buildingBlockoutPolicy": {
     "maxAutoFoundationRelief": 0.75,

@@ -42,6 +42,9 @@ const output = deriveOsmSiteVectors({
     "OpenStreetMap normalized site layer",
   crs: manifest.localCoordinateSystem.horizontalCrs,
   units: manifest.units,
+  coverage: payload.metadata?.coverage ?? "partial",
+  criticalRoadNames:
+    manifest.vectorDerivation.criticalRoadNames ?? [],
 });
 
 await mkdir(dirname(outputPath), { recursive: true });

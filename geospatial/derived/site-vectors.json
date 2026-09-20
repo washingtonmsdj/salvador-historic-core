@@ -17,7 +17,17 @@
     "coverage": "seed-partial",
     "roadCount": 1,
     "spaceCount": 1,
-    "buildingFootprintCount": 1
+    "buildingFootprintCount": 1,
+    "criticalRoadCoverage": {
+      "found": 1,
+      "total": 4,
+      "missing": [
+        "Ladeira da Montanha",
+        "Rua da Conceição da Praia",
+        "Avenida Lafayete Coutinho"
+      ],
+      "complete": false
+    }
   },
   "roads": [
     {

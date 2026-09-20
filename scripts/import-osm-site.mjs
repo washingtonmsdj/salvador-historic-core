@@ -241,6 +241,41 @@ const namedTargets = features.filter((feature) =>
   targetNames.has(feature.tags?.name),
 );
 
+const criticalRoadNames =
+  manifest.vectorDerivation?.criticalRoadNames ?? [];
+const importedRoadNames = new Set(
+  features
+    .filter((feature) => feature.tags?.highway)
+    .map((feature) =>
+      String(feature.tags?.name ?? "")
+        .trim()
+        .toLocaleLowerCase("pt-BR"),
+    )
+    .filter(Boolean),
+);
+const missingCriticalRoads =
+  criticalRoadNames.filter(
+    (name) =>
+      !importedRoadNames.has(
+        name
+          .trim()
+          .toLocaleLowerCase("pt-BR"),
+      ),
+  );
+const criticalRoadCoverage = {
+  found:
+    criticalRoadNames.length -
+    missingCriticalRoads.length,
+  total: criticalRoadNames.length,
+  missing: missingCriticalRoads,
+  complete:
+    missingCriticalRoads.length === 0,
+};
+const coverage =
+  criticalRoadCoverage.complete
+    ? "complete"
+    : "partial";
+
 const output = {
   metadata: {
     source: "OpenStreetMap via Overpass API",
@@ -266,6 +301,8 @@ const output = {
     },
     featureCount: features.length,
     namedTargetCount: namedTargets.length,
+    coverage,
+    criticalRoadCoverage,
   },
   namedTargets,
   features,
@@ -284,6 +321,7 @@ console.log(
   [
     `Imported ${features.length} OSM features.`,
     `Named targets found: ${namedTargets.length}.`,
+    `Coverage: ${coverage} (${criticalRoadCoverage.found}/${criticalRoadCoverage.total} critical roads).`,
     `Raw: ${manifest.sources.osm.rawOutput}.`,
     `Normalized: ${
       manifest.sources.osm.normalizedOutput

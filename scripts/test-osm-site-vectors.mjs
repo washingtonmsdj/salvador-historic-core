@@ -63,6 +63,11 @@ const derived = deriveOsmSiteVectors({
   bounds,
   config,
   source: "synthetic OSM",
+  coverage: "partial",
+  criticalRoadNames: [
+    "Rua Teste",
+    "Rua Ausente",
+  ],
   features: [
     {
       id: "way/1",
@@ -132,6 +137,19 @@ const derived = deriveOsmSiteVectors({
 
 if (derived.roads.length !== 2) {
   failures.push(`expected 2 roads, got ${derived.roads.length}`);
+}
+
+if (
+  derived.metadata?.coverage !== "partial" ||
+  derived.metadata?.criticalRoadCoverage?.found !== 1 ||
+  derived.metadata?.criticalRoadCoverage?.total !== 2 ||
+  derived.metadata?.criticalRoadCoverage?.complete !== false ||
+  derived.metadata?.criticalRoadCoverage?.missing?.[0] !==
+    "Rua Ausente"
+) {
+  failures.push(
+    "critical road coverage metadata is incorrect",
+  );
 }
 
 const residential = derived.roads.find(
