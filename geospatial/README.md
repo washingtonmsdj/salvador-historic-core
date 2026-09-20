@@ -57,10 +57,14 @@ Regras principais:
 - largura explícita do OSM é preservada quando disponível;
 - largura determinística continua identificada como estimada;
 - crossfall de gameplay é limitado a 6%;
-- depressões podem receber correção vertical limitada, sem cortar o terreno oficial;
+- a inclinação longitudinal é limitada a 14% por um solver raise-only que trabalha nas duas bordas da pista;
+- o solver nunca corta a superfície CONDER: ele só eleva a via quando crossfall, longitudinal e suporte total permanecem simultaneamente dentro da política;
+- suporte total automático é limitado a 12 m;
+- trechos incompatíveis com a capacidade estrutural ou com a continuidade de um junction entram em fallback explícito por OSM id, em vez de relaxar limites;
+- corredores com `indoor=yes` continuam no OSM normalizado, mas não são derivados como pistas sobre o terreno;
 - quando a borda baixa precisa ser elevada, é gerado suporte/contenção;
 - junctions só conectam endpoints compatíveis em layer/bridge/tunnel/elevation mode;
-- a superfície do junction é ajustada às bordas já graduadas das vias;
+- a superfície do junction é ajustada às mesmas bordas graduadas usadas pela ribbon da rua;
 - limites de corte, aterro, inclinação e diferença para as bordas são validados automaticamente.
 
 Essas regras produzem uma superfície caminhável coerente sem afirmar que o projeto contém cotas de engenharia civil.
