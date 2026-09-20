@@ -37,3 +37,23 @@
 - [ ] Restaurar typecheck/lint/build em CI quando o runner hospedado estiver disponível
 - [ ] Validar desktop, celular, desempenho e acessibilidade dos controles
 - [ ] Preparar substituição progressiva dos blockouts por modelos GLB
+
+
+## Base geoespacial real — prioridade atual
+
+- [x] Definir manifesto GIS com CRS EPSG:32724 e Elevador Lacerda como origem local
+- [x] Separar pipeline em raw → normalized → derived
+- [x] Preservar respostas originais de OSM e CONDER para auditoria
+- [x] Converter OSM WGS84 para UTM 24S/local metres com transformação determinística
+- [x] Preparar importação oficial de curvas CONDER REL_Curva_Nivel_L
+- [x] Expor no runtime quando terreno/vetores ainda estão em fallback
+- [ ] Executar importação OSM completa do recorte e revisar features
+- [ ] Executar importação CONDER do recorte
+- [ ] Gerar superfície TIN/heightfield derivada das curvas ou, preferencialmente, do MDT municipal
+- [ ] Trocar o runtime de terrain.profiles para a superfície geoespacial derivada
+- [ ] Promover ruas, praças e footprints verificados para a base derivada do jogo
+- [ ] Integrar ortofoto apenas como camada de conferência/debug, sem acoplar gameplay a tiles externos
+- [ ] Remover o terreno procedural da experiência normal quando a base real estiver validada
+
+O terreno procedural existente passa a ser somente fallback de desenvolvimento. Nenhum ajuste manual
+de perfis deve ser tratado como melhoria de fidelidade geográfica.
