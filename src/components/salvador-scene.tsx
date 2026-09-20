@@ -182,14 +182,16 @@ export function SalvadorScene() {
               [...data.buildings, ...data.elevator].flatMap(
                 (item) => (item.footprint ? [item.footprint] : []),
               ),
+              data.buildings,
             )
           : null;
+        const replacedFallbackIds = new Set(
+          derivedBuildingResult?.replacedFallbackIds ?? [],
+        );
         const curatedBuildings = derivedBuildingResult
           ? data.buildings.filter(
               (building) =>
-                !derivedBuildingResult.policy.removeFallbackTypesWhenActive.includes(
-                  building.type,
-                ),
+                !replacedFallbackIds.has(building.id),
             )
           : data.buildings;
         const runtimeBuildings = [
