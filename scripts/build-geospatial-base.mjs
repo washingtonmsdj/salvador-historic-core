@@ -9,13 +9,48 @@ import {
 
 const { manifest, origin, bounds } = await loadGeospatialContext();
 
-const [southLatitude, westLongitude] = utm24SToLatLon(
-  origin.projected.easting + bounds.minX,
-  origin.projected.northing + bounds.minZ,
+const cornerDefinitions = {
+  southWest: [bounds.minX, bounds.minZ],
+  southEast: [bounds.maxX, bounds.minZ],
+  northEast: [bounds.maxX, bounds.maxZ],
+  northWest: [bounds.minX, bounds.maxZ],
+};
+
+const geographicCorners = Object.fromEntries(
+  Object.entries(cornerDefinitions).map(
+    ([name, [x, z]]) => {
+      const easting =
+        origin.projected.easting + x;
+      const northing =
+        origin.projected.northing + z;
+      const [latitude, longitude] =
+        utm24SToLatLon(
+          easting,
+          northing,
+        );
+
+      return [
+        name,
+        {
+          local: [x, z],
+          easting,
+          northing,
+          latitude,
+          longitude,
+        },
+      ];
+    },
+  ),
 );
-const [northLatitude, eastLongitude] = utm24SToLatLon(
-  origin.projected.easting + bounds.maxX,
-  origin.projected.northing + bounds.maxZ,
+
+const cornerValues = Object.values(
+  geographicCorners,
+);
+const latitudes = cornerValues.map(
+  (corner) => corner.latitude,
+);
+const longitudes = cornerValues.map(
+  (corner) => corner.longitude,
 );
 
 const normalizedOsmPath = resolve(
@@ -75,11 +110,12 @@ const runtime = {
   },
   perimeter: bounds,
   geographicBounds: {
-    south: southLatitude,
-    west: westLongitude,
-    north: northLatitude,
-    east: eastLongitude,
+    south: Math.min(...latitudes),
+    west: Math.min(...longitudes),
+    north: Math.max(...latitudes),
+    east: Math.max(...longitudes),
   },
+  geographicCorners,
   mapReference: manifest.rasterReference,
   sources: {
     osm,

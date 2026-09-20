@@ -69,5 +69,47 @@
     "attribution": "© OpenStreetMap contributors",
     "attributionUrl": "https://www.openstreetmap.org/copyright",
     "purpose": "runtime alignment/debug reference only; not a source of 3D geometry"
+  },
+  "geographicCorners": {
+    "southWest": {
+      "local": [
+        -150,
+        -300
+      ],
+      "easting": 552627.9809,
+      "northing": 8565379.442,
+      "latitude": -12.976803505072183,
+      "longitude": -38.514737482093125
+    },
+    "southEast": {
+      "local": [
+        150,
+        -300
+      ],
+      "easting": 552927.9809,
+      "northing": 8565379.442,
+      "latitude": -12.976798331010077,
+      "longitude": -38.511971367113
+    },
+    "northEast": {
+      "local": [
+        150,
+        300
+      ],
+      "easting": 552927.9809,
+      "northing": 8565979.442,
+      "latitude": -12.971372888117422,
+      "longitude": -38.5119819464978
+    },
+    "northWest": {
+      "local": [
+        -150,
+        300
+      ],
+      "easting": 552627.9809,
+      "northing": 8565979.442,
+      "latitude": -12.971378059943447,
+      "longitude": -38.5147480015204
+    }
   }
 }

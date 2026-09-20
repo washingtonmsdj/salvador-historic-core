@@ -45,6 +45,16 @@ interface GeospatialBaseRuntime {
     north: number;
     east: number;
   };
+  geographicCorners: Record<
+    "southWest" | "southEast" | "northEast" | "northWest",
+    {
+      local: [number, number];
+      easting: number;
+      northing: number;
+      latitude: number;
+      longitude: number;
+    }
+  >;
   mapReference: {
     tileTemplate: string;
     zoom: number;
@@ -135,6 +145,13 @@ const osmEmbedUrl =
   `?bbox=${encodeURIComponent(osmBbox)}&layer=mapnik` +
   `&marker=${geo.origin.latitude}%2C${geo.origin.longitude}`;
 
+const criticalRoadNames = [
+  "Rua Chile",
+  "Ladeira da Montanha",
+  "Rua da Conceição da Praia",
+  "Avenida Lafayete Coutinho",
+];
+
 export function SalvadorScene() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const controlsRef = useRef<SceneControls | null>(null);
@@ -151,6 +168,16 @@ export function SalvadorScene() {
     roads: 0,
     spaces: 0,
     buildings: 0,
+  });
+  const [liveOsmProvider, setLiveOsmProvider] =
+    useState("—");
+  const [
+    criticalRoadCoverage,
+    setCriticalRoadCoverage,
+  ] = useState({
+    found: 0,
+    total: criticalRoadNames.length,
+    missing: [...criticalRoadNames],
   });
   const [liveTerrainState, setLiveTerrainState] = useState<
     "loading" | "active" | "cached" | "unavailable"
@@ -189,7 +216,11 @@ export function SalvadorScene() {
           { ShadowGenerator },
           { Vector3 },
           { Color3, Color4 },
-          { createTerrain, setRuntimeDerivedTerrain },
+          {
+            createTerrain,
+            setRuntimeDerivedTerrain,
+            terrainHeight,
+          },
           { createOsmTerrainReference },
           { createRoads, createSpaces },
           { createBuildings },
@@ -318,6 +349,42 @@ export function SalvadorScene() {
           ...curatedBuildings,
           ...(derivedBuildingResult?.buildings ?? []),
         ];
+        let activeDebugBuildings =
+          runtimeBuildings;
+
+        const coordinateDebugItems = () =>
+          Object.entries(
+            geo.geographicCorners,
+          ).map(([name, corner]) => {
+            const [x, z] = corner.local;
+            return {
+              id: `coordinate-${name}`,
+              name:
+                `${name} · GPS ${corner.latitude.toFixed(6)}, ${corner.longitude.toFixed(6)} · UTM ${corner.easting.toFixed(1)} / ${corner.northing.toFixed(1)} · X ${x.toFixed(0)} Z ${z.toFixed(0)}`,
+              type: "coordinate-corner",
+              position: [
+                x,
+                terrainHeight(
+                  data.terrain,
+                  data.levels,
+                  x,
+                  z,
+                ) + 2,
+                z,
+              ] as [number, number, number],
+              rotation: [0, 0, 0] as [
+                number,
+                number,
+                number,
+              ],
+              width: 0,
+              depth: 0,
+              height: 0,
+              source:
+                "EPSG:32724 perimeter corner transformed to WGS84",
+              estimated: false,
+            } satisfies MeasuredObject;
+          });
         let buildingMeshes = createBuildings(
           scene,
           runtimeBuildings,
@@ -405,11 +472,14 @@ export function SalvadorScene() {
             shadows.addShadowCaster(mesh);
           }
 
+          activeDebugBuildings =
+            nextBuildings;
           updateDebugItems?.([
-            ...nextBuildings,
+            ...activeDebugBuildings,
             ...data.elevator,
             ...data.landmarks,
             ...data.barriers,
+            ...coordinateDebugItems(),
           ]);
 
           setLiveBuildingStats({
@@ -427,10 +497,11 @@ export function SalvadorScene() {
         configurePlayer(scene, cameras.street);
 
         const debug = createDebug(scene, [
-          ...runtimeBuildings,
+          ...activeDebugBuildings,
           ...data.elevator,
           ...data.landmarks,
           ...data.barriers,
+          ...coordinateDebugItems(),
         ]);
         debug.setEnabled(false);
         updateDebugItems = debug.setItems;
@@ -520,6 +591,38 @@ export function SalvadorScene() {
               buildings:
                 live.buildingFootprints.length,
             });
+            const roadNames = new Set(
+              live.roads.map((road) =>
+                normalizeFeatureName(
+                  road.name,
+                ),
+              ),
+            );
+            const missingRoads =
+              criticalRoadNames.filter(
+                (name) =>
+                  !roadNames.has(
+                    normalizeFeatureName(
+                      name,
+                    ),
+                  ),
+              );
+            setCriticalRoadCoverage({
+              found:
+                criticalRoadNames.length -
+                missingRoads.length,
+              total:
+                criticalRoadNames.length,
+              missing: missingRoads,
+            });
+
+            setLiveOsmProvider(
+              live.endpoint.includes(
+                "api.openstreetmap.org",
+              )
+                ? "API bbox"
+                : "Overpass",
+            );
             setLiveOsmState(
               live.source === "session-cache"
                 ? "cached"
@@ -623,6 +726,13 @@ export function SalvadorScene() {
             rebuildLiveBuildingBlockouts(
               liveScene,
             );
+            updateDebugItems?.([
+              ...activeDebugBuildings,
+              ...data.elevator,
+              ...data.landmarks,
+              ...data.barriers,
+              ...coordinateDebugItems(),
+            ]);
 
             setLiveTerrainStats({
               contours: live.contourCount,
@@ -781,11 +891,24 @@ export function SalvadorScene() {
             {(liveOsmState === "active" ||
               liveOsmState === "cached") && (
               <>
-                {" "}· {liveOsmCounts.roads} ruas ·{" "}
+                {" "}· {liveOsmProvider} ·{" "}
+                {liveOsmCounts.roads} ruas ·{" "}
                 {liveOsmCounts.spaces} áreas ·{" "}
                 {liveOsmCounts.buildings} footprints
               </>
             )}
+          </div>
+          <div className="mt-1 text-white/45">
+            Vias-chave:{" "}
+            {criticalRoadCoverage.found}/
+            {criticalRoadCoverage.total}
+            {criticalRoadCoverage.missing.length > 0 &&
+              liveOsmState !== "loading" && (
+                <>
+                  {" "}· faltando:{" "}
+                  {criticalRoadCoverage.missing.join(", ")}
+                </>
+              )}
           </div>
           <div className="mt-1 text-white/45">
             CONDER ao vivo:{" "}

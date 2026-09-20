@@ -79,9 +79,28 @@ function createRoadRibbon(
     const perpendicularX = -dz / length;
     const perpendicularZ = dx / length;
     const halfWidth = feature.width / 2;
-    const y = elevationAt(
-      center[0],
-      center[1],
+    const leftX =
+      center[0] +
+      perpendicularX * halfWidth;
+    const leftZ =
+      center[1] +
+      perpendicularZ * halfWidth;
+    const rightX =
+      center[0] -
+      perpendicularX * halfWidth;
+    const rightZ =
+      center[1] -
+      perpendicularZ * halfWidth;
+    const leftY = elevationAt(
+      leftX,
+      leftZ,
+      terrain,
+      levels,
+      feature.elevationMode,
+    );
+    const rightY = elevationAt(
+      rightX,
+      rightZ,
       terrain,
       levels,
       feature.elevationMode,
@@ -93,12 +112,12 @@ function createRoadRibbon(
     }
 
     positions.push(
-      center[0] + perpendicularX * halfWidth,
-      y,
-      center[1] + perpendicularZ * halfWidth,
-      center[0] - perpendicularX * halfWidth,
-      y,
-      center[1] - perpendicularZ * halfWidth,
+      leftX,
+      leftY,
+      leftZ,
+      rightX,
+      rightY,
+      rightZ,
     );
     uvs.push(0, travelled / 10, 1, travelled / 10);
   }

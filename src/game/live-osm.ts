@@ -41,7 +41,10 @@ interface VectorDerivationConfig {
 }
 
 export interface LiveOsmVectors {
-  source: "overpass-live" | "session-cache";
+  source:
+    | "overpass-live"
+    | "osm-api-live"
+    | "session-cache";
   endpoint: string;
   generatedAt: string;
   roads: LinearFeature[];
@@ -52,10 +55,13 @@ export interface LiveOsmVectors {
 const vectorConfig =
   manifestData.vectorDerivation as VectorDerivationConfig;
 
-const ENDPOINTS = [
+const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
 ];
+
+const OSM_API_ENDPOINT =
+  "https://api.openstreetmap.org/api/0.6/map";
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
@@ -121,6 +127,20 @@ function roadWidth(tags: Record<string, string>) {
       width: explicit,
       estimated: false,
       source: "OSM width tag",
+    };
+  }
+
+  const lanes = parseMeasurement(
+    tags["lanes"],
+  );
+  if (lanes) {
+    return {
+      width: Number(
+        (lanes * 3).toFixed(2),
+      ),
+      estimated: true,
+      source:
+        `OSM lanes=${lanes} × 3 m estimated lane width`,
     };
   }
 
@@ -482,7 +502,7 @@ out body geom;
 
 function cacheKey(bounds: GeographicBounds) {
   return [
-    "salvador-osm-live-v1",
+    "salvador-osm-live-v2",
     bounds.south.toFixed(6),
     bounds.west.toFixed(6),
     bounds.north.toFixed(6),
@@ -541,6 +561,164 @@ function writeCache(
   }
 }
 
+function osmApiUrl(
+  bounds: GeographicBounds,
+) {
+  const params = new URLSearchParams({
+    bbox: [
+      bounds.west,
+      bounds.south,
+      bounds.east,
+      bounds.north,
+    ]
+      .map((value) => value.toFixed(7))
+      .join(","),
+  });
+
+  return `${OSM_API_ENDPOINT}?${params.toString()}`;
+}
+
+function parseOsmApiXml(
+  xml: string,
+): OverpassPayload {
+  const document = new DOMParser().parseFromString(
+    xml,
+    "application/xml",
+  );
+
+  const parserError =
+    document.querySelector("parsererror");
+  if (parserError) {
+    throw new Error(
+      "OSM API returned invalid XML.",
+    );
+  }
+
+  const nodes = new Map<
+    string,
+    OverpassGeometryPoint
+  >();
+
+  for (const node of Array.from(
+    document.querySelectorAll("node"),
+  )) {
+    const id = node.getAttribute("id");
+    const latitude = Number(
+      node.getAttribute("lat"),
+    );
+    const longitude = Number(
+      node.getAttribute("lon"),
+    );
+
+    if (
+      !id ||
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
+      continue;
+    }
+
+    nodes.set(id, {
+      lat: latitude,
+      lon: longitude,
+    });
+  }
+
+  const elements: OverpassElement[] = [];
+
+  for (const way of Array.from(
+    document.querySelectorAll("way"),
+  )) {
+    const id = Number(
+      way.getAttribute("id"),
+    );
+    if (!Number.isFinite(id)) {
+      continue;
+    }
+
+    const tags: Record<string, string> = {};
+    const geometry: OverpassGeometryPoint[] = [];
+
+    for (const child of Array.from(
+      way.children,
+    )) {
+      if (child.tagName === "tag") {
+        const key = child.getAttribute("k");
+        const value = child.getAttribute("v");
+        if (key && value !== null) {
+          tags[key] = value;
+        }
+        continue;
+      }
+
+      if (child.tagName === "nd") {
+        const ref = child.getAttribute("ref");
+        const point = ref
+          ? nodes.get(ref)
+          : undefined;
+        if (point) {
+          geometry.push(point);
+        }
+      }
+    }
+
+    elements.push({
+      type: "way",
+      id,
+      tags,
+      geometry,
+    });
+  }
+
+  return { elements };
+}
+
+async function fetchOsmApi(
+  bounds: GeographicBounds,
+) {
+  const endpoint = osmApiUrl(bounds);
+  const controller = new AbortController();
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    12_000,
+  );
+
+  try {
+    const response = await fetch(endpoint, {
+      signal: controller.signal,
+      headers: {
+        accept: "application/xml,text/xml",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `${response.status} ${response.statusText}`,
+      );
+    }
+
+    const payload = parseOsmApiXml(
+      await response.text(),
+    );
+
+    if (
+      !Array.isArray(payload.elements) ||
+      payload.elements.length === 0
+    ) {
+      throw new Error(
+        "OSM API returned no ways.",
+      );
+    }
+
+    return {
+      endpoint,
+      payload,
+    };
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 async function fetchOverpass(
   endpoint: string,
   query: string,
@@ -586,6 +764,9 @@ async function fetchOverpass(
 function deriveVectors(
   payload: OverpassPayload,
   endpoint: string,
+  sourceKind:
+    | "overpass-live"
+    | "osm-api-live",
   origin: ProjectedOrigin,
   bounds: {
     minX: number;
@@ -619,7 +800,9 @@ function deriveVectors(
 
     const osmId = element.id;
     const source =
-      `OpenStreetMap live way/${osmId}`;
+      sourceKind === "osm-api-live"
+        ? `OpenStreetMap API way/${osmId}`
+        : `OpenStreetMap Overpass way/${osmId}`;
 
     if (
       tags["highway"] &&
@@ -724,7 +907,7 @@ function deriveVectors(
   );
 
   return {
-    source: "overpass-live",
+    source: sourceKind,
     endpoint,
     generatedAt: new Date().toISOString(),
     roads,
@@ -753,7 +936,7 @@ export async function loadLiveOsmVectors({
   const query = queryFor(geographicBounds);
   const errors: string[] = [];
 
-  for (const endpoint of ENDPOINTS) {
+  for (const endpoint of OVERPASS_ENDPOINTS) {
     try {
       const payload = await fetchOverpass(
         endpoint,
@@ -762,6 +945,7 @@ export async function loadLiveOsmVectors({
       const result = deriveVectors(
         payload,
         endpoint,
+        "overpass-live",
         origin,
         localBounds,
       );
@@ -787,6 +971,44 @@ export async function loadLiveOsmVectors({
         }`,
       );
     }
+  }
+
+  try {
+    const { endpoint, payload } =
+      await fetchOsmApi(
+        geographicBounds,
+      );
+    const result = deriveVectors(
+      payload,
+      endpoint,
+      "osm-api-live",
+      origin,
+      localBounds,
+    );
+
+    if (
+      result.roads.length === 0 &&
+      result.spaces.length === 0 &&
+      result.buildingFootprints.length === 0
+    ) {
+      throw new Error(
+        "OSM API returned no usable site features.",
+      );
+    }
+
+    writeCache(
+      geographicBounds,
+      result,
+    );
+    return result;
+  } catch (error) {
+    errors.push(
+      `${OSM_API_ENDPOINT}: ${
+        error instanceof Error
+          ? error.message
+          : String(error)
+      }`,
+    );
   }
 
   throw new Error(
