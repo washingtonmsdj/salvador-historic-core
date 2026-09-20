@@ -50,6 +50,8 @@ const MAX_LONGITUDINAL_SLOPE =
   roadSurfacePolicy.maxLongitudinalSlope;
 const ROAD_PROFILE_ITERATIONS =
   roadSurfacePolicy.longitudinalProfileIterations;
+const ROAD_PROFILE_FALLBACK_OSM_IDS =
+  roadSurfacePolicy.longitudinalProfileFallbackOsmIds;
 const SUPPORT_WALL_THRESHOLD =
   roadSurfacePolicy.supportWallThreshold;
 const SUPPORT_WALL_TEXTURE_REPEAT_METERS =
@@ -148,6 +150,8 @@ function createRoadRibbon(
           MAX_LONGITUDINAL_SLOPE,
         maxProfileIterations:
           ROAD_PROFILE_ITERATIONS,
+        fallbackOsmIds:
+          ROAD_PROFILE_FALLBACK_OSM_IDS,
       },
     });
   const centers =
@@ -560,6 +564,8 @@ function createRoadJunctionMesh(
           MAX_LONGITUDINAL_SLOPE,
         maxProfileIterations:
           ROAD_PROFILE_ITERATIONS,
+        profileFallbackOsmIds:
+          ROAD_PROFILE_FALLBACK_OSM_IDS,
         junctionSurfaceOffset:
           JUNCTION_SURFACE_OFFSET,
         junctionMaxSegments:
