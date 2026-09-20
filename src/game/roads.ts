@@ -14,6 +14,10 @@ import {
   deriveRoadJunctions,
   type RoadJunction,
 } from "./road-junctions";
+import {
+  gradeRoadCrossSection,
+  smoothRoadCenterHeight,
+} from "./road-grading";
 import { terrainHeight } from "./terrain";
 import type { LinearFeature, Point2, SceneLevels, TerrainConfig } from "./types";
 
@@ -30,8 +34,8 @@ const MAX_MITER_SCALE =
   roadSurfacePolicy.maxMiterScale;
 const MAX_CROSS_SLOPE =
   roadSurfacePolicy.maxCrossSlope;
-const MAX_GRADE_SMOOTHING_DEVIATION =
-  roadSurfacePolicy.maxGradeSmoothingDeviation;
+const MAX_GRADE_SMOOTHING_RAISE =
+  roadSurfacePolicy.maxGradeSmoothingRaise;
 const MAX_CROSS_SLOPE_CORRECTION_RELIEF =
   roadSurfacePolicy.maxCrossSlopeCorrectionRelief;
 const JUNCTION_SNAP_DISTANCE =
@@ -255,19 +259,11 @@ function smoothCenterHeights(
           index + 1,
         )
       ] ?? height;
-    const smoothed =
-      (previous + height * 2 + next) /
-      4;
-    const minimum =
-      height -
-      MAX_GRADE_SMOOTHING_DEVIATION;
-    const maximum =
-      height +
-      MAX_GRADE_SMOOTHING_DEVIATION;
-
-    return Math.max(
-      minimum,
-      Math.min(maximum, smoothed),
+    return smoothRoadCenterHeight(
+      previous,
+      height,
+      next,
+      MAX_GRADE_SMOOTHING_RAISE,
     );
   });
 }
@@ -319,13 +315,20 @@ function createRoadRibbon(
       center[0] - offset[0];
     const rightZ =
       center[1] - offset[1];
-    const centerY =
-      centerHeights[index] ??
+    const rawCenterY =
       terrainHeight(
         terrain,
         levels,
         center[0],
         center[1],
+      );
+    const centerY =
+      centerHeights[index] ??
+      rawCenterY;
+    const longitudinalLift =
+      Math.max(
+        0,
+        centerY - rawCenterY,
       );
     const leftTerrain =
       elevationAt(
@@ -343,25 +346,6 @@ function createRoadRibbon(
         levels,
         feature.elevationMode,
       ) - SURFACE_GAP;
-    const averageTerrain =
-      (leftTerrain + rightTerrain) / 2;
-    const naturalCrossDelta =
-      leftTerrain - rightTerrain;
-    const canRegularizeCrossSlope =
-      Math.abs(naturalCrossDelta) <=
-      MAX_CROSS_SLOPE_CORRECTION_RELIEF;
-    const average =
-      canRegularizeCrossSlope
-        ? Math.max(
-            centerY -
-              MAX_GRADE_SMOOTHING_DEVIATION,
-            Math.min(
-              centerY +
-                MAX_GRADE_SMOOTHING_DEVIATION,
-              averageTerrain,
-            ),
-          )
-        : averageTerrain;
     const crossSpan = Math.max(
       0.001,
       Math.hypot(
@@ -369,26 +353,22 @@ function createRoadRibbon(
         leftZ - rightZ,
       ),
     );
-    const maximumCrossDelta =
-      crossSpan * MAX_CROSS_SLOPE;
-    const crossDelta =
-      canRegularizeCrossSlope
-        ? Math.max(
-            -maximumCrossDelta,
-            Math.min(
-              maximumCrossDelta,
-              naturalCrossDelta,
-            ),
-          )
-        : naturalCrossDelta;
+    const crossSection =
+      gradeRoadCrossSection({
+        leftTerrain,
+        rightTerrain,
+        longitudinalLift,
+        crossSpan,
+        maxCrossSlope:
+          MAX_CROSS_SLOPE,
+        maxCorrectionRelief:
+          MAX_CROSS_SLOPE_CORRECTION_RELIEF,
+        surfaceGap: SURFACE_GAP,
+      });
     const leftY =
-      average +
-      crossDelta / 2 +
-      SURFACE_GAP;
+      crossSection.leftY;
     const rightY =
-      average -
-      crossDelta / 2 +
-      SURFACE_GAP;
+      crossSection.rightY;
 
     if (index > 0) {
       const before =
@@ -476,8 +456,8 @@ function createRoadRibbon(
         ROAD_SAMPLE_SPACING,
       maxCrossSlope:
         MAX_CROSS_SLOPE,
-      maxGradeSmoothingDeviation:
-        MAX_GRADE_SMOOTHING_DEVIATION,
+      maxGradeSmoothingRaise:
+        MAX_GRADE_SMOOTHING_RAISE,
       maxCrossSlopeCorrectionRelief:
         MAX_CROSS_SLOPE_CORRECTION_RELIEF,
     },
