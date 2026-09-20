@@ -637,25 +637,30 @@ function parseOsmApiXml(
     }
 
     const tags: Record<string, string> = {};
-    for (const tag of Array.from(
-      way.querySelectorAll(":scope > tag"),
+    const geometry: OverpassGeometryPoint[] = [];
+
+    for (const child of Array.from(
+      way.children,
     )) {
-      const key = tag.getAttribute("k");
-      const value = tag.getAttribute("v");
-      if (key && value !== null) {
-        tags[key] = value;
+      if (child.tagName === "tag") {
+        const key = child.getAttribute("k");
+        const value = child.getAttribute("v");
+        if (key && value !== null) {
+          tags[key] = value;
+        }
+        continue;
+      }
+
+      if (child.tagName === "nd") {
+        const ref = child.getAttribute("ref");
+        const point = ref
+          ? nodes.get(ref)
+          : undefined;
+        if (point) {
+          geometry.push(point);
+        }
       }
     }
-
-    const geometry = Array.from(
-      way.querySelectorAll(":scope > nd"),
-    ).flatMap((nodeRef) => {
-      const ref = nodeRef.getAttribute("ref");
-      const point = ref
-        ? nodes.get(ref)
-        : undefined;
-      return point ? [point] : [];
-    });
 
     elements.push({
       type: "way",
