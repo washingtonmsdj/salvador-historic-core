@@ -63,21 +63,32 @@ if (
 
 if (
   presentation.textureResolution <
-  512 ||
+  1024 ||
   presentation.detailTextureResolution <
   512
 ) {
   fail(
-    "Terrain PBR textures must remain at least 512 px.",
+    "Terrain PBR primary texture must remain at least 1024 px and detail texture at least 512 px.",
   );
 }
 
 if (
   presentation.detailTextureTiling <
-  16
+  24
 ) {
   fail(
     "Terrain detail tiling is too low for close third-person viewing.",
+  );
+}
+
+if (
+  presentation.microVariationScale < 8 ||
+  presentation.microVariationScale > 32 ||
+  presentation.microVariationStrength < 0.04 ||
+  presentation.microVariationStrength > 0.12
+) {
+  fail(
+    "Terrain micro variation must stay in a close-range, subtle presentation band.",
   );
 }
 
@@ -98,6 +109,23 @@ if (
 ) {
   fail(
     "Cliff material blend band is too narrow and will create hard terrain seams.",
+  );
+}
+
+if (
+  presentation.weatheringElevationMax <= 0 ||
+  presentation.weatheringElevationMax > 30 ||
+  presentation.weatheringConcavityRadius < 5 ||
+  presentation.weatheringConcavityRadius > 20 ||
+  presentation.weatheringStrength < 0.35 ||
+  presentation.weatheringStrength > 0.8 ||
+  presentation.weatheringMinNormalY < 0.6 ||
+  presentation.weatheringMinNormalY > 0.9 ||
+  presentation.weatheringOverlayOffset < 0.01 ||
+  presentation.weatheringOverlayOffset > 0.06
+) {
+  fail(
+    "Terrain weathering overlay settings are outside the conservative visual-only range.",
   );
 }
 
@@ -127,6 +155,12 @@ if (errors.length > 0) {
           presentation.detailTextureResolution,
         detailTextureTiling:
           presentation.detailTextureTiling,
+        macroVariationScale:
+          presentation.macroVariationScale,
+        microVariationScale:
+          presentation.microVariationScale,
+        weatheringElevationMax:
+          presentation.weatheringElevationMax,
       },
       null,
       2,
