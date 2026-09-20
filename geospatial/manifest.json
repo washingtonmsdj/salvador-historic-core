@@ -156,5 +156,13 @@
     "surfaceGap": 0.045,
     "textureRepeatMeters": 4,
     "notes": "Walkable plazas and pedestrian polygons are tessellated before terrain draping so collision triangles do not bridge across terrain relief. This is a rendering/gameplay mesh policy; source polygon boundaries remain unchanged."
+  },
+  "terrainQualityPolicy": {
+    "maxPersistentGridSpacing": 2.5,
+    "minContourCount": 50,
+    "minFixedCellCoverage": 0.2,
+    "maxSolverDelta": 0.002,
+    "minLocalRelief": 40,
+    "notes": "Persistent official terrain must preserve the 2.5 m grid or better, retain broad contour coverage, converge below 2 mm solver delta and represent meaningful Cidade Baixa/Cidade Alta relief. These thresholds validate the derived product, not the source survey accuracy."
   }
 }
