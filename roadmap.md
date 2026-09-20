@@ -56,7 +56,10 @@
 - [x] Implementar derivação OSM de ruas, praças e footprints recortados ao perímetro
 - [x] Preparar runtime para preferir ruas e espaços OSM derivados e validados
 - [ ] Executar a importação OSM real e ativar site-vectors.json
-- [ ] Promover footprints de edifícios para volumes somente com altura/modelo explícito
+- [x] Preparar promoção conservadora de footprints OSM com altura explícita/níveis e terreno GIS
+- [x] Remover placeholders genéricos da Rua Chile quando os blockouts OSM estiverem ativos
+- [ ] Executar OSM + terreno reais e revisar visualmente cada volume promovido
+- [ ] Modelar fundações específicas para footprints em encosta forte
 - [ ] Integrar ortofoto apenas como camada de conferência/debug, sem acoplar gameplay a tiles externos
 - [ ] Remover o terreno procedural da experiência normal quando a base real estiver validada
 

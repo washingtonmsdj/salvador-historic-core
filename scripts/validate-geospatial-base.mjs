@@ -27,6 +27,35 @@ function fail(message) {
   errors.push(message);
 }
 
+const buildingPolicy = manifest.buildingBlockoutPolicy;
+
+if (!buildingPolicy) {
+  fail("geospatial manifest must define buildingBlockoutPolicy");
+} else {
+  if (
+    !Number.isFinite(buildingPolicy.maxAutoFoundationRelief) ||
+    buildingPolicy.maxAutoFoundationRelief <= 0 ||
+    buildingPolicy.maxAutoFoundationRelief > 2
+  ) {
+    fail("building maxAutoFoundationRelief must be > 0 and <= 2 metres");
+  }
+
+  if (
+    !Array.isArray(buildingPolicy.excludedOsmIds) ||
+    new Set(buildingPolicy.excludedOsmIds).size !==
+      buildingPolicy.excludedOsmIds.length
+  ) {
+    fail("building excludedOsmIds must be a unique array");
+  }
+
+  if (
+    !Array.isArray(buildingPolicy.removeFallbackTypesWhenActive) ||
+    buildingPolicy.removeFallbackTypesWhenActive.length === 0
+  ) {
+    fail("building fallback removal types must not be empty");
+  }
+}
+
 if (runtime.crs !== "EPSG:32724") {
   fail(`runtime CRS must be EPSG:32724, got ${runtime.crs}`);
 }
@@ -285,6 +314,24 @@ if (derivedVectors?.available === true) {
 
     if (!building.footprint.every(inBounds)) {
       fail(`${building.id} contains a footprint point outside project bounds`);
+    }
+
+    if (
+      building.height !== null &&
+      (!Number.isFinite(building.height) || building.height <= 0)
+    ) {
+      fail(`${building.id} has an invalid derived building height`);
+    }
+
+    if (typeof building.heightEstimated !== "boolean") {
+      fail(`${building.id} must state whether its height is estimated`);
+    }
+
+    if (
+      typeof building.heightSource !== "string" ||
+      building.heightSource.length === 0
+    ) {
+      fail(`${building.id} must preserve height provenance`);
     }
   }
 }

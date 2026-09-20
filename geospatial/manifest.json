@@ -93,5 +93,25 @@
     },
     "buildingLevelHeight": 3,
     "notes": "Road centerlines and polygons are clipped to the project perimeter. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated."
+  },
+  "buildingBlockoutPolicy": {
+    "maxAutoFoundationRelief": 0.75,
+    "excludedOsmIds": [
+      59224731,
+      59392558,
+      402383814
+    ],
+    "excludedNames": [
+      "Elevador Lacerda",
+      "Mercado Modelo",
+      "Palácio Rio Branco",
+      "Palácio Thomé de Souza",
+      "Palácio Tomé de Sousa",
+      "Prefeitura Municipal de Salvador"
+    ],
+    "removeFallbackTypesWhenActive": [
+      "rua-chile"
+    ],
+    "notes": "Automatic building volumes require a real OSM footprint plus explicit height or building:levels-derived height. Footprints crossing more than 0.75 m of terrain relief are skipped for manual foundation/model handling."
   }
 }

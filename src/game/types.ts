@@ -15,6 +15,20 @@ export interface MeasuredObject {
   estimated: boolean;
 }
 
+export interface DerivedBuildingFootprint {
+  id: string;
+  name: string;
+  buildingType: string;
+  footprint: Point2[];
+  source: string;
+  osmId: number;
+  osmType: string;
+  tags: Record<string, string>;
+  height: number | null;
+  heightEstimated: boolean;
+  heightSource: string;
+}
+
 export interface LinearFeature {
   id: string;
   name: string;

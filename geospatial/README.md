@@ -104,3 +104,22 @@ importadas e quais produtos derivados estão realmente prontos para uso.
 Importar OSM ou CONDER não muda automaticamente a cena para "base real". O runtime só deixa de
 mostrar fallback depois que existir um produto em `geospatial/derived/` que o Babylon consuma.
 Nenhum fallback procedural pode ser apresentado como dado real.
+
+
+## Blockouts de edifícios OSM
+
+A cena pode promover footprints OSM para blockouts 3D apenas quando **vetores e terreno
+geoespaciais estiverem ativos ao mesmo tempo**.
+
+Critérios automáticos:
+
+- footprint poligonal válido;
+- `height` explícita ou altura derivada de `building:levels`;
+- footprint não pode sobrepor um marco já curado separadamente;
+- variação do terreno sob o footprint não pode ultrapassar 0,75 m;
+- a elevação da fundação é amostrada do terreno geoespacial ativo;
+- qualquer volume automático continua marcado como blockout estimado.
+
+Footprints em encosta forte são deliberadamente ignorados até receberem uma fundação ou modelo
+específico. Quando essa base entra em operação, os placeholders genéricos do tipo `rua-chile`
+são removidos do runtime.
