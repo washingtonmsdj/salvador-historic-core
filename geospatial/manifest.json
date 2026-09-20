@@ -188,8 +188,15 @@
     "maxSubdivisions": 32,
     "surfaceGap": 0.045,
     "textureRepeatMeters": 4,
-    "notes": "Walkable hard-surface polygons are tessellated before terrain draping so collision triangles do not bridge across terrain relief. Generic leisure=park polygons without an explicit hard surface do not receive an invented paving overlay; the official terrain remains visible and walkable. Source polygon boundaries remain unchanged.",
-    "requireExplicitSurfaceForParks": true
+    "notes": "Walkable hard-surface polygons are tessellated before terrain draping so collision triangles do not bridge across terrain relief. Generic leisure=park polygons without an explicit hard surface do not receive an invented paving overlay; the official terrain remains visible and walkable. Specific source-backed overrides may declare a known hard surface by OSM id without altering the source tags or flattening terrain. Source polygon boundaries remain unchanged.",
+    "requireExplicitSurfaceForParks": true,
+    "hardSurfaceOverrides": [
+      {
+        "osmId": 1263035782,
+        "surface": "stone",
+        "reason": "Praça Tomé de Souza is visibly stone/cobblestone-paved in current and historic references; the versioned OSM snapshot classifies it as leisure=park but omits surface."
+      }
+    ]
   },
   "terrainQualityPolicy": {
     "maxPersistentGridSpacing": 2.5,
