@@ -161,3 +161,24 @@ fallback.
 
 O perímetro Z foi ampliado para ±300 m para conter o trecho verificado de Rua Chile sem mover a
 origem do Elevador.
+
+
+## OSM ao vivo no Preview
+
+O navegador pode consultar um recorte pequeno do Overpass diretamente em runtime. A consulta é
+assíncrona e nunca bloqueia a abertura da cena.
+
+Regras:
+
+- usa somente o bbox atual do projeto;
+- consulta vias, áreas urbanas e footprints de edifícios;
+- transforma WGS84 para a mesma projeção UTM 24S usada pelo projeto;
+- mantém cache apenas na sessão do navegador por 15 minutos;
+- tenta dois endpoints Overpass antes de desistir;
+- se a rede falhar, mantém a seed versionada sem quebrar a cena;
+- quando a consulta funciona, ruas e áreas do Preview são atualizadas automaticamente;
+- footprints de edifícios são mostrados como guias de alinhamento enquanto o terreno oficial ainda
+  não estiver ativo;
+- OSM ao vivo não altera `geospatial/derived/` e não muda a provenance persistida do projeto.
+
+A promoção definitiva continua exigindo importação, revisão e versionamento dos dados.
