@@ -3,11 +3,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 import { material } from "./materials";
 import { terrainHeight } from "./terrain";
-import type {
-  LinearFeature,
-  SceneLevels,
-  TerrainConfig,
-} from "./types";
+import type { LinearFeature, SceneLevels, TerrainConfig } from "./types";
 
 const ROAD_THICKNESS = 0.32;
 const SPACE_THICKNESS = 0.35;
@@ -19,7 +15,6 @@ function elevationAt(
   z: number,
   terrain: TerrainConfig,
   levels: SceneLevels,
-  roadMaterial: ReturnType<typeof material>,
 ) {
   const surface =
     mode === "upper"
@@ -39,6 +34,7 @@ function createSegment(
   index: number,
   terrain: TerrainConfig,
   levels: SceneLevels,
+  roadMaterial: ReturnType<typeof material>,
 ) {
   const dx = b[0] - a[0];
   const dz = b[1] - a[1];
