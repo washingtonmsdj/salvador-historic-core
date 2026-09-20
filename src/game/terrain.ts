@@ -9,6 +9,9 @@ import derivedTerrainData from "../../geospatial/derived/terrain.json";
 import geospatialBaseData from "../data/geospatial-base.json";
 import { createTerrainMaterials } from "./terrain-materials";
 import {
+  blendedCliffUv,
+} from "./terrain-projection";
+import {
   distanceToPolygon,
   pointInPolygon,
 } from "./geometry-2d";
@@ -819,26 +822,6 @@ function createCliffOverlayGeometry(
       continue;
     }
 
-    let averageNx = 0;
-    let averageNz = 0;
-
-    for (const vertex of triangle) {
-      const vertexIndex =
-        vertex ?? 0;
-      averageNx +=
-        normals[
-          vertexIndex * 3
-        ] ?? 0;
-      averageNz +=
-        normals[
-          vertexIndex * 3 +
-            2
-        ] ?? 0;
-    }
-
-    const projectOnX =
-      Math.abs(averageNx) >=
-      Math.abs(averageNz);
     const firstOverlayVertex =
       overlayPositions.length /
       3;
@@ -886,10 +869,17 @@ function createCliffOverlayGeometry(
         nz,
       );
       overlayUvs.push(
-        projectOnX
-          ? z / textureScale
-          : x / textureScale,
-        y / textureScale,
+        ...blendedCliffUv({
+          x,
+          y,
+          z,
+          nx,
+          nz,
+          textureScale,
+          sharpness:
+            config.presentation
+              .cliffProjectionSharpness,
+        }),
       );
       overlayColors.push(
         1,

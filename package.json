@@ -42,7 +42,8 @@
     "geospatial:test:osm-api": "node scripts/test-osm-api-xml.mjs",
     "road:terrain-fit-test": "bun scripts/test-road-terrain-fit.ts",
     "road:junction-surface-test": "bun scripts/test-junction-surface.ts",
-    "road:junction-terrain-fit-test": "bun scripts/test-road-junction-terrain-fit.ts"
+    "road:junction-terrain-fit-test": "bun scripts/test-road-junction-terrain-fit.ts",
+    "terrain:projection-test": "bun scripts/test-terrain-projection.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"

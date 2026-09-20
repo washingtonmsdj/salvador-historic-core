@@ -148,6 +148,7 @@ export interface TerrainConfig {
     weatheringOverlayOffset: number;
     rockNormalYMax: number;
     rockBlendNormalYBand: number;
+    cliffProjectionSharpness: number;
     contourInterval: number;
     cliffOverlayOffset: number;
   };

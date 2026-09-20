@@ -159,9 +159,10 @@
       "weatheringConcavityRadius": 9,
       "weatheringStrength": 0.58,
       "weatheringMinNormalY": 0.72,
-      "weatheringOverlayOffset": 0.025
+      "weatheringOverlayOffset": 0.025,
+      "cliffProjectionSharpness": 4
     },
-    "source": "Procedural fallback profiles retained only for development recovery. Normal runtime terrain is the versioned geospatial-derived grid from CONDER Cartografia Sistemática 1992 REL_Curva_Nivel_L. Source elevations remain on the 2.5 m persistent grid; runtime presentation interpolates that authoritative surface at 1.25 m render spacing for smoother third-person geometry and normals. PBR macro/micro detail, slope-driven rock exposure and low/concave weathering overlays change appearance only, not GIS elevations.",
+    "source": "Procedural fallback profiles retained only for development recovery. Normal runtime terrain is the versioned geospatial-derived grid from CONDER Cartografia Sistemática 1992 REL_Curva_Nivel_L. Source elevations remain on the 2.5 m persistent grid; runtime presentation interpolates that authoritative surface at 1.25 m render spacing for smoother third-person geometry and normals. PBR macro/micro detail, slope-driven rock exposure with continuous normal-weighted vertical projection and low/concave weathering overlays change appearance only, not GIS elevations.",
     "estimated": true,
     "cutouts": [
       {
