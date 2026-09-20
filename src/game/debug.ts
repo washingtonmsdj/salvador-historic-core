@@ -12,11 +12,13 @@ function label(
   scene: Scene,
   item: MeasuredObject,
 ) {
+  const coordinateLabel =
+    item.type === "coordinate-corner";
   const plane = MeshBuilder.CreatePlane(
     `label-${item.id}`,
     {
-      width: 30,
-      height: 5,
+      width: coordinateLabel ? 66 : 30,
+      height: coordinateLabel ? 6 : 5,
     },
     scene,
   );
@@ -49,7 +51,9 @@ function label(
     }`,
     24,
     78,
-    "bold 29px monospace",
+    coordinateLabel
+      ? "bold 22px monospace"
+      : "bold 29px monospace",
     item.estimated
       ? "#ffbd59"
       : "#f5f1e8",
