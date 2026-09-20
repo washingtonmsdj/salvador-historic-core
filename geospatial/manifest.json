@@ -78,6 +78,8 @@
   },
   "vectorDerivation": {
     "defaultRoadWidth": 5,
+    "laneWidthMeters": 3,
+    "useLaneCountForEstimatedWidth": true,
     "roadWidths": {
       "motorway": 10,
       "trunk": 9,
@@ -101,7 +103,7 @@
       "Rua da Conceição da Praia",
       "Avenida Lafayete Coutinho"
     ],
-    "notes": "Road centerlines and polygons are clipped to the project perimeter. Indoor highway features remain preserved in normalized OSM but are excluded from terrain-road derivation. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated. Complete coverage requires every critical road name to be present."
+    "notes": "Road centerlines and polygons are clipped to the project perimeter. Indoor highway features remain preserved in normalized OSM but are excluded from terrain-road derivation. Road width provenance follows explicit OSM width first, then integer OSM lanes × 3 m as an estimated carriageway width, then the highway-class fallback. Explicit OSM width/height tags are preserved; all derived widths remain marked estimated. Complete coverage requires every critical road name to be present."
   },
   "buildingBlockoutPolicy": {
     "maxAutoFoundationRelief": 0.75,

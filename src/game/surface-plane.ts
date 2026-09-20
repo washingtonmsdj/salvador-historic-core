@@ -95,10 +95,21 @@ export function fitBoundedSurfacePlane(
     gz *= scale;
   }
 
+  const edgeIntercepts =
+    observations.map(
+      (point) =>
+        point.y -
+        gx * point.x -
+        gz * point.z,
+    );
   const intercept =
-    meanY -
-    gx * meanX -
-    gz * meanZ;
+    (Math.min(
+      ...edgeIntercepts,
+    ) +
+      Math.max(
+        ...edgeIntercepts,
+      )) /
+    2;
 
   return {
     gx,

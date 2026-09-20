@@ -65,3 +65,48 @@ for (const observation of observations) {
 console.log(
   "Junction surface plane test passed.",
 );
+
+
+const asymmetric = [
+  { x: -1, z: 0, y: 10 },
+  { x: 1, z: 0, y: 10 },
+  { x: 0, z: -1, y: 10 },
+  { x: 0, z: 1, y: 10.3 },
+  { x: 0.5, z: 0.5, y: 10.3 },
+];
+
+const asymmetricPlane =
+  fitBoundedSurfacePlane(
+    asymmetric,
+    0.14,
+  );
+
+if (!asymmetricPlane) {
+  throw new Error(
+    "Expected asymmetric junction plane.",
+  );
+}
+
+const asymmetricResiduals =
+  asymmetric.map(
+    (observation) =>
+      Math.abs(
+        surfacePlaneHeight(
+          asymmetricPlane,
+          observation.x,
+          observation.z,
+        ) -
+          observation.y,
+      ),
+  );
+
+if (
+  Math.max(
+    ...asymmetricResiduals,
+  ) >
+  0.16
+) {
+  throw new Error(
+    "Junction plane must balance the worst edge residual instead of biasing the mean.",
+  );
+}

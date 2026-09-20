@@ -55,7 +55,9 @@ Regras principais:
 
 - espaçamento longitudinal de amostragem: 1,25 m;
 - largura explícita do OSM é preservada quando disponível;
-- largura determinística continua identificada como estimada;
+- quando não há `width`, um `lanes` inteiro válido gera largura estimada de faixa de rolamento usando 3 m por faixa;
+- somente quando `width` e `lanes` não estão disponíveis é usado o fallback determinístico por classe `highway`;
+- toda largura não explícita continua identificada como estimada e preserva `widthSource`;
 - crossfall de gameplay é limitado a 6%;
 - a inclinação longitudinal é limitada a 14% por um solver raise-only que trabalha nas duas bordas da pista;
 - o solver nunca corta a superfície CONDER: ele só eleva a via quando crossfall, longitudinal e suporte total permanecem simultaneamente dentro da política;

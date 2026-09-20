@@ -14,6 +14,8 @@ const bounds = {
 
 const config = {
   defaultRoadWidth: 5,
+  laneWidthMeters: 3,
+  useLaneCountForEstimatedWidth: true,
   roadWidths: {
     residential: 5.5,
     service: 4,
@@ -80,6 +82,7 @@ const derived = deriveOsmSiteVectors({
       ],
       tags: {
         highway: "residential",
+        lanes: "2",
         name: "Rua Teste",
       },
     },
@@ -94,6 +97,7 @@ const derived = deriveOsmSiteVectors({
       ],
       tags: {
         highway: "service",
+        lanes: "3",
         width: "6.5",
       },
     },
@@ -183,6 +187,14 @@ if (
 }
 
 if (
+  derived.metadata?.laneDerivedRoadCount !== 1
+) {
+  failures.push(
+    "lane-derived road metadata count is incorrect",
+  );
+}
+
+if (
   derived.metadata?.coverage !== "partial" ||
   derived.metadata?.criticalRoadCoverage?.found !== 1 ||
   derived.metadata?.criticalRoadCoverage?.total !== 2 ||
@@ -199,10 +211,11 @@ const residential = derived.roads.find(
   (road) => road.id === "way/1",
 );
 if (
-  residential?.width !== 5.5 ||
-  residential?.estimated !== true
+  residential?.width !== 6 ||
+  residential?.estimated !== true ||
+  !residential?.widthSource?.includes("OSM lanes=2")
 ) {
-  failures.push("residential default width was not marked estimated");
+  failures.push("OSM lane count was not preferred for estimated carriageway width");
 }
 
 if (
@@ -223,9 +236,10 @@ const explicit = derived.roads.find(
 );
 if (
   explicit?.width !== 6.5 ||
-  explicit?.estimated !== false
+  explicit?.estimated !== false ||
+  explicit?.widthSource !== "OSM width tag"
 ) {
-  failures.push("explicit OSM road width was not preserved");
+  failures.push("explicit OSM road width must override lane-derived estimates");
 }
 
 if (derived.spaces.length !== 2) {
