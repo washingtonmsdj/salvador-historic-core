@@ -103,6 +103,8 @@ Polígonos de espaço são triangulados e acompanhados sobre o terreno ativo.
 
 `leisure=park` sem tag explícita de superfície rígida não recebe pavimentação inventada. Nesses casos o terreno oficial permanece visível e caminhável.
 
+A Praça Tomé de Souza (`way/1263035782`) é uma exceção documentada: referências visuais mostram pavimentação pétrea contínua, então o manifesto aplica `stone` como override de apresentação/gameplay. A geometria e as tags OSM continuam intactas, e a superfície segue o terreno CONDER — o override não achata a praça.
+
 ## Edifícios
 
 Marcos curados que já possuem footprint OSM versionado usam `footprintOsmId` como referência canônica. O runtime hidrata o polígono diretamente de `site-vectors.json`, recalcula centro/largura/profundidade e mantém altura/material/modelagem curada separadamente. O mesmo objeto não deve copiar os vértices OSM novamente em `site-data.json`.
