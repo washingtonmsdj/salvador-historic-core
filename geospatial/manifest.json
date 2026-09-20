@@ -26,11 +26,11 @@
     "osm": {
       "kind": "vector",
       "authority": "OpenStreetMap contributors",
-      "status": "seed-partial",
+      "status": "versioned-derived",
       "command": "npm run geospatial:import:osm",
       "rawOutput": "geospatial/raw/osm/overpass.json",
       "normalizedOutput": "geospatial/normalized/osm/site.json",
-      "notes": "A versioned OSM seed is active from public/data/osm-reference.json while full bbox import remains pending."
+      "notes": "Complete versioned OSM bbox snapshot is active for the project perimeter. Derived runtime vectors contain all configured critical roads; live OSM remains refresh/debug only."
     },
     "conderContours": {
       "kind": "elevation-contours",
@@ -146,13 +146,16 @@
     "surfaceGap": 0.045,
     "maxMiterScale": 2.2,
     "maxCrossSlope": 0.06,
-    "notes": "Gameplay road mesh follows OSM centerlines and the active terrain. Longitudinal smoothing may only raise local depressions by up to 0.12 m; it never cuts below official terrain. Crossfall is capped at 6% only when the natural edge-to-edge relief is <= 0.75 m, and correction raises only the lower edge. Steeper unsupported sections follow both terrain edges instead of inventing a large cut/fill. Endpoints from 2+ compatible OSM ways within 0.35 m receive a small terrain-draped junction patch to prevent collision seams; layer/bridge/tunnel separation is preserved. These are rendering/gameplay constraints, not surveyed road elevations.",
+    "notes": "Gameplay road mesh follows OSM centerlines and active terrain. Longitudinal smoothing may only raise local depressions by up to 0.12 m and never cuts below official terrain. Crossfall is capped at 6% by preserving the higher terrain edge and raising only the lower edge. Where this creates more than 0.18 m of support, a terrain-connected retaining skirt is rendered; automatic fill is limited to 12 m. Endpoints from 2+ compatible OSM ways within 0.35 m receive a terrain-draped junction patch; layer/bridge/tunnel separation is preserved. These are rendering/gameplay constraints, not surveyed civil-engineering elevations.",
     "maxCrossSlopeCorrectionRelief": 0.75,
     "junctionSnapDistance": 0.35,
     "junctionOverlap": 0.35,
     "junctionSurfaceOffset": 0.008,
     "junctionMaxSegments": 28,
-    "maxGradeSmoothingRaise": 0.12
+    "maxGradeSmoothingRaise": 0.12,
+    "maxSupportedFillHeight": 12,
+    "supportWallThreshold": 0.18,
+    "supportWallTextureRepeatMeters": 3
   },
   "publicSpaceSurfacePolicy": {
     "maxTriangleEdge": 4,
