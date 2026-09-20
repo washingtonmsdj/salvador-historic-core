@@ -9,6 +9,7 @@ import {
   latLonToUtm24S,
   utm24SToLatLon,
 } from "./lib/utm-wgs84.mjs";
+import { assertUsableOverpassPayload } from "./lib/overpass-integrity.mjs";
 
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
@@ -86,6 +87,7 @@ const query = `
   way["highway"](${bbox});
   way["building"](${bbox});
   way["leisure"="square"](${bbox});
+  way["leisure"="park"](${bbox});
   way["place"="square"](${bbox});
 );
 out geom center tags;
@@ -112,11 +114,10 @@ async function queryOverpass() {
       }
 
       const payload = await response.json();
-      if (!Array.isArray(payload.elements)) {
-        throw new Error(
-          "response did not contain an elements array",
-        );
-      }
+      assertUsableOverpassPayload(
+        payload,
+        endpoint,
+      );
 
       return { endpoint, payload };
     } catch (error) {
