@@ -26,7 +26,7 @@
       "source": "OpenStreetMap way 59224731 centroid",
       "estimated": false
     },
-    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated; blockout values are never official measurements. The runtime now prefers versioned geospatial-derived OSM vectors and CONDER terrain. Procedural profiles, estimated plateaus/cutouts and manually curated fallback geometry are development fallbacks only and do not overwrite the persistent terrain when it is active. Palácio Thomé de Souza horizontal blockout follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); unsupported vertical dimensions remain estimated. Manual/extrapolated road ribbons and generic Rua Chile blocks were removed; road placement must come from versioned geospatial geometry, with live sources limited to refresh/diagnostic fallback."
+    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated; blockout values are never official measurements. The runtime now prefers versioned geospatial-derived OSM vectors and CONDER terrain. Procedural profiles, estimated plateaus/cutouts and manually curated fallback geometry are development fallbacks only and do not overwrite the persistent terrain when it is active. Palácio Thomé de Souza horizontal blockout follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); unsupported vertical dimensions remain estimated. Manual/extrapolated road ribbons, generic Rua Chile blocks and the provisional Praça Cairu fallback polygon were removed; road/space placement must come from versioned geospatial geometry, with live sources limited to refresh/diagnostic fallback."
   },
   "levels": {
     "lowerCity": {
@@ -284,48 +284,48 @@
       "name": "Torre principal do Elevador Lacerda",
       "type": "elevator-tower",
       "position": [
-        0,
+        0.005,
         36,
-        0
+        0.001
       ],
       "rotation": [
         0,
         0,
         0
       ],
-      "width": 10.83,
-      "depth": 10.81,
+      "width": 10.835,
+      "depth": 10.748,
       "height": 72,
-      "source": "Height 72 m and footprint from OpenStreetMap way 59224731; footprint projected to local metres",
+      "source": "Height 72 m and horizontal footprint synchronized to versioned OpenStreetMap way 59224731",
       "estimated": false,
       "footprint": [
         [
-          -0.34,
-          -5.4
+          -0.346,
+          -5.374
         ],
         [
-          1.55,
-          -3.61
+          1.544,
+          -3.597
         ],
         [
-          3.4,
-          -1.85
+          3.402,
+          -1.842
         ],
         [
-          5.42,
-          0.07
+          5.423,
+          0.056
         ],
         [
-          0.35,
-          5.4
+          0.357,
+          5.374
         ],
         [
-          -1.2,
-          3.94
+          -1.196,
+          3.917
         ],
         [
-          -5.41,
-          -0.07
+          -5.412,
+          -0.056
         ]
       ]
     },
@@ -434,53 +434,53 @@
       "name": "Palácio Rio Branco",
       "type": "civic",
       "position": [
-        40,
+        39.888,
         77,
-        -100.3
+        -99.843
       ],
       "rotation": [
         0,
         0,
         0
       ],
-      "width": 46.9,
-      "depth": 54.8,
+      "width": 46.937,
+      "depth": 54.526,
       "height": 24,
       "footprint": [
         [
-          16.4,
-          -98.1
+          16.18,
+          -97.604
         ],
         [
-          34.7,
-          -75.3
+          34.606,
+          -74.924
         ],
         [
-          63.2,
-          -99.5
+          63.117,
+          -99.076
         ],
         [
-          37.3,
-          -130.1
+          37.062,
+          -129.45
         ],
         [
-          29.1,
-          -123.1
+          28.854,
+          -122.5
         ],
         [
-          40.9,
-          -109.1
+          40.746,
+          -108.633
         ],
         [
-          30,
-          -99.4
+          29.799,
+          -98.913
         ],
         [
-          24.6,
-          -105.5
+          24.441,
+          -104.93
         ]
       ],
-      "source": "OpenStreetMap way 402383814 verified footprint and building:levels=3; blockout height remains estimated",
+      "source": "OpenStreetMap way 402383814 verified footprint and building:levels=3; blockout height remains estimated; horizontal geometry synchronized to versioned OSM way 402383814",
       "estimated": true
     },
     {
@@ -488,69 +488,101 @@
       "name": "Mercado Modelo",
       "type": "market",
       "position": [
-        -71.5,
+        -71.491,
         12.4,
-        127.6
+        127.151
       ],
       "rotation": [
         0,
         0,
         0
       ],
-      "width": 69.9,
-      "depth": 70.7,
+      "width": 69.99,
+      "depth": 71.134,
       "height": 24,
       "footprint": [
         [
-          -33.2,
-          120.6
+          -32.959,
+          120.02
         ],
         [
-          -64.5,
-          151.6
+          -64.299,
+          150.89
         ],
         [
-          -72.5,
-          159.2
+          -68.434,
+          155.1
         ],
         [
-          -86.8,
-          159.7
+          -72.267,
+          158.48
         ],
         [
-          -91.5,
-          158.3
+          -77.101,
+          159.806
         ],
         [
-          -97.5,
-          154.5
+          -81.754,
+          159.704
         ],
         [
-          -102.2,
-          146.9
+          -86.614,
+          159.017
         ],
         [
-          -103,
-          135.9
+          -91.259,
+          157.599
         ],
         [
-          -102.8,
-          131.3
+          -94.918,
+          155.648
         ],
         [
-          -95.1,
-          119.4
+          -97.329,
+          153.872
         ],
         [
-          -64.4,
-          89
+          -100.264,
+          150.173
         ],
         [
-          -47.9,
-          105.7
+          -102.007,
+          146.306
+        ],
+        [
+          -102.949,
+          141.597
+        ],
+        [
+          -102.863,
+          135.392
+        ],
+        [
+          -102.676,
+          130.769
+        ],
+        [
+          -102.3,
+          128.933
+        ],
+        [
+          -100.021,
+          123.941
+        ],
+        [
+          -94.977,
+          118.966
+        ],
+        [
+          -64.243,
+          88.672
+        ],
+        [
+          -47.727,
+          105.218
         ]
       ],
-      "source": "OpenStreetMap way 59392558 footprint and height=24 m; local Y placement remains provisional against lower-city datum",
+      "source": "OpenStreetMap way 59392558 footprint and height=24 m; local Y placement remains provisional against lower-city datum; horizontal geometry synchronized to versioned OSM way 59392558",
       "estimated": true
     }
   ],
@@ -561,63 +593,32 @@
       "type": "square",
       "elevation": 65.2,
       "width": 76,
-      "source": "OpenStreetMap way 1263035782 geometry",
+      "source": "OpenStreetMap way 1263035782 geometry synchronized to versioned derived vectors",
       "estimated": false,
       "points": [
         [
-          47.2,
-          -50.4
+          47.083,
+          -50.176
         ],
         [
-          31.5,
-          -68.1
+          31.377,
+          -67.741
         ],
         [
-          62.3,
-          -95.1
+          62.095,
+          -94.584
         ],
         [
-          105.5,
-          -43.5
+          105.359,
+          -43.398
         ],
         [
-          74,
-          -16.6
+          73.936,
+          -16.641
         ],
         [
-          56.3,
-          -38.4
-        ]
-      ]
-    },
-    {
-      "id": "praca-cairu",
-      "name": "Praça Cairu / acesso inferior",
-      "type": "square",
-      "elevation": 0.3,
-      "width": 35,
-      "source": "Documented lower terminus; shape pending verified OSM import",
-      "estimated": true,
-      "points": [
-        [
-          -38,
-          35
-        ],
-        [
-          -8,
-          28
-        ],
-        [
-          12,
-          56
-        ],
-        [
-          -17,
-          82
-        ],
-        [
-          -47,
-          64
+          56.216,
+          -38.239
         ]
       ]
     }
