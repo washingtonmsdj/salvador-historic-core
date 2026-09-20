@@ -4,9 +4,16 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 
 export function createCameras(scene: Scene, canvas: HTMLCanvasElement) {
-  const aerial = new ArcRotateCamera("camera-aerea", -1.12, 1.04, 310, new Vector3(5, 30, -20), scene);
-  aerial.lowerRadiusLimit = 90;
-  aerial.upperRadiusLimit = 480;
+  const aerial = new ArcRotateCamera(
+    "camera-aerea",
+    -1.08,
+    1.0,
+    245,
+    new Vector3(-8, 31, -28),
+    scene,
+  );
+  aerial.lowerRadiusLimit = 95;
+  aerial.upperRadiusLimit = 390;
   aerial.wheelPrecision = 4;
   aerial.panningSensibility = 80;
   aerial.attachControl(canvas, true);

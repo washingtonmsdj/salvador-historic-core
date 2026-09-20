@@ -95,14 +95,14 @@ export function SalvadorScene() {
         );
 
         scene = new Scene(engine);
-        scene.clearColor = new Color4(0.045, 0.065, 0.062, 1);
+        scene.clearColor = new Color4(0.16, 0.19, 0.2, 1);
 
         const ambient = new HemisphericLight(
           "ambient-light",
           new Vector3(0.2, 1, 0.1),
           scene,
         );
-        ambient.intensity = 0.92;
+        ambient.intensity = 1.08;
 
         const sun = new DirectionalLight(
           "sun-light",
@@ -110,7 +110,7 @@ export function SalvadorScene() {
           scene,
         );
         sun.position = new Vector3(120, 180, -80);
-        sun.intensity = 0.72;
+        sun.intensity = 0.82;
 
         createTerrain(scene, data.terrain, data.levels);
         createSpaces(scene, data.spaces);

@@ -13,20 +13,19 @@
   "terrain": {
     "tileSize": 60,
     "subdivisionsPerTile": 16,
-    "bounds": { "minX": -120, "maxX": 180, "minZ": -340, "maxZ": 240 },
+    "bounds": { "minX": -130, "maxX": 170, "minZ": -230, "maxZ": 220 },
     "profiles": [
-      { "z": -340, "toeX": -180, "cliffX": -155, "shoulderX": -132 },
-      { "z": -300, "toeX": -160, "cliffX": -135, "shoulderX": -112 },
-      { "z": -250, "toeX": -125, "cliffX": -100, "shoulderX": -78 },
-      { "z": -200, "toeX": -90, "cliffX": -65, "shoulderX": -43 },
-      { "z": -150, "toeX": -60, "cliffX": -35, "shoulderX": -13 },
-      { "z": -100, "toeX": -32, "cliffX": -7, "shoulderX": 15 },
-      { "z": -50, "toeX": -20, "cliffX": 0, "shoulderX": 18 },
-      { "z": 0, "toeX": -6, "cliffX": 3, "shoulderX": 14 },
-      { "z": 50, "toeX": 20, "cliffX": 40, "shoulderX": 58 },
-      { "z": 100, "toeX": 22, "cliffX": 45, "shoulderX": 65 },
-      { "z": 160, "toeX": 25, "cliffX": 48, "shoulderX": 68 },
-      { "z": 240, "toeX": 28, "cliffX": 52, "shoulderX": 72 }
+      { "z": -230, "toeX": -122, "cliffX": -98, "shoulderX": -72 },
+      { "z": -190, "toeX": -102, "cliffX": -78, "shoulderX": -52 },
+      { "z": -150, "toeX": -82, "cliffX": -58, "shoulderX": -32 },
+      { "z": -110, "toeX": -58, "cliffX": -34, "shoulderX": -8 },
+      { "z": -70, "toeX": -36, "cliffX": -16, "shoulderX": 8 },
+      { "z": -35, "toeX": -22, "cliffX": -6, "shoulderX": 12 },
+      { "z": 0, "toeX": -6, "cliffX": 4, "shoulderX": 15 },
+      { "z": 45, "toeX": 12, "cliffX": 30, "shoulderX": 48 },
+      { "z": 90, "toeX": 18, "cliffX": 38, "shoulderX": 58 },
+      { "z": 150, "toeX": 22, "cliffX": 42, "shoulderX": 62 },
+      { "z": 220, "toeX": 26, "cliffX": 46, "shoulderX": 66 }
     ],
     "lowerGrade": { "risePerMeterX": 0.004, "maxRise": 1.2 },
     "upperGrade": { "risePerMeterX": 0.002, "risePerMeterZ": -0.001, "maxVariation": 1.5 },
@@ -47,25 +46,25 @@
   ],
   "buildings": [
     { "id": "palacio-thome-souza", "name": "Prefeitura / Palácio Thomé de Souza", "type": "civic", "position": [83, 73, -35], "rotation": [0, -0.72, 0], "width": 39, "depth": 19, "height": 16, "source": "Named real building adjacent to Praça Tomé de Souza; blockout dimensions pending footprint import", "estimated": true },
-    { "id": "palacio-rio-branco", "name": "Palácio Rio Branco", "type": "civic", "position": [45, 77, -76], "rotation": [0, -0.72, 0], "width": 42, "depth": 28, "height": 24, "source": "Named real building on Praça Tomé de Souza; blockout dimensions pending footprint import", "estimated": true },
+    { "id": "palacio-rio-branco", "name": "Palácio Rio Branco", "type": "civic", "position": [40, 77, -100.3], "rotation": [0, 0, 0], "width": 46.9, "depth": 54.8, "height": 24, "footprint": [[16.4,-98.1],[34.7,-75.3],[63.2,-99.5],[37.3,-130.1],[29.1,-123.1],[40.9,-109.1],[30,-99.4],[24.6,-105.5]], "source": "OpenStreetMap way 402383814 verified footprint and building:levels=3; blockout height remains estimated", "estimated": true },
     { "id": "edificio-oposto-prefeitura", "name": "Edifício oposto à Prefeitura", "type": "context", "position": [105, 72, -70], "rotation": [0, -0.72, 0], "width": 36, "depth": 20, "height": 14, "source": "Real built frontage visible opposite city hall; identity/dimensions pending reference", "estimated": true },
     { "id": "praca-vizinho-norte", "name": "Prédio vizinho norte da Praça", "type": "context", "position": [74, 72.5, -11], "rotation": [0, -0.72, 0], "width": 28, "depth": 17, "height": 15, "source": "Existing plaza frontage; blockout pending OSM footprint", "estimated": true },
     { "id": "rua-chile-01", "name": "Edifício Rua Chile 01", "type": "rua-chile", "position": [48, 75, -126], "rotation": [0, -0.72, 0], "width": 32, "depth": 18, "height": 20, "source": "Aligned to OSM Rua Chile way 258560240; dimensions estimated", "estimated": true },
     { "id": "rua-chile-02", "name": "Edifício Rua Chile 02", "type": "rua-chile", "position": [21, 74, -160], "rotation": [0, -0.72, 0], "width": 31, "depth": 17, "height": 18, "source": "Aligned to OSM Rua Chile way 258560240; dimensions estimated", "estimated": true },
     { "id": "rua-chile-03", "name": "Edifício Rua Chile 03", "type": "rua-chile", "position": [-5, 73.5, -194], "rotation": [0, -0.72, 0], "width": 30, "depth": 18, "height": 17, "source": "Aligned to continuation of Rua Chile; dimensions estimated", "estimated": true },
-    { "id": "mercado-modelo", "name": "Mercado Modelo — PROVISÓRIO", "type": "market", "position": [-27, 8, 177], "rotation": [0, 0.04, 0], "width": 74, "depth": 58, "height": 16, "source": "Position derived from published coordinate -12.9725,-38.51361; dimensions pending verified OSM footprint", "estimated": true }
+    { "id": "mercado-modelo", "name": "Mercado Modelo", "type": "market", "position": [-71.5, 12.4, 127.6], "rotation": [0, 0, 0], "width": 69.9, "depth": 70.7, "height": 24, "footprint": [[-33.2,120.6],[-64.5,151.6],[-72.5,159.2],[-86.8,159.7],[-91.5,158.3],[-97.5,154.5],[-102.2,146.9],[-103.0,135.9],[-102.8,131.3],[-95.1,119.4],[-64.4,89.0],[-47.9,105.7]], "source": "OpenStreetMap way 59392558 footprint and height=24 m; local Y placement remains provisional against lower-city datum", "estimated": true }
   ],
   "spaces": [
     { "id": "praca-tome-souza", "name": "Praça Tomé de Souza", "type": "square", "elevation": 65.2, "width": 76, "source": "OpenStreetMap way 1263035782 geometry", "estimated": false, "points": [[47.2,-50.4],[31.5,-68.1],[62.3,-95.1],[105.5,-43.5],[74,-16.6],[56.3,-38.4]] },
     { "id": "praca-cairu", "name": "Praça Cairu / acesso inferior", "type": "square", "elevation": 0.3, "width": 35, "source": "Documented lower terminus; shape pending verified OSM import", "estimated": true, "points": [[-38,35],[-8,28],[12,56],[-17,82],[-47,64]] }
   ],
   "roads": [
-    { "id": "rua-chile", "name": "Rua Chile", "type": "road", "elevationMode": "upper", "width": 8, "source": "OpenStreetMap way 258560240; north segment interpolated to Praça Tomé de Souza", "estimated": true, "points": [[-107,-298],[-70,-256],[-40,-218],[-10,-180],[20,-142],[48,-105],[65,-83]] },
-    { "id": "ladeira-montanha", "name": "Ladeira da Montanha", "type": "road", "elevationMode": "terrain", "width": 9, "source": "Documented real road beside/through escarpment; alignment blockout pending full OSM import", "estimated": true, "points": [[-70,-155],[-58,-110],[-45,-62],[-31,-12],[-42,42],[-58,86]] },
+    { "id": "rua-chile", "name": "Rua Chile", "type": "road", "elevationMode": "upper", "width": 8, "source": "OpenStreetMap way 258560240; north segment interpolated to Praça Tomé de Souza", "estimated": true, "points": [[-40,-218],[-10,-180],[20,-142],[48,-105],[65,-83]] },
+    { "id": "ladeira-montanha", "name": "Ladeira da Montanha", "type": "road", "elevationMode": "terrain", "width": 9, "source": "Documented real connection between Cidade Alta and Cidade Baixa; provisional local alignment adjusted to follow the blockout escarpment pending full OSM import", "estimated": true, "points": [[-25,-155],[-18,-125],[-12,-100],[-8,-75],[-6,-55],[-7,-35],[-12,-15],[-24,20],[-38,55],[-50,86]] },
     { "id": "avenida-estados-unidos", "name": "Via inferior junto ao Elevador", "type": "road", "elevationMode": "lower", "width": 11, "source": "Existing lower-city road network; exact segment name/alignment pending reference", "estimated": true, "points": [[-76,-130],[-55,-68],[-39,-12],[-42,55],[-54,125],[-58,220]] }
   ],
   "barriers": [
-    { "id": "retaining-wall-north", "name": "Contenção norte", "type": "retaining-wall", "position": [35, 30, 65], "rotation": [0, 0.02, 0], "width": 8, "depth": 100, "height": 60, "source": "Blockout of documented escarpment containment", "estimated": true },
-    { "id": "upper-guardrail", "name": "Guarda-corpo Cidade Alta", "type": "guardrail", "position": [58, 65.8, 45], "rotation": [0, 0, 0], "width": 1, "depth": 105, "height": 1.2, "source": "Safety edge blockout; exact alignment pending survey", "estimated": true }
+    { "id": "retaining-wall-north", "name": "Contenção norte — PROVISÓRIA", "type": "retaining-wall", "position": [38, 32, 75], "rotation": [0, 0.02, 0], "width": 3, "depth": 42, "height": 8, "source": "Small blockout marker for documented escarpment containment; exact alignment and dimensions pending survey", "estimated": true },
+    { "id": "upper-guardrail", "name": "Guarda-corpo Cidade Alta", "type": "guardrail", "position": [48, 65.8, 38], "rotation": [0, 0, 0], "width": 0.45, "depth": 58, "height": 1.2, "source": "Safety edge blockout; exact alignment pending survey", "estimated": true }
   ]
 }
