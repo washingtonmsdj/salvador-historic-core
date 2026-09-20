@@ -152,6 +152,15 @@ export function SalvadorScene() {
     spaces: 0,
     buildings: 0,
   });
+  const [liveTerrainState, setLiveTerrainState] = useState<
+    "loading" | "active" | "cached" | "unavailable"
+  >("loading");
+  const [liveTerrainStats, setLiveTerrainStats] = useState({
+    contours: 0,
+    columns: 0,
+    rows: 0,
+    maxHeight: 0,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -160,6 +169,7 @@ export function SalvadorScene() {
     let disposed = false;
     let engine: Engine | null = null;
     let scene: Scene | null = null;
+    let clearRuntimeTerrain: (() => void) | null = null;
 
     const handleResize = () => engine?.resize();
 
@@ -173,12 +183,13 @@ export function SalvadorScene() {
           { ShadowGenerator },
           { Vector3 },
           { Color3, Color4 },
-          { createTerrain },
+          { createTerrain, setRuntimeDerivedTerrain },
           { createOsmTerrainReference },
           { createRoads, createSpaces },
           { createBuildings },
           { createBuildingFootprintGuides },
           { loadLiveOsmVectors },
+          { loadLiveConderTerrain },
           { deriveRuntimeBuildingBlockouts },
           { createElevatorBlockout, createConnectionPoints },
           { createBarriers },
@@ -199,6 +210,7 @@ export function SalvadorScene() {
           import("../game/buildings"),
           import("../game/building-footprint-guides"),
           import("../game/live-osm"),
+          import("../game/live-conder"),
           import("../game/derived-buildings"),
           import("../game/elevator"),
           import("../game/barriers"),
@@ -238,12 +250,15 @@ export function SalvadorScene() {
         sun.position = new Vector3(120, 180, -80);
         sun.intensity = 0.74;
 
-        const terrainMeshes = createTerrain(
+        clearRuntimeTerrain = () =>
+          setRuntimeDerivedTerrain(null);
+
+        let terrainMeshes = createTerrain(
           scene,
           data.terrain,
           data.levels,
         );
-        const mapReference = createOsmTerrainReference(
+        let mapReference = createOsmTerrainReference(
           scene,
           geo.mapReference,
           geo.origin,
@@ -251,7 +266,15 @@ export function SalvadorScene() {
           data.terrain,
           data.levels,
         );
-        mapReference.setEnabled(true);
+        let mapReferenceRuntimeEnabled = true;
+        mapReference.setEnabled(
+          mapReferenceRuntimeEnabled,
+        );
+
+        let activeRoadFeatures = runtimeRoads;
+        let activeSpaceFeatures = runtimeSpaces;
+        let activeBuildingFootprints:
+          DerivedBuildingFootprint[] = [];
 
         let spaceMeshes = createSpaces(
           scene,
@@ -333,7 +356,10 @@ export function SalvadorScene() {
         controlsRef.current = {
           activateCamera: cameras.activate,
           setDebug: debug.setEnabled,
-          setMapReference: mapReference.setEnabled,
+          setMapReference: (enabled) => {
+            mapReferenceRuntimeEnabled = enabled;
+            mapReference.setEnabled(enabled);
+          },
         };
 
         engine.runRenderLoop(() => {
