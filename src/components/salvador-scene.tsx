@@ -373,7 +373,10 @@ export function SalvadorScene() {
               }
               spaceMeshes = createSpaces(
                 liveScene,
-                live.spaces,
+                mergeLinearFeatures(
+                  runtimeSpaces,
+                  live.spaces,
+                ),
                 data.terrain,
                 data.levels,
               );
@@ -619,7 +622,11 @@ export function SalvadorScene() {
         </button>
       </div>
 
-{mapReferenceEnabled && !mapVisible && (
+{!mapVisible &&
+        (mapReferenceEnabled ||
+          geo.vectors.active.startsWith("geospatial") ||
+          liveOsmState === "active" ||
+          liveOsmState === "cached") && (
         <a
           href={geo.mapReference.attributionUrl}
           target="_blank"
