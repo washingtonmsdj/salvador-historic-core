@@ -95,7 +95,6 @@
     "notes": "Road centerlines and polygons are clipped to the project perimeter. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated."
   },
   "buildingBlockoutPolicy": {
-    "requireGeospatialTerrain": true,
     "maxAutoFoundationRelief": 0.75,
     "excludedOsmIds": [
       59224731,
