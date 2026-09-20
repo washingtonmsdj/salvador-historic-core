@@ -15,12 +15,44 @@ const COLORS = {
   estimated: "#d89a3d",
 };
 
-export function material(scene: Scene, name: keyof typeof COLORS, alpha = 1) {
-  const mat = new StandardMaterial(`mat-${name}-${alpha}`, scene);
-  const baseColor = Color3.FromHexString(COLORS[name]);
+export function material(
+  scene: Scene,
+  name: keyof typeof COLORS,
+  alpha = 1,
+) {
+  const materialName =
+    `mat-${name}-${alpha}`;
+  const existing =
+    scene.getMaterialByName(
+      materialName,
+    );
+  if (
+    existing instanceof
+    StandardMaterial
+  ) {
+    return existing;
+  }
+
+  const mat = new StandardMaterial(
+    materialName,
+    scene,
+  );
+  const baseColor =
+    Color3.FromHexString(
+      COLORS[name],
+    );
   mat.diffuseColor = baseColor;
-  mat.emissiveColor = baseColor.scale(name === "terrain" ? 0.16 : 0.045);
-  mat.specularColor = new Color3(0.08, 0.08, 0.08);
+  mat.emissiveColor =
+    baseColor.scale(
+      name === "terrain"
+        ? 0.16
+        : 0.045,
+    );
+  mat.specularColor = new Color3(
+    0.08,
+    0.08,
+    0.08,
+  );
   mat.alpha = alpha;
   return mat;
 }
