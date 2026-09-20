@@ -25,6 +25,16 @@ const MAX_GRADE_SMOOTHING_DEVIATION =
   roadSurfacePolicy.maxGradeSmoothingDeviation;
 const MAX_CROSS_SLOPE_CORRECTION_RELIEF =
   roadSurfacePolicy.maxCrossSlopeCorrectionRelief;
+const publicSpaceSurfacePolicy =
+  manifestData.publicSpaceSurfacePolicy;
+const SPACE_MAX_TRIANGLE_EDGE =
+  publicSpaceSurfacePolicy.maxTriangleEdge;
+const SPACE_MAX_SUBDIVISIONS =
+  publicSpaceSurfacePolicy.maxSubdivisions;
+const SPACE_SURFACE_GAP =
+  publicSpaceSurfacePolicy.surfaceGap;
+const SPACE_TEXTURE_REPEAT_METERS =
+  publicSpaceSurfacePolicy.textureRepeatMeters;
 
 function elevationAt(
   x: number,
@@ -489,6 +499,177 @@ function orientTrianglesUp(points: Point2[], indices: number[]) {
   return upward;
 }
 
+function triangleEdgeLength(
+  a: Point2,
+  b: Point2,
+) {
+  return Math.hypot(
+    b[0] - a[0],
+    b[1] - a[1],
+  );
+}
+
+function triangleSubdivisionCount(
+  points: Point2[],
+  indices: number[],
+) {
+  let longest = 0;
+
+  for (
+    let index = 0;
+    index < indices.length;
+    index += 3
+  ) {
+    const ia = indices[index];
+    const ib = indices[index + 1];
+    const ic = indices[index + 2];
+    if (
+      ia === undefined ||
+      ib === undefined ||
+      ic === undefined
+    ) {
+      continue;
+    }
+
+    const a = points[ia];
+    const b = points[ib];
+    const c = points[ic];
+    if (!a || !b || !c) {
+      continue;
+    }
+
+    longest = Math.max(
+      longest,
+      triangleEdgeLength(a, b),
+      triangleEdgeLength(b, c),
+      triangleEdgeLength(c, a),
+    );
+  }
+
+  return Math.max(
+    1,
+    Math.min(
+      SPACE_MAX_SUBDIVISIONS,
+      Math.ceil(
+        longest /
+          SPACE_MAX_TRIANGLE_EDGE,
+      ),
+    ),
+  );
+}
+
+function appendSubdividedTriangle(
+  a: Point2,
+  b: Point2,
+  c: Point2,
+  subdivisions: number,
+  elevation: (
+    x: number,
+    z: number,
+  ) => number,
+  positions: number[],
+  indices: number[],
+  uvs: number[],
+) {
+  const rows: number[][] = [];
+
+  for (
+    let i = 0;
+    i <= subdivisions;
+    i++
+  ) {
+    const row: number[] = [];
+
+    for (
+      let j = 0;
+      j <= subdivisions - i;
+      j++
+    ) {
+      const towardB =
+        i / subdivisions;
+      const towardC =
+        j / subdivisions;
+      const towardA =
+        1 - towardB - towardC;
+      const x =
+        a[0] * towardA +
+        b[0] * towardB +
+        c[0] * towardC;
+      const z =
+        a[1] * towardA +
+        b[1] * towardB +
+        c[1] * towardC;
+      const vertex =
+        positions.length / 3;
+
+      positions.push(
+        x,
+        elevation(x, z),
+        z,
+      );
+      uvs.push(
+        x /
+          SPACE_TEXTURE_REPEAT_METERS,
+        z /
+          SPACE_TEXTURE_REPEAT_METERS,
+      );
+      row.push(vertex);
+    }
+
+    rows.push(row);
+  }
+
+  for (
+    let i = 0;
+    i < subdivisions;
+    i++
+  ) {
+    const current = rows[i];
+    const next = rows[i + 1];
+    if (!current || !next) {
+      continue;
+    }
+
+    for (
+      let j = 0;
+      j < subdivisions - i;
+      j++
+    ) {
+      const aIndex = current[j];
+      const bIndex = next[j];
+      const cIndex = current[j + 1];
+      if (
+        aIndex === undefined ||
+        bIndex === undefined ||
+        cIndex === undefined
+      ) {
+        continue;
+      }
+
+      indices.push(
+        aIndex,
+        bIndex,
+        cIndex,
+      );
+
+      if (
+        j <
+        subdivisions - i - 1
+      ) {
+        const dIndex =
+          next[j + 1];
+        if (dIndex !== undefined) {
+          indices.push(
+            bIndex,
+            dIndex,
+            cIndex,
+          );
+        }
+      }
+    }
+  }
+}
+
 function createPolygonSpace(
   scene: Scene,
   space: LinearFeature,
@@ -499,31 +680,107 @@ function createPolygonSpace(
   const points = space.points;
   if (points.length < 3) return null;
 
-  const flat = points.flatMap(([x, z]) => [x, z]);
-  const indices = orientTrianglesUp(points, earcut(flat));
-  if (indices.length < 3) return null;
+  const flat = points.flatMap(
+    ([x, z]) => [x, z],
+  );
+  const sourceIndices =
+    orientTrianglesUp(
+      points,
+      earcut(flat),
+    );
+  if (sourceIndices.length < 3) {
+    return null;
+  }
 
-  const positions = points.flatMap(([x, z]) => {
-    const elevation =
-      space.elevationMode === "terrain" && terrain && levels
-        ? elevationAt(x, z, terrain, levels)
-        : (space.elevation ?? 0) + SURFACE_GAP;
-    return [x, elevation, z];
-  });
-  const normals = new Array<number>(positions.length).fill(0);
-  const xs = points.map(([x]) => x);
-  const zs = points.map(([, z]) => z);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minZ = Math.min(...zs);
-  const maxZ = Math.max(...zs);
-  const width = Math.max(0.001, maxX - minX);
-  const depth = Math.max(0.001, maxZ - minZ);
-  const uvs = points.flatMap(([x, z]) => [(x - minX) / width, (z - minZ) / depth]);
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+  const subdivisions =
+    triangleSubdivisionCount(
+      points,
+      sourceIndices,
+    );
+  const surfaceElevation = (
+    x: number,
+    z: number,
+  ) => {
+    if (
+      space.elevationMode ===
+        "terrain" &&
+      terrain &&
+      levels
+    ) {
+      return (
+        terrainHeight(
+          terrain,
+          levels,
+          x,
+          z,
+        ) + SPACE_SURFACE_GAP
+      );
+    }
 
-  VertexData.ComputeNormals(positions, indices, normals);
+    return (
+      (space.elevation ?? 0) +
+      SPACE_SURFACE_GAP
+    );
+  };
 
-  const mesh = new Mesh(space.id, scene);
+  for (
+    let index = 0;
+    index < sourceIndices.length;
+    index += 3
+  ) {
+    const ia = sourceIndices[index];
+    const ib =
+      sourceIndices[index + 1];
+    const ic =
+      sourceIndices[index + 2];
+    if (
+      ia === undefined ||
+      ib === undefined ||
+      ic === undefined
+    ) {
+      continue;
+    }
+
+    const a = points[ia];
+    const b = points[ib];
+    const c = points[ic];
+    if (!a || !b || !c) {
+      continue;
+    }
+
+    appendSubdividedTriangle(
+      a,
+      b,
+      c,
+      subdivisions,
+      surfaceElevation,
+      positions,
+      indices,
+      uvs,
+    );
+  }
+
+  if (
+    positions.length === 0 ||
+    indices.length < 3
+  ) {
+    return null;
+  }
+
+  VertexData.ComputeNormals(
+    positions,
+    indices,
+    normals,
+  );
+
+  const mesh = new Mesh(
+    space.id,
+    scene,
+  );
   const vertexData = new VertexData();
   vertexData.positions = positions;
   vertexData.indices = indices;
@@ -534,7 +791,15 @@ function createPolygonSpace(
   mesh.material = squareMaterial;
   mesh.receiveShadows = true;
   mesh.checkCollisions = true;
-  mesh.metadata = space;
+  mesh.metadata = {
+    ...space,
+    walkableSurface: true,
+    publicSpaceSurfacePolicy: {
+      maxTriangleEdge:
+        SPACE_MAX_TRIANGLE_EDGE,
+      subdivisions,
+    },
+  };
   return mesh;
 }
 
