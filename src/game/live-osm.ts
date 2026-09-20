@@ -115,7 +115,7 @@ function parseMeasurement(value?: string) {
 }
 
 function roadWidth(tags: Record<string, string>) {
-  const explicit = parseMeasurement(tags.width);
+  const explicit = parseMeasurement(tags["width"]);
   if (explicit) {
     return {
       width: explicit,
@@ -125,21 +125,21 @@ function roadWidth(tags: Record<string, string>) {
   }
 
   const width =
-    vectorConfig.roadWidths[tags.highway ?? ""] ??
+    vectorConfig.roadWidths[tags["highway"] ?? ""] ??
     vectorConfig.defaultRoadWidth;
 
   return {
     width,
     estimated: true,
     source:
-      `deterministic width for highway=${tags.highway ?? "unknown"}`,
+      `deterministic width for highway=${tags["highway"] ?? "unknown"}`,
   };
 }
 
 function buildingHeight(
   tags: Record<string, string>,
 ) {
-  const explicit = parseMeasurement(tags.height);
+  const explicit = parseMeasurement(tags["height"]);
   if (explicit) {
     return {
       height: explicit,
@@ -174,11 +174,34 @@ function buildingHeight(
 
 function isSpace(tags: Record<string, string>) {
   return (
-    tags.place === "square" ||
-    tags.leisure === "square" ||
-    tags.leisure === "park" ||
-    (tags.highway === "pedestrian" &&
-      tags.area === "yes")
+    tags["place"] === "square" ||
+    tags["leisure"] === "square" ||
+    tags["leisure"] === "park" ||
+    (tags["highway"] === "pedestrian" &&
+      tags["area"] === "yes")
+  );
+}
+
+function isClosedGeometry(
+  geometry: OverpassGeometryPoint[] | undefined,
+) {
+  const first = geometry?.[0];
+  const last = geometry?.at(-1);
+
+  if (
+    !first ||
+    !last ||
+    !Number.isFinite(first.lat) ||
+    !Number.isFinite(first.lon) ||
+    !Number.isFinite(last.lat) ||
+    !Number.isFinite(last.lon)
+  ) {
+    return false;
+  }
+
+  return (
+    Math.abs(first.lat! - last.lat!) < 1e-8 &&
+    Math.abs(first.lon! - last.lon!) < 1e-8
   );
 }
 
@@ -453,7 +476,7 @@ function queryFor(bounds: GeographicBounds) {
   way["leisure"="park"](${bbox});
   way["highway"="pedestrian"]["area"="yes"](${bbox});
 );
-out geom tags;
+out body geom;
 `.trim();
 }
 
@@ -585,6 +608,9 @@ function deriveVectors(
     }
 
     const tags = element.tags ?? {};
+    const closed = isClosedGeometry(
+      element.geometry,
+    );
     const points = geometryToLocal(
       element.geometry,
       origin,
@@ -595,7 +621,11 @@ function deriveVectors(
     const source =
       `OpenStreetMap live way/${osmId}`;
 
-    if (tags.highway && points.length >= 2) {
+    if (
+      tags["highway"] &&
+      tags["area"] !== "yes" &&
+      points.length >= 2
+    ) {
       const width = roadWidth(tags);
       const parts = clipPolyline(
         points,
@@ -609,9 +639,9 @@ function deriveVectors(
               ? `live-way-${osmId}`
               : `live-way-${osmId}-part-${index + 1}`,
           name:
-            tags.name ??
+            tags["name"] ??
             `Via OSM ${osmId}`,
-          type: `osm-${tags.highway}`,
+          type: `osm-${tags["highway"]}`,
           width: width.width,
           source,
           estimated: width.estimated,
@@ -627,16 +657,17 @@ function deriveVectors(
     );
 
     if (
+      closed &&
       polygon.length >= 3 &&
       isSpace(tags)
     ) {
       spaces.push({
         id: `live-space-${osmId}`,
         name:
-          tags.name ??
+          tags["name"] ??
           `Espaço OSM ${osmId}`,
         type:
-          tags.leisure === "park"
+          tags["leisure"] === "park"
             ? "osm-park"
             : "osm-space",
         width: 0,
@@ -648,16 +679,17 @@ function deriveVectors(
     }
 
     if (
+      closed &&
       polygon.length >= 3 &&
-      tags.building
+      tags["building"]
     ) {
       const height = buildingHeight(tags);
       buildingFootprints.push({
         id: `live-building-${osmId}`,
         name:
-          tags.name ??
+          tags["name"] ??
           `Edifício OSM ${osmId}`,
-        buildingType: tags.building,
+        buildingType: tags["building"],
         footprint: polygon,
         source,
         osmId,
