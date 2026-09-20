@@ -215,6 +215,19 @@ if (!lowerTower?.footprint?.length || !elevatorCutout?.polygon?.length) {
   JSON.stringify(elevatorCutout.polygon)
 ) {
   fail("Elevador terrain cutout must match the verified tower footprint");
+} else {
+  const terrainSampleSpacing =
+    data.terrain.tileSize / data.terrain.subdivisionsPerTile;
+
+  if (elevatorCutout.clearance < terrainSampleSpacing) {
+    fail(
+      `Elevador terrain clearance must cover at least one sample cell (${terrainSampleSpacing.toFixed(2)} m)`,
+    );
+  }
+
+  if (elevatorCutout.elevation >= data.levels.lowerCity.elevation) {
+    fail("Elevador terrain cutout must sit below the lower-city datum");
+  }
 }
 
 const frontage = layout?.plazaNortheastFrontage?.edge;
