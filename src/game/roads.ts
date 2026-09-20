@@ -23,6 +23,8 @@ const MAX_CROSS_SLOPE =
   roadSurfacePolicy.maxCrossSlope;
 const MAX_GRADE_SMOOTHING_DEVIATION =
   roadSurfacePolicy.maxGradeSmoothingDeviation;
+const MAX_CROSS_SLOPE_CORRECTION_RELIEF =
+  roadSurfacePolicy.maxCrossSlopeCorrectionRelief;
 
 function elevationAt(
   x: number,
@@ -309,15 +311,23 @@ function createRoadRibbon(
       ) - SURFACE_GAP;
     const averageTerrain =
       (leftTerrain + rightTerrain) / 2;
-    const average = Math.max(
-      centerY -
-        MAX_GRADE_SMOOTHING_DEVIATION,
-      Math.min(
-        centerY +
-          MAX_GRADE_SMOOTHING_DEVIATION,
-        averageTerrain,
-      ),
-    );
+    const naturalCrossDelta =
+      leftTerrain - rightTerrain;
+    const canRegularizeCrossSlope =
+      Math.abs(naturalCrossDelta) <=
+      MAX_CROSS_SLOPE_CORRECTION_RELIEF;
+    const average =
+      canRegularizeCrossSlope
+        ? Math.max(
+            centerY -
+              MAX_GRADE_SMOOTHING_DEVIATION,
+            Math.min(
+              centerY +
+                MAX_GRADE_SMOOTHING_DEVIATION,
+              averageTerrain,
+            ),
+          )
+        : averageTerrain;
     const crossSpan = Math.max(
       0.001,
       Math.hypot(
@@ -327,13 +337,16 @@ function createRoadRibbon(
     );
     const maximumCrossDelta =
       crossSpan * MAX_CROSS_SLOPE;
-    const crossDelta = Math.max(
-      -maximumCrossDelta,
-      Math.min(
-        maximumCrossDelta,
-        leftTerrain - rightTerrain,
-      ),
-    );
+    const crossDelta =
+      canRegularizeCrossSlope
+        ? Math.max(
+            -maximumCrossDelta,
+            Math.min(
+              maximumCrossDelta,
+              naturalCrossDelta,
+            ),
+          )
+        : naturalCrossDelta;
     const leftY =
       average +
       crossDelta / 2 +
@@ -430,6 +443,8 @@ function createRoadRibbon(
         MAX_CROSS_SLOPE,
       maxGradeSmoothingDeviation:
         MAX_GRADE_SMOOTHING_DEVIATION,
+      maxCrossSlopeCorrectionRelief:
+        MAX_CROSS_SLOPE_CORRECTION_RELIEF,
     },
   };
   return mesh;
