@@ -5,6 +5,10 @@ import manifestData from "../../geospatial/manifest.json";
 import geospatialBase from "../data/geospatial-base.json";
 import siteData from "../data/site-data.json";
 import { chooseWalkableSpawn } from "../game/walkable-spawn";
+import {
+  deriveRoadJunctions,
+  roadJunctionMaskPolygon,
+} from "../game/road-junctions";
 import type {
   DerivedBuildingFootprint,
   LinearFeature,
@@ -97,6 +101,13 @@ interface DerivedSiteVectors {
     roadCount: number;
     spaceCount: number;
     buildingFootprintCount: number;
+    coverage?: string;
+    criticalRoadCoverage?: {
+      found: number;
+      total: number;
+      missing: string[];
+      complete: boolean;
+    };
   };
   roads: LinearFeature[];
   spaces: LinearFeature[];
@@ -139,7 +150,7 @@ const runtimeLandmarks =
       )
     : data.landmarks;
 
-const terrainRenderMasks:
+const structureTerrainRenderMasks:
   TerrainRenderMask[] =
   runtimeElevatorParts.flatMap(
     (part) =>
@@ -220,6 +231,16 @@ const derivedVectorsUsable =
   (geo.vectors.active === "geospatial-derived" ||
     geo.vectors.active === "geospatial-hybrid") &&
   derivedVectors.available;
+const persistentVectorsActive =
+  geo.vectors.active ===
+    "geospatial-derived" &&
+  geo.vectors.fallbackActive === false &&
+  derivedVectors.available &&
+  derivedVectors.metadata
+    ?.coverage === "complete" &&
+  derivedVectors.metadata
+    ?.criticalRoadCoverage
+    ?.complete === true;
 const runtimeRoads =
   geo.vectors.active === "geospatial-derived" &&
   derivedVectors.available
@@ -239,6 +260,47 @@ const runtimeSpaces =
         derivedVectors.available
       ? mergeLinearFeatures(data.spaces, derivedVectors.spaces)
       : data.spaces;
+
+const roadJunctionTerrainMasks:
+  TerrainRenderMask[] =
+  persistentVectorsActive
+    ? deriveRoadJunctions(
+        runtimeRoads,
+        {
+          snapDistance:
+            manifestData
+              .roadSurfacePolicy
+              .junctionSnapDistance,
+          overlap:
+            manifestData
+              .roadSurfacePolicy
+              .junctionOverlap,
+        },
+      ).map((junction) => ({
+        id:
+          junction.id +
+          "-terrain-mask",
+        polygon:
+          roadJunctionMaskPolygon(
+            junction,
+            manifestData
+              .roadSurfacePolicy
+              .junctionTerrainMaskPadding,
+          ),
+        padding: 0,
+        source:
+          "Derived from complete OSM road junction " +
+          junction.connectedFeatureIds.join(
+            ", ",
+          ),
+      }))
+    : [];
+
+const terrainRenderMasks:
+  TerrainRenderMask[] = [
+    ...structureTerrainRenderMasks,
+    ...roadJunctionTerrainMasks,
+  ];
 const streetSpawn =
   chooseWalkableSpawn(
     runtimeSpaces,
