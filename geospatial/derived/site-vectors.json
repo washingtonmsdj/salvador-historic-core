@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "available": true,
-  "generatedAt": "2026-09-20T17:23:02.279Z",
-  "source": "OpenStreetMap official bbox API",
+  "generatedAt": "2026-09-20T18:11:56.920Z",
+  "source": "OpenStreetMap via Overpass API",
   "crs": "EPSG:32724",
   "units": "meters",
   "bounds": {
@@ -12,7 +12,7 @@
     "maxZ": 300
   },
   "metadata": {
-    "featureCount": 324,
+    "featureCount": 327,
     "runtimeReady": true,
     "coverage": "complete",
     "criticalRoadCoverage": {
@@ -21,9 +21,9 @@
       "missing": [],
       "complete": true
     },
-    "roadCount": 117,
+    "roadCount": 119,
     "spaceCount": 6,
-    "buildingFootprintCount": 201
+    "buildingFootprintCount": 202
   },
   "roads": [
     {
@@ -3399,6 +3399,32 @@
       }
     },
     {
+      "id": "way/562639422",
+      "name": "Beco do Adão",
+      "type": "osm-pedestrian",
+      "width": 4,
+      "widthSource": "deterministic width for highway=pedestrian",
+      "source": "OpenStreetMap way/562639422",
+      "estimated": true,
+      "points": [
+        [
+          150,
+          296.9419670888601
+        ],
+        [
+          146.37125491124263,
+          300
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 562639422,
+      "osmType": "way",
+      "tags": {
+        "highway": "pedestrian",
+        "name": "Beco do Adão"
+      }
+    },
+    {
       "id": "way/562646007",
       "name": "Avenida da França",
       "type": "osm-primary",
@@ -3467,6 +3493,38 @@
         "lit": "yes",
         "name": "Avenida Lafayete Coutinho",
         "oneway": "yes",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "id": "way/563740405",
+      "name": "Avenida da França",
+      "type": "osm-primary",
+      "width": 8,
+      "widthSource": "deterministic width for highway=primary",
+      "source": "OpenStreetMap way/563740405",
+      "estimated": true,
+      "points": [
+        [
+          -113.30896701624911,
+          300
+        ],
+        [
+          -150,
+          264.2677939349999
+        ]
+      ],
+      "elevationMode": "terrain",
+      "osmId": 563740405,
+      "osmType": "way",
+      "tags": {
+        "cycleway:right": "lane",
+        "highway": "primary",
+        "lanes": "2",
+        "name": "Avenida da França",
+        "oneway": "yes",
+        "parking:left": "yes",
+        "parking:left:orientation": "parallel",
         "surface": "asphalt"
       }
     },
@@ -4417,6 +4475,40 @@
     }
   ],
   "buildingFootprints": [
+    {
+      "id": "way/1024245685",
+      "name": "Doca 1",
+      "buildingType": "yes",
+      "footprint": [
+        [
+          -150,
+          295.72136363636366
+        ],
+        [
+          -145.75353383458648,
+          300
+        ],
+        [
+          -125.64446146043112,
+          300
+        ],
+        [
+          -150,
+          275.3048035030932
+        ]
+      ],
+      "source": "OpenStreetMap way/1024245685",
+      "osmId": 1024245685,
+      "osmType": "way",
+      "tags": {
+        "building": "yes",
+        "building:levels": "2",
+        "name": "Doca 1"
+      },
+      "height": 6,
+      "heightEstimated": true,
+      "heightSource": "OSM building:levels × 3 m"
+    },
     {
       "id": "way/1098105037",
       "name": "Palacete Tira-Chapéu",
