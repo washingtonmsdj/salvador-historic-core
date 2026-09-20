@@ -449,6 +449,108 @@ export function SalvadorScene() {
               setLiveOsmState("unavailable");
             }
           });
+
+        void loadLiveConderTerrain({
+          origin: {
+            easting: geo.origin.easting,
+            northing: geo.origin.northing,
+          },
+          bounds: data.terrain.bounds,
+        })
+          .then((live) => {
+            const liveScene = scene;
+            if (disposed || !liveScene) return;
+
+            setRuntimeDerivedTerrain(
+              live.terrain,
+            );
+
+            for (const mesh of terrainMeshes) {
+              mesh.dispose();
+            }
+            terrainMeshes = createTerrain(
+              liveScene,
+              data.terrain,
+              data.levels,
+            );
+            for (const mesh of terrainMeshes) {
+              mesh.receiveShadows = true;
+            }
+
+            for (const mesh of mapReference.meshes) {
+              mesh.dispose();
+            }
+            mapReference =
+              createOsmTerrainReference(
+                liveScene,
+                geo.mapReference,
+                geo.origin,
+                geo.geographicBounds,
+                data.terrain,
+                data.levels,
+              );
+            mapReference.setEnabled(
+              mapReferenceRuntimeEnabled,
+            );
+
+            for (const mesh of roadMeshes) {
+              mesh.dispose();
+            }
+            roadMeshes = createRoads(
+              liveScene,
+              activeRoadFeatures,
+              data.terrain,
+              data.levels,
+            );
+
+            for (const mesh of spaceMeshes) {
+              mesh.dispose();
+            }
+            spaceMeshes = createSpaces(
+              liveScene,
+              activeSpaceFeatures,
+              data.terrain,
+              data.levels,
+            );
+
+            for (const mesh of buildingGuideMeshes) {
+              mesh.dispose();
+            }
+            buildingGuideMeshes =
+              createBuildingFootprintGuides(
+                liveScene,
+                activeBuildingFootprints,
+                data.terrain,
+                data.levels,
+              );
+
+            setLiveTerrainStats({
+              contours: live.contourCount,
+              columns:
+                live.terrain.grid?.columns ?? 0,
+              rows:
+                live.terrain.grid?.rows ?? 0,
+              maxHeight:
+                live.terrain.statistics
+                  .localHeightMax,
+            });
+            setLiveTerrainState(
+              live.source === "session-cache"
+                ? "cached"
+                : "active",
+            );
+          })
+          .catch((error) => {
+            console.warn(
+              "Live CONDER terrain unavailable; keeping procedural fallback.",
+              error,
+            );
+            if (!disposed) {
+              setLiveTerrainState(
+                "unavailable",
+              );
+            }
+          });
       } catch (error) {
         console.error("Failed to initialize Salvador 3D scene", error);
         if (!disposed) {
@@ -464,6 +566,7 @@ export function SalvadorScene() {
 
     return () => {
       disposed = true;
+      clearRuntimeTerrain?.();
       controlsRef.current = null;
       window.removeEventListener("resize", handleResize);
       engine?.stopRenderLoop();
@@ -581,6 +684,24 @@ export function SalvadorScene() {
                 {" "}· {liveOsmCounts.roads} ruas ·{" "}
                 {liveOsmCounts.spaces} áreas ·{" "}
                 {liveOsmCounts.buildings} footprints
+              </>
+            )}
+          </div>
+          <div className="mt-1 text-white/45">
+            CONDER ao vivo:{" "}
+            {liveTerrainState === "loading"
+              ? "carregando"
+              : liveTerrainState === "active"
+                ? "ativo"
+                : liveTerrainState === "cached"
+                  ? "cache da sessão"
+                  : "indisponível — usando terreno procedural"}
+            {(liveTerrainState === "active" ||
+              liveTerrainState === "cached") && (
+              <>
+                {" "}· {liveTerrainStats.contours} curvas ·{" "}
+                {liveTerrainStats.columns}×{liveTerrainStats.rows} ·{" "}
+                ΔY {liveTerrainStats.maxHeight.toFixed(1)} m
               </>
             )}
           </div>
