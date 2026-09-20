@@ -80,8 +80,14 @@ export function classifyRoadSurface(
   return "paved";
 }
 
+export interface PublicSpaceSurfaceOverride {
+  osmId: number;
+  surface: string;
+}
+
 export function classifyPublicSpaceSurface(
   feature: LinearFeature,
+  overrides: readonly PublicSpaceSurfaceOverride[] = [],
 ): RoadSurfaceKind | null {
   const surface =
     normalizedSurface(feature);
@@ -103,6 +109,29 @@ export function classifyPublicSpaceSurface(
     surface === "unpaved"
   ) {
     return null;
+  }
+
+  const override =
+    typeof feature.osmId === "number"
+      ? overrides.find(
+          (item) =>
+            item.osmId ===
+            feature.osmId,
+        )
+      : undefined;
+
+  if (override) {
+    const overrideSurface =
+      explicitSurfaceKind(
+        override.surface
+          .trim()
+          .toLocaleLowerCase(
+            "en-US",
+          ),
+      );
+    if (overrideSurface) {
+      return overrideSurface;
+    }
   }
 
   const leisure =

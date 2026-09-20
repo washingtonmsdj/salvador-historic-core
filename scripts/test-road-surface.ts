@@ -6,6 +6,7 @@ import type { LinearFeature } from "../src/game/types";
 
 function feature(
   tags: Record<string, string>,
+  osmId?: number,
 ): LinearFeature {
   return {
     id: "test",
@@ -19,6 +20,7 @@ function feature(
       [10, 0],
     ],
     elevationMode: "terrain",
+    osmId,
     tags,
   };
 }
@@ -85,5 +87,52 @@ if (failures.length > 0) {
 } else {
   console.log(
     "Road surface classification test passed.",
+  );
+}
+
+
+const tomeSouza =
+  classifyPublicSpaceSurface(
+    feature(
+      {
+        leisure: "park",
+        name: "Praça Tomé de Souza",
+      },
+      1263035782,
+    ),
+    [
+      {
+        osmId: 1263035782,
+        surface: "stone",
+      },
+    ],
+  );
+
+if (tomeSouza !== "stone") {
+  failures.push(
+    `Praça Tomé de Souza override => ${tomeSouza}; expected stone`,
+  );
+}
+
+const explicitGrass =
+  classifyPublicSpaceSurface(
+    feature(
+      {
+        leisure: "park",
+        surface: "grass",
+      },
+      1263035782,
+    ),
+    [
+      {
+        osmId: 1263035782,
+        surface: "stone",
+      },
+    ],
+  );
+
+if (explicitGrass !== null) {
+  failures.push(
+    "Explicit soft OSM surface must take precedence over a curated hard-surface override.",
   );
 }

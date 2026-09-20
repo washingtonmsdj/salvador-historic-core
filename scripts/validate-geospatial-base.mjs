@@ -126,6 +126,44 @@ if (!publicSpaceSurfacePolicy) {
     );
   }
 
+  const allowedPublicSpaceSurfaces =
+    new Set([
+      "asphalt",
+      "paved",
+      "paving",
+      "stone",
+      "pedestrian",
+    ]);
+  const overrides =
+    publicSpaceSurfacePolicy.hardSurfaceOverrides;
+
+  if (
+    !Array.isArray(overrides) ||
+    new Set(
+      overrides.map(
+        (item) => item.osmId,
+      ),
+    ).size !==
+      overrides.length ||
+    overrides.some(
+      (item) =>
+        !Number.isInteger(
+          item.osmId,
+        ) ||
+        item.osmId <= 0 ||
+        !allowedPublicSpaceSurfaces.has(
+          item.surface,
+        ) ||
+        typeof item.reason !==
+          "string" ||
+        item.reason.length < 20,
+    )
+  ) {
+    fail(
+      "public-space hardSurfaceOverrides must contain unique positive OSM ids, supported surfaces and documented reasons",
+    );
+  }
+
   if (
     publicSpaceSurfacePolicy.requireExplicitSurfaceForParks !== true
   ) {
@@ -1194,6 +1232,22 @@ if (derivedVectors?.available === true) {
     fail(
       "derived vector laneDerivedRoadCount does not match actual lane-derived roads",
     );
+  }
+
+  for (const override of
+    publicSpaceSurfacePolicy
+      ?.hardSurfaceOverrides ?? []) {
+    if (
+      !spaces.some(
+        (space) =>
+          space.osmId ===
+          override.osmId,
+      )
+    ) {
+      fail(
+        `public-space override references missing OSM space ${override.osmId}`,
+      );
+    }
   }
 
   for (const space of spaces) {
