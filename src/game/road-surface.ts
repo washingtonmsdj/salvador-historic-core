@@ -9,12 +9,14 @@ export type RoadSurfaceKind =
 export function classifyRoadSurface(
   feature: LinearFeature,
 ): RoadSurfaceKind {
-  const surface = feature.tags?.surface
-    ?.trim()
-    .toLocaleLowerCase("en-US");
-  const highway = feature.tags?.highway
-    ?.trim()
-    .toLocaleLowerCase("en-US");
+  const surface =
+    feature.tags?.["surface"]
+      ?.trim()
+      .toLocaleLowerCase("en-US");
+  const highway =
+    feature.tags?.["highway"]
+      ?.trim()
+      .toLocaleLowerCase("en-US");
 
   if (
     surface === "paving_stones" ||
