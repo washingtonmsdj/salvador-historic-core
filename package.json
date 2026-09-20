@@ -32,7 +32,8 @@
     "road:test": "bun scripts/test-road-surface.ts",
     "road:junction-test": "bun scripts/test-road-junctions.ts",
     "player:spawn-test": "bun scripts/test-walkable-spawn.ts",
-    "terrain:mask-test": "bun scripts/test-terrain-mask.ts"
+    "terrain:mask-test": "bun scripts/test-terrain-mask.ts",
+    "building:grounding-test": "bun scripts/test-building-grounding.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
