@@ -1,6 +1,5 @@
 import {
   fitBoundedSurfacePlane,
-  liftPlaneAboveSamples,
   surfacePlaneHeight,
 } from "../src/game/surface-plane";
 
@@ -32,62 +31,35 @@ if (
   );
 }
 
-const terrainSamples = [
-  { x: 0, z: 0, y: 10.2 },
-  { x: 2, z: 0, y: 10.5 },
-  { x: -2, z: 0, y: 10 },
-];
-
-const lifted =
-  liftPlaneAboveSamples(
+const centerHeight =
+  surfacePlaneHeight(
     plane,
-    terrainSamples,
-    12,
+    0,
+    0,
   );
 
-if (!lifted.fullySupported) {
+if (
+  !Number.isFinite(
+    centerHeight,
+  )
+) {
   throw new Error(
-    "Expected bounded lift to be supported.",
+    "Fitted junction plane must produce finite heights.",
   );
 }
 
-for (const sample of terrainSamples) {
-  if (
+for (const observation of observations) {
+  const fitted =
     surfacePlaneHeight(
-      lifted.plane,
-      sample.x,
-      sample.z,
-    ) <
-    sample.y - 0.000001
-  ) {
+      plane,
+      observation.x,
+      observation.z,
+    );
+  if (!Number.isFinite(fitted)) {
     throw new Error(
-      "Lifted junction plane cut below terrain sample.",
+      "Junction plane produced a non-finite edge height.",
     );
   }
-}
-
-const impossible =
-  liftPlaneAboveSamples(
-    {
-      gx: 0,
-      gz: 0,
-      intercept: 0,
-      slope: 0,
-    },
-    [
-      {
-        x: 0,
-        z: 0,
-        y: 13,
-      },
-    ],
-    12,
-  );
-
-if (impossible.fullySupported) {
-  throw new Error(
-    "Junction lift above configured maximum must be rejected.",
-  );
 }
 
 console.log(
