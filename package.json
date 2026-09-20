@@ -29,7 +29,8 @@
     "geospatial:refresh:terrain": "node scripts/import-conder-contours.mjs && node scripts/derive-terrain-from-contours.mjs && node scripts/build-geospatial-base.mjs && node scripts/test-contour-heightfield.mjs && node scripts/validate-geospatial-base.mjs",
     "lint:ci": "eslint . --rule 'prettier/prettier: off'",
     "format:check": "prettier --check .",
-    "road:test": "bun scripts/test-road-surface.ts"
+    "road:test": "bun scripts/test-road-surface.ts",
+    "road:junction-test": "bun scripts/test-road-junctions.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
