@@ -77,6 +77,7 @@ export interface TerrainRenderMask {
   id: string;
   polygon: Point2[];
   padding: number;
+  maxBoundaryEdge: number;
   source: string;
 }
 

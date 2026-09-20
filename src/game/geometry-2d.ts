@@ -258,6 +258,60 @@ function pointInTriangle(
   );
 }
 
+export function triangleInsidePolygon(
+  triangle: readonly [
+    Point2,
+    Point2,
+    Point2,
+  ],
+  polygon: Point2[],
+) {
+  if (polygon.length < 3) {
+    return false;
+  }
+
+  if (
+    !triangle.every(
+      (point) =>
+        pointInPolygon(
+          point,
+          polygon,
+        ) ||
+        distanceToPolygon(
+          point,
+          polygon,
+        ) <= EPSILON,
+    )
+  ) {
+    return false;
+  }
+
+  const triangleEdges = [
+    [triangle[0], triangle[1]],
+    [triangle[1], triangle[2]],
+    [triangle[2], triangle[0]],
+  ] as const;
+
+  for (
+    let index = 0;
+    index < polygon.length;
+    index++
+  ) {
+    const start = polygon[index];
+    const end =
+      polygon[(index + 1) % polygon.length];
+    if (!start || !end) continue;
+
+    for (const [edgeStart, edgeEnd] of triangleEdges) {
+      if (segmentsIntersect(edgeStart, edgeEnd, start, end)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 export function polygonsOverlap(
   a: Point2[],
   b: Point2[],
