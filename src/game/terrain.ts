@@ -5,8 +5,18 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
+import derivedTerrainData from "../../geospatial/derived/terrain.json";
 import { createTerrainMaterials } from "./terrain-materials";
-import type { Point2, SceneLevels, TerrainConfig, TerrainProfile } from "./types";
+import type {
+  DerivedTerrainGrid,
+  Point2,
+  SceneLevels,
+  TerrainConfig,
+  TerrainProfile,
+} from "./types";
+
+const derivedTerrain =
+  derivedTerrainData as unknown as DerivedTerrainGrid;
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
@@ -15,6 +25,57 @@ const smoothstep = (value: number) => {
   const t = clamp(value, 0, 1);
   return t * t * (3 - 2 * t);
 };
+
+function isDerivedTerrainActive(config: TerrainConfig) {
+  const grid = derivedTerrain.grid;
+  if (!derivedTerrain.available || !grid) return false;
+
+  const expectedVertices = grid.columns * grid.rows;
+  if (
+    grid.columns < 2 ||
+    grid.rows < 2 ||
+    grid.spacing <= 0 ||
+    derivedTerrain.heights.length !== expectedVertices
+  ) {
+    return false;
+  }
+
+  return (
+    derivedTerrain.bounds.minX === config.bounds.minX &&
+    derivedTerrain.bounds.maxX === config.bounds.maxX &&
+    derivedTerrain.bounds.minZ === config.bounds.minZ &&
+    derivedTerrain.bounds.maxZ === config.bounds.maxZ
+  );
+}
+
+function sampleDerivedTerrain(x: number, z: number) {
+  const grid = derivedTerrain.grid;
+  if (!grid) {
+    throw new Error("Derived terrain grid is unavailable.");
+  }
+
+  const { bounds } = derivedTerrain;
+  const localX = clamp(x, bounds.minX, bounds.maxX);
+  const localZ = clamp(z, bounds.minZ, bounds.maxZ);
+  const gridX = (localX - bounds.minX) / grid.spacing;
+  const gridZ = (localZ - bounds.minZ) / grid.spacing;
+  const x0 = clamp(Math.floor(gridX), 0, grid.columns - 1);
+  const z0 = clamp(Math.floor(gridZ), 0, grid.rows - 1);
+  const x1 = Math.min(x0 + 1, grid.columns - 1);
+  const z1 = Math.min(z0 + 1, grid.rows - 1);
+  const tx = gridX - x0;
+  const tz = gridZ - z0;
+  const index = (column: number, row: number) =>
+    row * grid.columns + column;
+
+  const h00 = derivedTerrain.heights[index(x0, z0)] ?? 0;
+  const h10 = derivedTerrain.heights[index(x1, z0)] ?? h00;
+  const h01 = derivedTerrain.heights[index(x0, z1)] ?? h00;
+  const h11 = derivedTerrain.heights[index(x1, z1)] ?? h01;
+  const south = h00 + (h10 - h00) * tx;
+  const north = h01 + (h11 - h01) * tx;
+  return south + (north - south) * tz;
+}
 
 function pointInPolygon(point: Point2, polygon: Point2[]) {
   let inside = false;
@@ -175,7 +236,7 @@ function interpolateProfile(
   return normalize(last);
 }
 
-export function terrainHeight(
+function proceduralTerrainHeight(
   config: TerrainConfig,
   levels: SceneLevels,
   x: number,
@@ -221,6 +282,31 @@ export function terrainHeight(
 
   const plateauHeight = applyTerrainPlateaus(config, x, z, height);
   return applyTerrainCutouts(config, x, z, plateauHeight);
+}
+
+export function terrainHeight(
+  config: TerrainConfig,
+  levels: SceneLevels,
+  x: number,
+  z: number,
+) {
+  if (isDerivedTerrainActive(config)) {
+    const baseHeight = sampleDerivedTerrain(x, z);
+    const plateauHeight = applyTerrainPlateaus(
+      config,
+      x,
+      z,
+      baseHeight,
+    );
+    return applyTerrainCutouts(
+      config,
+      x,
+      z,
+      plateauHeight,
+    );
+  }
+
+  return proceduralTerrainHeight(config, levels, x, z);
 }
 
 function terrainNormal(
@@ -657,10 +743,14 @@ export function createTerrain(
         }
       }
 
+      const derivedActive = isDerivedTerrainActive(config);
       const metadata = {
         category: "terrain",
-        source: config.source,
-        estimated: config.estimated,
+        source: derivedActive
+          ? derivedTerrain.source ?? config.source
+          : config.source,
+        estimated: derivedActive ? true : config.estimated,
+        derivedFromVerifiedContours: derivedActive,
       };
 
       const surface = createSurfaceMesh(
@@ -701,8 +791,12 @@ export function createTerrain(
     }
   }
 
-  meshes.push(...createTerrainStructure(scene, config, levels, materials));
-  meshes.push(...createTerrainContours(scene, config, levels));
+  meshes.push(
+    ...createTerrainStructure(scene, config, levels, materials),
+  );
+  if (!isDerivedTerrainActive(config)) {
+    meshes.push(...createTerrainContours(scene, config, levels));
+  }
   meshes.push(createTerrainOutline(scene, config, levels));
   return meshes;
 }
