@@ -452,7 +452,8 @@ function cliffBlendNormalYMax(
     0.98,
     config.presentation
       .rockNormalYMax +
-      0.1,
+      config.presentation
+        .rockBlendNormalYBand,
   );
 }
 
