@@ -617,11 +617,19 @@ export function SalvadorScene() {
             });
 
             setLiveOsmProvider(
-              live.endpoint.includes(
-                "api.openstreetmap.org",
+              live.endpoint.startsWith(
+                "/api/geospatial/osm",
               )
-                ? "API bbox"
-                : "Overpass",
+                ? live.endpoint.includes(
+                    "openstreetmap-api",
+                  )
+                  ? "Servidor · API bbox"
+                  : "Servidor · Overpass"
+                : live.endpoint.includes(
+                      "api.openstreetmap.org",
+                    )
+                  ? "API bbox"
+                  : "Overpass",
             );
             setLiveOsmState(
               live.source === "session-cache"
