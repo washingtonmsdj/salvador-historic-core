@@ -51,6 +51,9 @@ jobs:
       - name: Validate terrain-safe road grading
         run: bun run road:grading-test
 
+      - name: Validate critical road terrain fit
+        run: bun run road:terrain-fit-test
+
       - name: Validate walkable player spawn
         run: bun run player:spawn-test
 
