@@ -1,8 +1,10 @@
+import type { Material } from "@babylonjs/core/Materials/material";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
-import { material } from "./materials";
-import type { SceneLevels, TerrainConfig, TerrainProfile } from "./types";
+import { createTerrainMaterials } from "./terrain-materials";
+import type { Point2, SceneLevels, TerrainConfig, TerrainProfile } from "./types";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
@@ -115,6 +117,240 @@ function terrainNormal(
   return [nx / length, ny / length, nz / length] as const;
 }
 
+function createZoneMesh(
+  scene: Scene,
+  name: string,
+  positions: number[],
+  normals: number[],
+  uvs: number[],
+  indices: number[],
+  material: Material,
+  metadata: Record<string, unknown>,
+) {
+  if (indices.length === 0) return null;
+
+  const mesh = new Mesh(name, scene);
+  const vertexData = new VertexData();
+  vertexData.positions = positions;
+  vertexData.normals = normals;
+  vertexData.uvs = uvs;
+  vertexData.indices = indices;
+  vertexData.applyToMesh(mesh);
+
+  mesh.material = material;
+  mesh.receiveShadows = true;
+  mesh.checkCollisions = true;
+  mesh.metadata = metadata;
+  return mesh;
+}
+
+function classifyQuad(
+  config: TerrainConfig,
+  positions: number[],
+  normals: number[],
+  indices: readonly [number, number, number, number],
+) {
+  let averageY = 0;
+  let averageNormalY = 0;
+
+  for (const vertexIndex of indices) {
+    averageY += positions[vertexIndex * 3 + 1] ?? 0;
+    averageNormalY += normals[vertexIndex * 3 + 1] ?? 1;
+  }
+
+  averageY /= indices.length;
+  averageNormalY /= indices.length;
+
+  if (averageNormalY <= config.presentation.rockNormalYMax) {
+    return "cliff" as const;
+  }
+  if (averageY >= config.presentation.upperElevationMin) {
+    return "upper" as const;
+  }
+  return "lower" as const;
+}
+
+function sampleEdge(a: Point2, b: Point2, spacing: number) {
+  const distance = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const segments = Math.max(1, Math.ceil(distance / spacing));
+  const points: Point2[] = [];
+
+  for (let index = 0; index <= segments; index++) {
+    const t = index / segments;
+    points.push([
+      a[0] + (b[0] - a[0]) * t,
+      a[1] + (b[1] - a[1]) * t,
+    ]);
+  }
+
+  return points;
+}
+
+function createPerimeterWall(
+  scene: Scene,
+  name: string,
+  points: Point2[],
+  config: TerrainConfig,
+  levels: SceneLevels,
+  material: Material,
+) {
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+  let travelled = 0;
+  const baseY = config.presentation.baseY;
+
+  for (let index = 0; index < points.length; index++) {
+    const point = points[index];
+    if (!point) continue;
+
+    if (index > 0) {
+      const previous = points[index - 1];
+      if (previous) {
+        travelled += Math.hypot(
+          point[0] - previous[0],
+          point[1] - previous[1],
+        );
+      }
+    }
+
+    const topY = terrainHeight(config, levels, point[0], point[1]);
+    const verticalSpan = Math.max(1, topY - baseY);
+
+    positions.push(
+      point[0],
+      topY,
+      point[1],
+      point[0],
+      baseY,
+      point[1],
+    );
+    uvs.push(travelled / 10, 0, travelled / 10, verticalSpan / 10);
+  }
+
+  for (let index = 0; index < points.length - 1; index++) {
+    const topA = index * 2;
+    const bottomA = topA + 1;
+    const topB = topA + 2;
+    const bottomB = topA + 3;
+    indices.push(topA, bottomA, topB, topB, bottomA, bottomB);
+  }
+
+  VertexData.ComputeNormals(positions, indices, normals);
+
+  const mesh = new Mesh(name, scene);
+  const vertexData = new VertexData();
+  vertexData.positions = positions;
+  vertexData.indices = indices;
+  vertexData.normals = normals;
+  vertexData.uvs = uvs;
+  vertexData.applyToMesh(mesh);
+
+  mesh.material = material;
+  mesh.receiveShadows = true;
+  mesh.checkCollisions = true;
+  mesh.metadata = {
+    category: "terrain-perimeter",
+    estimated: config.estimated,
+    source: config.source,
+  };
+  return mesh;
+}
+
+function createTerrainStructure(
+  scene: Scene,
+  config: TerrainConfig,
+  levels: SceneLevels,
+  materials: ReturnType<typeof createTerrainMaterials>,
+) {
+  const { bounds, presentation } = config;
+  const corners = {
+    southWest: [bounds.minX, bounds.minZ] as Point2,
+    southEast: [bounds.maxX, bounds.minZ] as Point2,
+    northEast: [bounds.maxX, bounds.maxZ] as Point2,
+    northWest: [bounds.minX, bounds.maxZ] as Point2,
+  };
+
+  const walls = [
+    createPerimeterWall(
+      scene,
+      "terrain-perimeter-south",
+      sampleEdge(
+        corners.southWest,
+        corners.southEast,
+        presentation.perimeterSampleSpacing,
+      ),
+      config,
+      levels,
+      materials.wall,
+    ),
+    createPerimeterWall(
+      scene,
+      "terrain-perimeter-east",
+      sampleEdge(
+        corners.southEast,
+        corners.northEast,
+        presentation.perimeterSampleSpacing,
+      ),
+      config,
+      levels,
+      materials.wall,
+    ),
+    createPerimeterWall(
+      scene,
+      "terrain-perimeter-north",
+      sampleEdge(
+        corners.northEast,
+        corners.northWest,
+        presentation.perimeterSampleSpacing,
+      ),
+      config,
+      levels,
+      materials.wall,
+    ),
+    createPerimeterWall(
+      scene,
+      "terrain-perimeter-west",
+      sampleEdge(
+        corners.northWest,
+        corners.southWest,
+        presentation.perimeterSampleSpacing,
+      ),
+      config,
+      levels,
+      materials.wall,
+    ),
+  ];
+
+  const width = bounds.maxX - bounds.minX;
+  const depth = bounds.maxZ - bounds.minZ;
+  const base = MeshBuilder.CreateBox(
+    "terrain-base",
+    {
+      width,
+      depth,
+      height: 1.6,
+    },
+    scene,
+  );
+  base.position.set(
+    (bounds.minX + bounds.maxX) / 2,
+    presentation.baseY - 0.8,
+    (bounds.minZ + bounds.maxZ) / 2,
+  );
+  base.material = materials.base;
+  base.receiveShadows = true;
+  base.checkCollisions = true;
+  base.metadata = {
+    category: "terrain-base",
+    estimated: config.estimated,
+    source: config.source,
+  };
+
+  return [...walls, base];
+}
+
 export function createTerrain(
   scene: Scene,
   config: TerrainConfig,
@@ -123,17 +359,20 @@ export function createTerrain(
   const meshes: Mesh[] = [];
   const { tileSize, bounds, subdivisionsPerTile } = config;
   const steps = Math.max(4, subdivisionsPerTile);
-  const terrainMaterial = material(scene, "terrain");
+  const materials = createTerrainMaterials(scene, config);
 
   for (let tx = bounds.minX; tx < bounds.maxX; tx += tileSize) {
     for (let tz = bounds.minZ; tz < bounds.maxZ; tz += tileSize) {
       const tileWidth = Math.min(tileSize, bounds.maxX - tx);
       const tileDepth = Math.min(tileSize, bounds.maxZ - tz);
-      const mesh = new Mesh(`terrain-tile-${tx}-${tz}`, scene);
       const positions: number[] = [];
-      const indices: number[] = [];
       const normals: number[] = [];
       const uvs: number[] = [];
+      const groupedIndices = {
+        lower: [] as number[],
+        cliff: [] as number[],
+        upper: [] as number[],
+      };
 
       for (let iz = 0; iz <= steps; iz++) {
         for (let ix = 0; ix <= steps; ix++) {
@@ -151,28 +390,54 @@ export function createTerrain(
           const b = a + 1;
           const c = a + steps + 1;
           const d = c + 1;
-          indices.push(a, c, b, b, c, d);
+          const zone = classifyQuad(config, positions, normals, [a, b, c, d]);
+          groupedIndices[zone].push(a, c, b, b, c, d);
         }
       }
 
-      const vertexData = new VertexData();
-      vertexData.positions = positions;
-      vertexData.indices = indices;
-      vertexData.normals = normals;
-      vertexData.uvs = uvs;
-      vertexData.applyToMesh(mesh);
-
-      mesh.material = terrainMaterial;
-      mesh.receiveShadows = true;
-      mesh.checkCollisions = true;
-      mesh.metadata = {
+      const metadata = {
         category: "terrain",
         source: config.source,
         estimated: config.estimated,
       };
-      meshes.push(mesh);
+
+      const lower = createZoneMesh(
+        scene,
+        `terrain-lower-${tx}-${tz}`,
+        positions,
+        normals,
+        uvs,
+        groupedIndices.lower,
+        materials.lower,
+        metadata,
+      );
+      const cliff = createZoneMesh(
+        scene,
+        `terrain-cliff-${tx}-${tz}`,
+        positions,
+        normals,
+        uvs,
+        groupedIndices.cliff,
+        materials.cliff,
+        metadata,
+      );
+      const upper = createZoneMesh(
+        scene,
+        `terrain-upper-${tx}-${tz}`,
+        positions,
+        normals,
+        uvs,
+        groupedIndices.upper,
+        materials.upper,
+        metadata,
+      );
+
+      if (lower) meshes.push(lower);
+      if (cliff) meshes.push(cliff);
+      if (upper) meshes.push(upper);
     }
   }
 
+  meshes.push(...createTerrainStructure(scene, config, levels, materials));
   return meshes;
 }
