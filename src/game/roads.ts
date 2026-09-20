@@ -15,14 +15,12 @@ import {
   type RoadJunction,
 } from "./road-junctions";
 import {
-  gradeRoadCrossSection,
   smoothRoadCenterHeight,
 } from "./road-grading";
 import {
   sampleRoadCrossSection,
 } from "./road-cross-section";
 import {
-  roadOffset,
   samplePolyline,
 } from "./road-path";
 import {
@@ -80,22 +78,6 @@ const SPACE_SURFACE_GAP =
   publicSpaceSurfacePolicy.surfaceGap;
 const SPACE_TEXTURE_REPEAT_METERS =
   publicSpaceSurfacePolicy.textureRepeatMeters;
-
-function elevationAt(
-  x: number,
-  z: number,
-  terrain: TerrainConfig,
-  levels: SceneLevels,
-  mode: LinearFeature["elevationMode"] = "terrain",
-) {
-  if (mode === "upper") {
-    return levels.upperCity.elevation + SURFACE_GAP;
-  }
-  if (mode === "lower") {
-    return levels.lowerCity.elevation + SURFACE_GAP;
-  }
-  return terrainHeight(terrain, levels, x, z) + SURFACE_GAP;
-}
 
 function smoothCenterHeights(
   centers: Point2[],
@@ -567,70 +549,42 @@ function roadEndpointObservations(
     return [];
   }
 
-  const halfWidth = Math.max(
-    0.5,
-    feature.width / 2,
-  );
-  const offset = roadOffset(
-    feature.points,
-    endpointIndex,
-    halfWidth,
-    MAX_MITER_SCALE,
-  );
-  const leftX =
-    center[0] + offset[0];
-  const leftZ =
-    center[1] + offset[1];
-  const rightX =
-    center[0] - offset[0];
-  const rightZ =
-    center[1] - offset[1];
-  const leftTerrain =
-    elevationAt(
-      leftX,
-      leftZ,
-      terrain,
-      levels,
-      feature.elevationMode,
-    ) - SURFACE_GAP;
-  const rightTerrain =
-    elevationAt(
-      rightX,
-      rightZ,
-      terrain,
-      levels,
-      feature.elevationMode,
-    ) - SURFACE_GAP;
-  const crossSpan = Math.max(
-    0.001,
-    Math.hypot(
-      leftX - rightX,
-      leftZ - rightZ,
-    ),
-  );
   const section =
-    gradeRoadCrossSection({
-      leftTerrain,
-      rightTerrain,
+    sampleRoadCrossSection({
+      feature,
+      centers: feature.points,
+      index: endpointIndex,
+      terrain,
+      levels,
       longitudinalLift: 0,
-      crossSpan,
-      maxCrossSlope:
-        MAX_CROSS_SLOPE,
-      maxSupportedFillHeight:
-        MAX_SUPPORTED_FILL_HEIGHT,
-      surfaceGap: SURFACE_GAP,
+      policy: {
+        maxMiterScale:
+          MAX_MITER_SCALE,
+        maxCrossSlope:
+          MAX_CROSS_SLOPE,
+        maxSupportedFillHeight:
+          MAX_SUPPORTED_FILL_HEIGHT,
+        surfaceGap:
+          SURFACE_GAP,
+      },
     });
+
+  if (!section) {
+    return [];
+  }
 
   return [
     {
-      x: leftX,
-      z: leftZ,
-      y: section.leftY,
+      x: section.left.x,
+      z: section.left.z,
+      y:
+        section.left.surfaceY,
     },
     {
-      x: rightX,
-      z: rightZ,
-      y: section.rightY,
+      x: section.right.x,
+      z: section.right.z,
+      y:
+        section.right.surfaceY,
     },
   ];
 }
