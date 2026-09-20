@@ -142,3 +142,22 @@ Essa camada:
 
 A finalidade é detectar imediatamente desalinhamentos entre blockouts e cartografia real. Ela não
 substitui a promoção de OSM/CONDER para `geospatial/derived/`.
+
+
+## Seed OSM versionada
+
+Enquanto o import completo do bbox ainda não pode ser executado neste ambiente, o runtime usa uma
+seed parcial extraída de `public/data/osm-reference.json`.
+
+A seed atual contém somente features já versionadas e verificáveis:
+
+- Rua Chile — OSM way 258560240;
+- Praça Tomé de Souza — OSM way 1263035782;
+- Elevador Lacerda — OSM way 59224731.
+
+O estado do runtime é `geospatial-hybrid`: as features reais substituem/acompanham somente os
+equivalentes cobertos pela seed; features ainda não materializadas continuam explicitamente em
+fallback.
+
+O perímetro Z foi ampliado para ±300 m para conter o trecho verificado de Rua Chile sem mover a
+origem do Elevador.
