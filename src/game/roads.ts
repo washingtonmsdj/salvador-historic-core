@@ -21,8 +21,8 @@ import {
   sampleRoadCrossSection,
 } from "./road-cross-section";
 import {
-  samplePolyline,
-} from "./road-path";
+  deriveRoadSurfaceProfile,
+} from "./road-surface-profile";
 import {
   deriveRoadJunctionSurface,
 } from "./road-junction-surface";
@@ -46,6 +46,10 @@ const MAX_GRADE_SMOOTHING_RAISE =
   roadSurfacePolicy.maxGradeSmoothingRaise;
 const MAX_SUPPORTED_FILL_HEIGHT =
   roadSurfacePolicy.maxSupportedFillHeight;
+const MAX_LONGITUDINAL_SLOPE =
+  roadSurfacePolicy.maxLongitudinalSlope;
+const ROAD_PROFILE_ITERATIONS =
+  roadSurfacePolicy.longitudinalProfileIterations;
 const SUPPORT_WALL_THRESHOLD =
   roadSurfacePolicy.supportWallThreshold;
 const SUPPORT_WALL_TEXTURE_REPEAT_METERS =
@@ -124,10 +128,30 @@ function createRoadRibbon(
   terrain: TerrainConfig,
   levels: SceneLevels,
 ) {
-  const centers = samplePolyline(
-    feature.points,
-    ROAD_SAMPLE_SPACING,
-  );
+  const surfaceProfile =
+    deriveRoadSurfaceProfile({
+      feature,
+      terrain,
+      levels,
+      policy: {
+        sampleSpacing:
+          ROAD_SAMPLE_SPACING,
+        maxMiterScale:
+          MAX_MITER_SCALE,
+        maxCrossSlope:
+          MAX_CROSS_SLOPE,
+        maxSupportedFillHeight:
+          MAX_SUPPORTED_FILL_HEIGHT,
+        surfaceGap:
+          SURFACE_GAP,
+        maxLongitudinalSlope:
+          MAX_LONGITUDINAL_SLOPE,
+        maxProfileIterations:
+          ROAD_PROFILE_ITERATIONS,
+      },
+    });
+  const centers =
+    surfaceProfile.centers;
   if (centers.length < 2) return null;
 
   const positions: number[] = [];
@@ -182,6 +206,9 @@ function createRoadRibbon(
         centerY - rawCenterY,
       );
     const crossSection =
+      (surfaceProfile.valid
+        ? surfaceProfile.samples[index]
+        : null) ??
       sampleRoadCrossSection({
         feature,
         centers,
@@ -333,6 +360,14 @@ function createRoadRibbon(
         MAX_GRADE_SMOOTHING_RAISE,
       maxSupportedFillHeight:
         MAX_SUPPORTED_FILL_HEIGHT,
+      maxLongitudinalSlope:
+        MAX_LONGITUDINAL_SLOPE,
+      profileRegularized:
+        surfaceProfile.regularized,
+      profileFallback:
+        !surfaceProfile.valid,
+      profileMaxSupportHeight:
+        surfaceProfile.maxSupportHeight,
       supportWallThreshold:
         SUPPORT_WALL_THRESHOLD,
     },
@@ -521,6 +556,10 @@ function createRoadJunctionMesh(
           MAX_SUPPORTED_FILL_HEIGHT,
         surfaceGap:
           SURFACE_GAP,
+        maxLongitudinalSlope:
+          MAX_LONGITUDINAL_SLOPE,
+        maxProfileIterations:
+          ROAD_PROFILE_ITERATIONS,
         junctionSurfaceOffset:
           JUNCTION_SURFACE_OFFSET,
         junctionMaxSegments:

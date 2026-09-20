@@ -5,6 +5,9 @@ import {
   sampleRoadCrossSection,
 } from "./road-cross-section";
 import {
+  deriveRoadSurfaceProfile,
+} from "./road-surface-profile";
+import {
   fitBoundedSurfacePlane,
   surfacePlaneHeight,
   type PlaneObservation,
@@ -22,6 +25,8 @@ export interface RoadJunctionSurfacePolicy {
   maxCrossSlope: number;
   maxSupportedFillHeight: number;
   surfaceGap: number;
+  maxLongitudinalSlope: number;
+  maxProfileIterations: number;
   junctionSurfaceOffset: number;
   junctionMaxSegments: number;
   junctionMaxSlope: number;
@@ -95,7 +100,38 @@ function endpointObservations(
           ? 0
           : feature.points.length -
             1;
+      const profile =
+        deriveRoadSurfaceProfile({
+          feature,
+          terrain,
+          levels,
+          policy: {
+            sampleSpacing:
+              policy.roadSampleSpacing,
+            maxMiterScale:
+              policy.maxMiterScale,
+            maxCrossSlope:
+              policy.maxCrossSlope,
+            maxSupportedFillHeight:
+              policy.maxSupportedFillHeight,
+            surfaceGap:
+              policy.surfaceGap,
+            maxLongitudinalSlope:
+              policy.maxLongitudinalSlope,
+            maxProfileIterations:
+              policy.maxProfileIterations,
+          },
+        });
+      const profileIndex =
+        endpointIndex === 0
+          ? 0
+          : profile.samples.length - 1;
       const section =
+        (profile.valid
+          ? profile.samples[
+              profileIndex
+            ]
+          : null) ??
         sampleRoadCrossSection({
           feature,
           centers:
