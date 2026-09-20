@@ -187,6 +187,14 @@ if (
 }
 
 if (
+  derived.metadata?.laneDerivedRoadCount !== 1
+) {
+  failures.push(
+    "lane-derived road metadata count is incorrect",
+  );
+}
+
+if (
   derived.metadata?.coverage !== "partial" ||
   derived.metadata?.criticalRoadCoverage?.found !== 1 ||
   derived.metadata?.criticalRoadCoverage?.total !== 2 ||
