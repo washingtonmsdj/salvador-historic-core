@@ -105,18 +105,56 @@ function orientation(a: Point2, b: Point2, c: Point2) {
   );
 }
 
+function onSegment(
+  a: Point2,
+  b: Point2,
+  point: Point2,
+) {
+  const epsilon = 0.000001;
+
+  return (
+    point[0] >= Math.min(a[0], b[0]) - epsilon &&
+    point[0] <= Math.max(a[0], b[0]) + epsilon &&
+    point[1] >= Math.min(a[1], b[1]) - epsilon &&
+    point[1] <= Math.max(a[1], b[1]) + epsilon
+  );
+}
+
 function segmentsIntersect(
   a: Point2,
   b: Point2,
   c: Point2,
   d: Point2,
 ) {
+  const epsilon = 0.000001;
   const abC = orientation(a, b, c);
   const abD = orientation(a, b, d);
   const cdA = orientation(c, d, a);
   const cdB = orientation(c, d, b);
 
-  return abC * abD <= 0 && cdA * cdB <= 0;
+  if (
+    ((abC > epsilon && abD < -epsilon) ||
+      (abC < -epsilon && abD > epsilon)) &&
+    ((cdA > epsilon && cdB < -epsilon) ||
+      (cdA < -epsilon && cdB > epsilon))
+  ) {
+    return true;
+  }
+
+  if (Math.abs(abC) <= epsilon && onSegment(a, b, c)) {
+    return true;
+  }
+  if (Math.abs(abD) <= epsilon && onSegment(a, b, d)) {
+    return true;
+  }
+  if (Math.abs(cdA) <= epsilon && onSegment(c, d, a)) {
+    return true;
+  }
+  if (Math.abs(cdB) <= epsilon && onSegment(c, d, b)) {
+    return true;
+  }
+
+  return false;
 }
 
 function polygonsOverlap(a: Point2[], b: Point2[]) {
