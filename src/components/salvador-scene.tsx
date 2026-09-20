@@ -181,6 +181,8 @@ export function SalvadorScene() {
   const [liveTerrainState, setLiveTerrainState] = useState<
     "loading" | "active" | "cached" | "unavailable"
   >("loading");
+  const [liveTerrainProvider, setLiveTerrainProvider] =
+    useState("—");
   const [liveTerrainStats, setLiveTerrainStats] = useState({
     contours: 0,
     columns: 0,
@@ -745,6 +747,13 @@ export function SalvadorScene() {
               ...coordinateDebugItems(),
             ]);
 
+            setLiveTerrainProvider(
+              live.endpoint.startsWith(
+                "/api/geospatial/conder",
+              )
+                ? "Servidor · CONDER"
+                : "CONDER direta",
+            );
             setLiveTerrainStats({
               contours: live.contourCount,
               columns:
@@ -933,7 +942,8 @@ export function SalvadorScene() {
             {(liveTerrainState === "active" ||
               liveTerrainState === "cached") && (
               <>
-                {" "}· {liveTerrainStats.contours} curvas ·{" "}
+                {" "}· {liveTerrainProvider} ·{" "}
+                {liveTerrainStats.contours} curvas ·{" "}
                 {liveTerrainStats.columns}×{liveTerrainStats.rows} ·{" "}
                 ΔY {liveTerrainStats.maxHeight.toFixed(1)} m
               </>
