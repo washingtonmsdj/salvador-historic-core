@@ -82,7 +82,7 @@ export function classifyRoadSurface(
 
 export interface PublicSpaceSurfaceOverride {
   osmId: number;
-  surface: RoadSurfaceKind;
+  surface: string;
 }
 
 export function classifyPublicSpaceSurface(
@@ -121,7 +121,17 @@ export function classifyPublicSpaceSurface(
       : undefined;
 
   if (override) {
-    return override.surface;
+    const overrideSurface =
+      explicitSurfaceKind(
+        override.surface
+          .trim()
+          .toLocaleLowerCase(
+            "en-US",
+          ),
+      );
+    if (overrideSurface) {
+      return overrideSurface;
+    }
   }
 
   const leisure =
