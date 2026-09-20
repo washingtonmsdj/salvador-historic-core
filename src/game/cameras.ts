@@ -8,12 +8,12 @@ export function createCameras(scene: Scene, canvas: HTMLCanvasElement) {
     "camera-aerea",
     -1.22,
     0.88,
-    355,
+    410,
     new Vector3(0, 26, 0),
     scene,
   );
   aerial.lowerRadiusLimit = 145;
-  aerial.upperRadiusLimit = 520;
+  aerial.upperRadiusLimit = 650;
   aerial.wheelPrecision = 4;
   aerial.panningSensibility = 80;
   aerial.attachControl(canvas, true);
