@@ -29,7 +29,7 @@ function pointInPolygon(point: Point2, polygon: Point2[]) {
     const [xj, zj] = previousPoint;
     const intersects =
       zi > z !== zj > z &&
-      x < ((xj - xi) * (z - zi)) / Math.max(0.000001, zj - zi) + xi;
+      x < ((xj - xi) * (z - zi)) / (zj - zi || Number.EPSILON) + xi;
 
     if (intersects) inside = !inside;
   }
