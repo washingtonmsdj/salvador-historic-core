@@ -3,6 +3,7 @@ import derivedVectorsData from "../../geospatial/derived/site-vectors.json";
 import geospatialBase from "../data/geospatial-base.json";
 import siteData from "../data/site-data.json";
 import type {
+  DerivedBuildingFootprint,
   LinearFeature,
   MeasuredObject,
   SceneLevels,
@@ -45,7 +46,7 @@ interface DerivedSiteVectors {
   available: boolean;
   roads: LinearFeature[];
   spaces: LinearFeature[];
-  buildingFootprints: unknown[];
+  buildingFootprints: DerivedBuildingFootprint[];
 }
 
 const data = siteData as unknown as SalvadorSiteData;
@@ -62,6 +63,10 @@ const runtimeRoads = derivedVectorsActive
 const runtimeSpaces = derivedVectorsActive
   ? derivedVectors.spaces
   : data.spaces;
+const derivedBuildingsEligible =
+  derivedVectorsActive &&
+  geo.terrain.active === "geospatial-derived" &&
+  geo.terrain.fallbackActive === false;
 const geospatialFallback =
   geo.terrain.fallbackActive || geo.vectors.fallbackActive;
 
@@ -96,6 +101,7 @@ export function SalvadorScene() {
           { createTerrain },
           { createRoads, createSpaces },
           { createBuildings },
+          { deriveRuntimeBuildingBlockouts },
           { createElevatorBlockout, createConnectionPoints },
           { createBarriers },
           { createCameras },
@@ -112,6 +118,7 @@ export function SalvadorScene() {
           import("../game/terrain"),
           import("../game/roads"),
           import("../game/buildings"),
+          import("../game/derived-buildings"),
           import("../game/elevator"),
           import("../game/barriers"),
           import("../game/cameras"),
@@ -167,8 +174,33 @@ export function SalvadorScene() {
           data.terrain,
           data.levels,
         );
-        const buildingMeshes = createBuildings(scene, data.buildings);
-        const elevatorMeshes = createElevatorBlockout(scene, data.elevator);
+        const derivedBuildingResult = derivedBuildingsEligible
+          ? deriveRuntimeBuildingBlockouts(
+              derivedVectors.buildingFootprints,
+              data.terrain,
+              data.levels,
+            )
+          : null;
+        const curatedBuildings = derivedBuildingResult
+          ? data.buildings.filter(
+              (building) =>
+                !derivedBuildingResult.policy.removeFallbackTypesWhenActive.includes(
+                  building.type,
+                ),
+            )
+          : data.buildings;
+        const runtimeBuildings = [
+          ...curatedBuildings,
+          ...(derivedBuildingResult?.buildings ?? []),
+        ];
+        const buildingMeshes = createBuildings(
+          scene,
+          runtimeBuildings,
+        );
+        const elevatorMeshes = createElevatorBlockout(
+          scene,
+          data.elevator,
+        );
         createConnectionPoints(scene, data.landmarks);
         const barrierMeshes = createBarriers(scene, data.barriers);
 
@@ -195,7 +227,7 @@ export function SalvadorScene() {
         configurePlayer(scene, cameras.street);
 
         const debug = createDebug(scene, [
-          ...data.buildings,
+          ...runtimeBuildings,
           ...data.elevator,
           ...data.landmarks,
           ...data.barriers,
