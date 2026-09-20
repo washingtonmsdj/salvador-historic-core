@@ -456,6 +456,12 @@ export function deriveOsmSiteVectors({
     roads.length +
     spaces.length +
     buildingFootprints.length;
+  const laneDerivedRoadCount =
+    roads.filter((road) =>
+      String(
+        road.widthSource ?? "",
+      ).startsWith("OSM lanes="),
+    ).length;
   const runtimeReady =
     roads.length > 0 && spaces.length > 0;
   const roadNames = new Set(
@@ -494,6 +500,7 @@ export function deriveOsmSiteVectors({
       coverage,
       criticalRoadCoverage,
       roadCount: roads.length,
+      laneDerivedRoadCount,
       spaceCount: spaces.length,
       buildingFootprintCount:
         buildingFootprints.length,
