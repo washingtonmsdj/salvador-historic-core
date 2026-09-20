@@ -221,13 +221,36 @@ if (!lowerTower?.footprint?.length || !elevatorCutout?.polygon?.length) {
 
   if (elevatorCutout.clearance < terrainSampleSpacing) {
     fail(
-      `Elevador terrain clearance must cover at least one sample cell (${terrainSampleSpacing.toFixed(2)} m)`,
+      [
+        "Elevador terrain clearance must cover at least one sample cell",
+        `(${terrainSampleSpacing.toFixed(2)} m)`,
+      ].join(" "),
     );
   }
 
   if (elevatorCutout.elevation >= data.levels.lowerCity.elevation) {
     fail("Elevador terrain cutout must sit below the lower-city datum");
   }
+}
+
+function orientedBoxCorners(building) {
+  const halfWidth = building.width / 2;
+  const halfDepth = building.depth / 2;
+  const angle = building.rotation[1];
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const centerX = building.position[0];
+  const centerZ = building.position[2];
+
+  return [
+    [-halfWidth, -halfDepth],
+    [halfWidth, -halfDepth],
+    [halfWidth, halfDepth],
+    [-halfWidth, halfDepth],
+  ].map(([localX, localZ]) => [
+    centerX + localX * cos + localZ * sin,
+    centerZ - localX * sin + localZ * cos,
+  ]);
 }
 
 const frontage = layout?.plazaNortheastFrontage?.edge;
@@ -246,6 +269,13 @@ if (frontage?.length === 2 && thome) {
 
   if (angleDelta(thome.rotation[1], equivalentRotation) > 0.03) {
     fail("Palácio Thomé de Souza is not parallel to verified plaza frontage");
+  }
+
+  for (const corner of orientedBoxCorners(thome)) {
+    if (pointInPolygon(corner, plaza.points)) {
+      fail("Palácio Thomé de Souza blockout intrudes into Praça Tomé de Souza");
+      break;
+    }
   }
 }
 
