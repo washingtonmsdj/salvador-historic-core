@@ -22,6 +22,12 @@ import {
   roadOffset,
   samplePolyline,
 } from "./road-path";
+import {
+  fitBoundedSurfacePlane,
+  liftPlaneAboveSamples,
+  surfacePlaneHeight,
+  type PlaneObservation,
+} from "./surface-plane";
 import { terrainHeight } from "./terrain";
 import type { LinearFeature, Point2, SceneLevels, TerrainConfig } from "./types";
 
@@ -56,6 +62,10 @@ const JUNCTION_SURFACE_OFFSET =
   roadSurfacePolicy.junctionSurfaceOffset;
 const JUNCTION_MAX_SEGMENTS =
   roadSurfacePolicy.junctionMaxSegments;
+const JUNCTION_MAX_SLOPE =
+  roadSurfacePolicy.junctionMaxSlope;
+const JUNCTION_MAX_LIFT =
+  roadSurfacePolicy.junctionMaxLift;
 const publicSpaceSurfacePolicy =
   manifestData.publicSpaceSurfacePolicy;
 const SPACE_MAX_TRIANGLE_EDGE =
@@ -520,6 +530,122 @@ function createRoadRibbon(
   ];
 }
 
+function roadEndpointObservations(
+  feature: LinearFeature,
+  junctionCenter: Point2,
+  terrain: TerrainConfig,
+  levels: SceneLevels,
+): PlaneObservation[] {
+  if (feature.points.length < 2) {
+    return [];
+  }
+
+  const first =
+    feature.points[0];
+  const last =
+    feature.points[
+      feature.points.length - 1
+    ];
+  if (!first || !last) {
+    return [];
+  }
+
+  const firstDistance =
+    Math.hypot(
+      first[0] -
+        junctionCenter[0],
+      first[1] -
+        junctionCenter[1],
+    );
+  const lastDistance =
+    Math.hypot(
+      last[0] -
+        junctionCenter[0],
+      last[1] -
+        junctionCenter[1],
+    );
+  const endpointIndex =
+    firstDistance <=
+    lastDistance
+      ? 0
+      : feature.points.length -
+        1;
+  const center =
+    feature.points[
+      endpointIndex
+    ];
+  if (!center) {
+    return [];
+  }
+
+  const halfWidth = Math.max(
+    0.5,
+    feature.width / 2,
+  );
+  const offset = roadOffset(
+    feature.points,
+    endpointIndex,
+    halfWidth,
+    MAX_MITER_SCALE,
+  );
+  const leftX =
+    center[0] + offset[0];
+  const leftZ =
+    center[1] + offset[1];
+  const rightX =
+    center[0] - offset[0];
+  const rightZ =
+    center[1] - offset[1];
+  const leftTerrain =
+    elevationAt(
+      leftX,
+      leftZ,
+      terrain,
+      levels,
+      feature.elevationMode,
+    ) - SURFACE_GAP;
+  const rightTerrain =
+    elevationAt(
+      rightX,
+      rightZ,
+      terrain,
+      levels,
+      feature.elevationMode,
+    ) - SURFACE_GAP;
+  const crossSpan = Math.max(
+    0.001,
+    Math.hypot(
+      leftX - rightX,
+      leftZ - rightZ,
+    ),
+  );
+  const section =
+    gradeRoadCrossSection({
+      leftTerrain,
+      rightTerrain,
+      longitudinalLift: 0,
+      crossSpan,
+      maxCrossSlope:
+        MAX_CROSS_SLOPE,
+      maxSupportedFillHeight:
+        MAX_SUPPORTED_FILL_HEIGHT,
+      surfaceGap: SURFACE_GAP,
+    });
+
+  return [
+    {
+      x: leftX,
+      z: leftZ,
+      y: section.leftY,
+    },
+    {
+      x: rightX,
+      z: rightZ,
+      y: section.rightY,
+    },
+  ];
+}
+
 function createRoadJunctionMesh(
   scene: Scene,
   junction: RoadJunction,
@@ -544,27 +670,42 @@ function createRoadJunctionMesh(
     ),
   );
 
-  const centerY =
-    terrainHeight(
-      terrain,
-      levels,
-      centerX,
-      centerZ,
-    ) +
-    SURFACE_GAP +
-    JUNCTION_SURFACE_OFFSET;
+  const roadObservations =
+    junction.connectedFeatures.flatMap(
+      (feature) =>
+        roadEndpointObservations(
+          feature,
+          junction.center,
+          terrain,
+          levels,
+        ),
+    );
+  const fittedPlane =
+    fitBoundedSurfacePlane(
+      roadObservations,
+      JUNCTION_MAX_SLOPE,
+    );
 
-  positions.push(
-    centerX,
-    centerY,
-    centerZ,
-  );
-  uvs.push(
-    centerX /
-      TEXTURE_REPEAT_METERS,
-    centerZ /
-      TEXTURE_REPEAT_METERS,
-  );
+  if (!fittedPlane) {
+    return [];
+  }
+
+  const terrainSamples:
+    PlaneObservation[] = [
+      {
+        x: centerX,
+        z: centerZ,
+        y:
+          terrainHeight(
+            terrain,
+            levels,
+            centerX,
+            centerZ,
+          ) +
+          SURFACE_GAP +
+          JUNCTION_SURFACE_OFFSET,
+      },
+    ];
 
   for (
     let segment = 0;
@@ -581,23 +722,115 @@ function createRoadJunctionMesh(
     const z =
       centerZ +
       Math.sin(angle) * radius;
-    const y =
+
+    terrainSamples.push({
+      x,
+      z,
+      y:
+        terrainHeight(
+          terrain,
+          levels,
+          x,
+          z,
+        ) +
+        SURFACE_GAP +
+        JUNCTION_SURFACE_OFFSET,
+    });
+  }
+
+  const lifted =
+    liftPlaneAboveSamples(
+      fittedPlane,
+      terrainSamples,
+      JUNCTION_MAX_LIFT,
+    );
+
+  if (!lifted.fullySupported) {
+    return [];
+  }
+
+  const plane = lifted.plane;
+  const centerY =
+    surfacePlaneHeight(
+      plane,
+      centerX,
+      centerZ,
+    );
+  positions.push(
+    centerX,
+    centerY,
+    centerZ,
+  );
+  uvs.push(
+    centerX /
+      TEXTURE_REPEAT_METERS,
+    centerZ /
+      TEXTURE_REPEAT_METERS,
+  );
+
+  const perimeter: Array<{
+    x: number;
+    z: number;
+    topY: number;
+    terrainY: number;
+    support: number;
+  }> = [];
+
+  for (
+    let segment = 0;
+    segment < segments;
+    segment++
+  ) {
+    const angle =
+      (segment / segments) *
+      Math.PI *
+      2;
+    const x =
+      centerX +
+      Math.cos(angle) * radius;
+    const z =
+      centerZ +
+      Math.sin(angle) * radius;
+    const terrainY =
       terrainHeight(
         terrain,
         levels,
         x,
         z,
-      ) +
-      SURFACE_GAP +
-      JUNCTION_SURFACE_OFFSET;
+      );
+    const topY =
+      surfacePlaneHeight(
+        plane,
+        x,
+        z,
+      );
 
-    positions.push(x, y, z);
+    positions.push(
+      x,
+      topY,
+      z,
+    );
     uvs.push(
       x /
         TEXTURE_REPEAT_METERS,
       z /
         TEXTURE_REPEAT_METERS,
     );
+    perimeter.push({
+      x,
+      z,
+      topY,
+      terrainY:
+        terrainY -
+        SUPPORT_WALL_SINK,
+      support:
+        Math.max(
+          0,
+          topY -
+            (terrainY +
+              SURFACE_GAP),
+        ),
+    });
   }
 
   for (
@@ -642,6 +875,24 @@ function createRoadJunctionMesh(
   );
   mesh.receiveShadows = true;
   mesh.checkCollisions = true;
+
+  const maxRoadEdgeDelta =
+    roadObservations.reduce(
+      (maximum, observation) =>
+        Math.max(
+          maximum,
+          Math.abs(
+            surfacePlaneHeight(
+              plane,
+              observation.x,
+              observation.z,
+            ) -
+              observation.y,
+          ),
+        ),
+      0,
+    );
+
   mesh.metadata = {
     category: "road-junction",
     walkableSurface: true,
@@ -649,9 +900,144 @@ function createRoadJunctionMesh(
       junction.connectedFeatureIds,
     center: junction.center,
     radius,
+    planeSlope: plane.slope,
+    requiredLift:
+      lifted.requiredLift,
+    maxRoadEdgeDelta,
   };
 
-  return mesh;
+  const supportPositions:
+    number[] = [];
+  const supportIndices:
+    number[] = [];
+  const supportNormals:
+    number[] = [];
+  const supportUvs:
+    number[] = [];
+
+  for (
+    let segment = 0;
+    segment < perimeter.length;
+    segment++
+  ) {
+    const a =
+      perimeter[segment];
+    const b =
+      perimeter[
+        (segment + 1) %
+          perimeter.length
+      ];
+    if (!a || !b) {
+      continue;
+    }
+
+    if (
+      a.support <
+        SUPPORT_WALL_THRESHOLD &&
+      b.support <
+        SUPPORT_WALL_THRESHOLD
+    ) {
+      continue;
+    }
+
+    const base =
+      supportPositions.length / 3;
+    supportPositions.push(
+      a.x,
+      a.topY,
+      a.z,
+      a.x,
+      a.terrainY,
+      a.z,
+      b.x,
+      b.topY,
+      b.z,
+      b.x,
+      b.terrainY,
+      b.z,
+    );
+    supportIndices.push(
+      base,
+      base + 2,
+      base + 1,
+      base + 2,
+      base + 3,
+      base + 1,
+    );
+
+    const u0 =
+      segment /
+      perimeter.length;
+    const u1 =
+      (segment + 1) /
+      perimeter.length;
+    supportUvs.push(
+      u0,
+      0,
+      u0,
+      Math.max(
+        1,
+        a.support /
+          SUPPORT_WALL_TEXTURE_REPEAT_METERS,
+      ),
+      u1,
+      0,
+      u1,
+      Math.max(
+        1,
+        b.support /
+          SUPPORT_WALL_TEXTURE_REPEAT_METERS,
+      ),
+    );
+  }
+
+  if (
+    supportPositions.length === 0
+  ) {
+    return [mesh];
+  }
+
+  VertexData.ComputeNormals(
+    supportPositions,
+    supportIndices,
+    supportNormals,
+  );
+  const supportMesh = new Mesh(
+    junction.id + "-support",
+    scene,
+  );
+  const supportData =
+    new VertexData();
+  supportData.positions =
+    supportPositions;
+  supportData.indices =
+    supportIndices;
+  supportData.normals =
+    supportNormals;
+  supportData.uvs =
+    supportUvs;
+  supportData.applyToMesh(
+    supportMesh,
+  );
+  supportMesh.material =
+    surfaceMaterialForKind(
+      scene,
+      "stone",
+    );
+  supportMesh.receiveShadows = true;
+  supportMesh.checkCollisions = true;
+  supportMesh.metadata = {
+    category:
+      "road-junction-support",
+    walkableSurface: false,
+    junctionId:
+      junction.id,
+  };
+
+  return [
+    mesh,
+    supportMesh,
+  ];
 }
 
 function orientTrianglesUp(points: Point2[], indices: number[]) {
@@ -1020,7 +1406,7 @@ export function createRoads(
         overlap:
           JUNCTION_OVERLAP,
       },
-    ).map((junction) =>
+    ).flatMap((junction) =>
       createRoadJunctionMesh(
         scene,
         junction,
