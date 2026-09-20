@@ -241,7 +241,7 @@
   "elevator": [
     {
       "id": "lacerda-lower-tower",
-      "name": "Torre inferior do Elevador Lacerda",
+      "name": "Torre principal do Elevador Lacerda",
       "type": "elevator-tower",
       "position": [
         0,
@@ -288,26 +288,6 @@
           -0.07
         ]
       ]
-    },
-    {
-      "id": "lacerda-upper-tower",
-      "name": "Torre superior",
-      "type": "elevator-tower",
-      "position": [
-        4,
-        70,
-        0
-      ],
-      "rotation": [
-        0,
-        0.79,
-        0
-      ],
-      "width": 11,
-      "depth": 9,
-      "height": 10,
-      "source": "OSM footprint and visual blockout",
-      "estimated": true
     },
     {
       "id": "lacerda-walkway",
