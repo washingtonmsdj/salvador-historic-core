@@ -103,6 +103,33 @@
     ],
     "notes": "Road centerlines and polygons are clipped to the project perimeter. Indoor highway features remain preserved in normalized OSM but are excluded from terrain-road derivation. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated. Complete coverage requires every critical road name to be present."
   },
+  "curatedOsmSyncPolicy": {
+    "coordinateTolerance": 0.002,
+    "buildingFootprints": [
+      {
+        "siteId": "lacerda-lower-tower",
+        "osmId": 59224731
+      },
+      {
+        "siteId": "palacio-rio-branco",
+        "osmId": 402383814
+      },
+      {
+        "siteId": "mercado-modelo",
+        "osmId": 59392558
+      }
+    ],
+    "spaces": [
+      {
+        "siteId": "praca-tome-souza",
+        "osmId": 1263035782
+      }
+    ],
+    "forbiddenFallbackSpaceIds": [
+      "praca-cairu"
+    ],
+    "notes": "Curated landmark treatment may keep its own vertical/model metadata, but horizontal OSM geometry must remain synchronized with the versioned derived vectors. Provisional duplicate fallback polygons are forbidden when they would invent a competing geometry."
+  },
   "buildingBlockoutPolicy": {
     "maxAutoFoundationRelief": 0.75,
     "excludedOsmIds": [
