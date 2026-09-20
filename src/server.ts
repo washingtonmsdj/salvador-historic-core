@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import geospatialBase from "./data/geospatial-base.json";
+import manifestData from "../geospatial/manifest.json";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -26,6 +27,42 @@ const overpassEndpoints = [
 
 const osmApiEndpoint =
   "https://api.openstreetmap.org/api/0.6/map";
+
+const conderConfig =
+  manifestData.sources.conderContours;
+
+function projectConderEnvelope() {
+  const origin = geospatialBase.origin;
+  const perimeter = geospatialBase.perimeter;
+
+  return [
+    origin.easting + perimeter.minX,
+    origin.northing + perimeter.minZ,
+    origin.easting + perimeter.maxX,
+    origin.northing + perimeter.maxZ,
+  ]
+    .map((value) => value.toFixed(3))
+    .join(",");
+}
+
+function projectConderUrl() {
+  const params = new URLSearchParams({
+    where: "1=1",
+    geometry: projectConderEnvelope(),
+    geometryType: "esriGeometryEnvelope",
+    inSR: "32724",
+    spatialRel: "esriSpatialRelIntersects",
+    outFields:
+      `OBJECTID,${conderConfig.elevationField}`,
+    returnGeometry: "true",
+    returnZ: "false",
+    outSR: "32724",
+    geometryPrecision: "3",
+    f: "json",
+  });
+
+  return `${conderConfig.service}/query?${params.toString()}`;
+}
 
 function projectBbox(bounds: GeographicBounds) {
   return [
@@ -91,6 +128,92 @@ async function fetchWithTimeout(
     });
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+async function serveProjectConder() {
+  const endpoint = projectConderUrl();
+
+  try {
+    const response = await fetchWithTimeout(
+      endpoint,
+      {
+        headers: {
+          accept: "application/json",
+        },
+      },
+      15_000,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `${response.status} ${response.statusText}`,
+      );
+    }
+
+    const body = await response.text();
+    const payload = JSON.parse(body) as {
+      features?: unknown[];
+      exceededTransferLimit?: boolean;
+      error?: {
+        code?: number;
+        message?: string;
+      };
+    };
+
+    if (payload.error) {
+      throw new Error(
+        `ArcGIS ${payload.error.code ?? "error"}: ${payload.error.message ?? "unknown error"}`,
+      );
+    }
+
+    if (payload.exceededTransferLimit === true) {
+      throw new Error(
+        "CONDER query exceeded transfer limit; refusing partial terrain.",
+      );
+    }
+
+    if (!Array.isArray(payload.features)) {
+      throw new Error(
+        "CONDER response has no features array.",
+      );
+    }
+
+    if (payload.features.length === 0) {
+      throw new Error(
+        "CONDER response contains no contour features.",
+      );
+    }
+
+    return new Response(body, {
+      status: 200,
+      headers: {
+        "content-type":
+          "application/json; charset=utf-8",
+        "cache-control":
+          "public, max-age=120, s-maxage=300",
+        "x-geodata-provider": "conder",
+        "x-geodata-envelope":
+          projectConderEnvelope(),
+      },
+    });
+  } catch (error) {
+    return Response.json(
+      {
+        error:
+          "CONDER project terrain unavailable.",
+        detail:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+      {
+        status: 502,
+        headers: {
+          "cache-control": "no-store",
+        },
+      },
+    );
   }
 }
 
@@ -280,6 +403,13 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const url = new URL(request.url);
+      if (
+        request.method === "GET" &&
+        url.pathname === "/api/geospatial/conder"
+      ) {
+        return await serveProjectConder();
+      }
+
       if (
         request.method === "GET" &&
         url.pathname === "/api/geospatial/osm"
