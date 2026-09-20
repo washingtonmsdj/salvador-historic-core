@@ -54,5 +54,14 @@
     "west": -38.51473870960592,
     "north": -12.972005856571682,
     "east": -38.511980712483926
+  },
+  "mapReference": {
+    "provider": "OpenStreetMap Standard",
+    "tileTemplate": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "zoom": 18,
+    "maxTiles": 16,
+    "attribution": "© OpenStreetMap contributors",
+    "attributionUrl": "https://www.openstreetmap.org/copyright",
+    "purpose": "runtime alignment/debug reference only; not a source of 3D geometry"
   }
 }

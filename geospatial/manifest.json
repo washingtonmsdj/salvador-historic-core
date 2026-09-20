@@ -113,5 +113,14 @@
       "rua-chile"
     ],
     "notes": "Automatic building volumes require a real OSM footprint plus explicit height or building:levels-derived height. Footprints crossing more than 0.75 m of terrain relief are skipped for manual foundation/model handling."
+  },
+  "rasterReference": {
+    "provider": "OpenStreetMap Standard",
+    "tileTemplate": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "zoom": 18,
+    "maxTiles": 16,
+    "attribution": "© OpenStreetMap contributors",
+    "attributionUrl": "https://www.openstreetmap.org/copyright",
+    "purpose": "runtime alignment/debug reference only; not a source of 3D geometry"
   }
 }

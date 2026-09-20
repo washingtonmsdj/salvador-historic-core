@@ -29,6 +29,7 @@ interface SalvadorSiteData {
 interface SceneControls {
   activateCamera: (mode: CameraMode) => void;
   setDebug: (enabled: boolean) => void;
+  setMapReference: (enabled: boolean) => void;
 }
 
 interface GeospatialBaseRuntime {
@@ -41,6 +42,13 @@ interface GeospatialBaseRuntime {
     west: number;
     north: number;
     east: number;
+  };
+  mapReference: {
+    tileTemplate: string;
+    zoom: number;
+    maxTiles: number;
+    attribution: string;
+    attributionUrl: string;
   };
   terrain: {
     active: string;
@@ -101,6 +109,7 @@ export function SalvadorScene() {
   const [cameraMode, setCameraMode] = useState<CameraMode>("aerial");
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
+  const [mapReferenceEnabled, setMapReferenceEnabled] = useState(true);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -125,6 +134,7 @@ export function SalvadorScene() {
           { Vector3 },
           { Color3, Color4 },
           { createTerrain },
+          { createOsmTerrainReference },
           { createRoads, createSpaces },
           { createBuildings },
           { deriveRuntimeBuildingBlockouts },
@@ -142,6 +152,7 @@ export function SalvadorScene() {
           import("@babylonjs/core/Maths/math.vector"),
           import("@babylonjs/core/Maths/math.color"),
           import("../game/terrain"),
+          import("../game/osm-terrain-reference"),
           import("../game/roads"),
           import("../game/buildings"),
           import("../game/derived-buildings"),
@@ -188,6 +199,16 @@ export function SalvadorScene() {
           data.terrain,
           data.levels,
         );
+        const mapReference = createOsmTerrainReference(
+          scene,
+          geo.mapReference,
+          geo.origin,
+          geo.geographicBounds,
+          data.terrain,
+          data.levels,
+        );
+        mapReference.setEnabled(true);
+
         createSpaces(
           scene,
           runtimeSpaces,
@@ -268,6 +289,7 @@ export function SalvadorScene() {
         controlsRef.current = {
           activateCamera: cameras.activate,
           setDebug: debug.setEnabled,
+          setMapReference: mapReference.setEnabled,
         };
 
         engine.runRenderLoop(() => {
@@ -309,6 +331,14 @@ export function SalvadorScene() {
     setDebugEnabled((current) => {
       const next = !current;
       controlsRef.current?.setDebug(next);
+      return next;
+    });
+  };
+
+  const toggleMapReference = () => {
+    setMapReferenceEnabled((current) => {
+      const next = !current;
+      controlsRef.current?.setMapReference(next);
       return next;
     });
   };
@@ -435,7 +465,20 @@ export function SalvadorScene() {
         >
           Debug
         </button>
-        <button
+<button
+          type="button"
+          onClick={toggleMapReference}
+          disabled={loadState !== "ready" || mapVisible}
+          aria-pressed={mapReferenceEnabled}
+          className={`rounded-xl px-3 py-2 text-xs font-medium transition ${
+            mapReferenceEnabled
+              ? "bg-[#75b884] text-[#0c2114]"
+              : "bg-white/5 text-white/75 hover:bg-white/10"
+          } disabled:cursor-not-allowed disabled:opacity-40`}
+        >
+          Mapa no terreno
+        </button>
+                <button
           type="button"
           onClick={() => setMapVisible((current) => !current)}
           aria-pressed={mapVisible}
@@ -449,7 +492,18 @@ export function SalvadorScene() {
         </button>
       </div>
 
-      {loadState !== "ready" && (
+{mapReferenceEnabled && !mapVisible && (
+        <a
+          href={geo.mapReference.attributionUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="absolute bottom-4 right-4 z-20 rounded-md bg-black/70 px-2 py-1 text-[10px] text-white/75 underline-offset-2 hover:underline"
+        >
+          {geo.mapReference.attribution}
+        </a>
+      )}
+
+            {loadState !== "ready" && (
         <div className="absolute inset-0 z-30 grid place-items-center bg-[#0b1110]/92 px-6">
           <div className="max-w-md text-center">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-[#c9a96e]" />

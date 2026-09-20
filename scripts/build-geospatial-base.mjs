@@ -78,6 +78,7 @@ const runtime = {
     north: northLatitude,
     east: eastLongitude,
   },
+  mapReference: manifest.rasterReference,
   sources: {
     osm,
     contours,
