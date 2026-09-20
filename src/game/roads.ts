@@ -1167,12 +1167,19 @@ export function createSpaces(
   levels?: SceneLevels,
 ) {
   return spaces.flatMap((space) => {
+    const surfaceKind =
+      classifyPublicSpaceSurface(
+        space,
+      );
+
+    if (!surfaceKind) {
+      return [];
+    }
+
     const squareMaterial =
       surfaceMaterialForKind(
         scene,
-        classifyPublicSpaceSurface(
-          space,
-        ),
+        surfaceKind,
       );
     const mesh = createPolygonSpace(
       scene,
