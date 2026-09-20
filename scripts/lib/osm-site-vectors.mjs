@@ -304,6 +304,35 @@ function buildingHeight(tags, config) {
   };
 }
 
+function isIndoorCorridor(tags) {
+  return (
+    tags.highway === "corridor" &&
+    tags.indoor === "yes"
+  );
+}
+
+function indoorCorridorWidth(tags, config) {
+  const explicit =
+    parseOsmMeasurement(tags.width);
+  if (explicit) {
+    return {
+      width: explicit,
+      estimated: false,
+      source: "OSM width tag",
+    };
+  }
+
+  return {
+    width: Number(
+      config.indoorCorridorWidth ??
+        3,
+    ),
+    estimated: true,
+    source:
+      "deterministic indoor corridor width",
+  };
+}
+
 function isTerrainRoad(tags, config) {
   if (!tags.highway) {
     return false;
@@ -339,12 +368,61 @@ export function deriveOsmSiteVectors({
   criticalRoadNames = [],
 }) {
   const roads = [];
+  const elevatedCorridors = [];
   const spaces = [];
   const buildingFootprints = [];
 
   for (const feature of features ?? []) {
     const tags = feature.tags ?? {};
     const points = feature.points ?? [];
+
+    if (
+      feature.geometryType === "polyline" &&
+      config.preserveIndoorCorridors !== false &&
+      isIndoorCorridor(tags) &&
+      points.length >= 2
+    ) {
+      const width =
+        indoorCorridorWidth(
+          tags,
+          config,
+        );
+      const clippedParts =
+        clipPolylineToBounds(
+          points,
+          bounds,
+        );
+
+      clippedParts.forEach(
+        (part, index) => {
+          elevatedCorridors.push({
+            id:
+              clippedParts.length > 1
+                ? `${feature.id}-part-${index + 1}`
+                : feature.id,
+            name:
+              tags.name ??
+              `Corredor OSM ${feature.osmType}/${feature.osmId}`,
+            type:
+              "osm-indoor-corridor",
+            width:
+              width.width,
+            widthSource:
+              width.source,
+            source:
+              `OpenStreetMap ${feature.id}`,
+            estimated:
+              width.estimated,
+            points: part,
+            osmId:
+              feature.osmId,
+            osmType:
+              feature.osmType,
+            tags,
+          });
+        },
+      );
+    }
 
     if (
       feature.geometryType === "polyline" &&
@@ -447,6 +525,9 @@ export function deriveOsmSiteVectors({
   }
 
   roads.sort((a, b) => a.id.localeCompare(b.id));
+  elevatedCorridors.sort((a, b) =>
+    a.id.localeCompare(b.id),
+  );
   spaces.sort((a, b) => a.id.localeCompare(b.id));
   buildingFootprints.sort((a, b) =>
     a.id.localeCompare(b.id),
@@ -454,6 +535,7 @@ export function deriveOsmSiteVectors({
 
   const featureCount =
     roads.length +
+    elevatedCorridors.length +
     spaces.length +
     buildingFootprints.length;
   const laneDerivedRoadCount =
@@ -501,11 +583,14 @@ export function deriveOsmSiteVectors({
       criticalRoadCoverage,
       roadCount: roads.length,
       laneDerivedRoadCount,
+      elevatedCorridorCount:
+        elevatedCorridors.length,
       spaceCount: spaces.length,
       buildingFootprintCount:
         buildingFootprints.length,
     },
     roads,
+    elevatedCorridors,
     spaces,
     buildingFootprints,
   };
