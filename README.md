@@ -23,6 +23,8 @@ A cena já opera prioritariamente com uma base geoespacial persistente e version
 
 A base persistente é validada por CI antes de ser considerada pronta para runtime.
 
+O runtime também possui uma primeira fatia de gameplay: a missão `Rota do Centro Histórico` guia o jogador, em terceira pessoa, pelos acessos do Elevador Lacerda até o Mercado Modelo. O progresso, dinheiro e XP são mantidos fora do renderer e persistidos localmente; detalhes da separação entre simulação, renderer e HUD estão em [docs/GAME_ARCHITECTURE.md](docs/GAME_ARCHITECTURE.md).
+
 ## Área de trabalho
 
 O perímetro cobre o núcleo imediato de:
@@ -71,9 +73,11 @@ Detalhes de CRS, fontes, políticas de terreno, vias, junctions, máscaras e blo
 ## Desenvolvimento
 
 ```bash
-npm install
-npm run dev
+bun install --frozen-lockfile
+bun run dev
 ```
+
+Para executar em um host que expõe a aplicação para a rede, use `bun run dev:host`. Em produção, o fluxo é `bun run build` seguido de `bun run start`; o servidor escuta em `0.0.0.0` e respeita `PORT`/`NITRO_PORT` fornecidos pela plataforma. Os mesmos scripts podem ser chamados com `npm run` em hosts Node.
 
 Validação completa:
 
