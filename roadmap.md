@@ -48,6 +48,7 @@
 - [x] Preparar importação oficial de curvas CONDER REL_Curva_Nivel_L
 - [x] Expor no runtime quando terreno/vetores ainda estão em fallback
 - [x] Ativar seed OSM versionada parcial para Rua Chile, Praça Tomé e Elevador
+- [x] Carregar OSM ao vivo no Preview com fallback para a seed versionada
 - [ ] Executar importação OSM completa do recorte e revisar features
 - [ ] Executar importação CONDER do recorte
 - [x] Implementar gerador determinístico de heightfield derivado das curvas CONDER
