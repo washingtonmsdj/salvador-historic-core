@@ -75,6 +75,9 @@ jobs:
       - name: Validate terrain structure masks
         run: bun run terrain:mask-test
 
+      - name: Validate terrain presentation fidelity
+        run: bun run terrain:presentation-test
+
       - name: Validate building grounding
         run: bun run building:grounding-test
 
