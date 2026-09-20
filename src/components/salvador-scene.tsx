@@ -920,8 +920,8 @@ export function SalvadorScene() {
             );
             updateDebugItems?.([
               ...activeDebugBuildings,
-              ...data.elevator,
-              ...data.landmarks,
+              ...runtimeElevatorParts,
+              ...runtimeLandmarks,
               ...runtimeBarriers,
               ...coordinateDebugItems(),
             ]);
