@@ -101,6 +101,7 @@ interface DerivedSiteVectors {
     roadCount: number;
     spaceCount: number;
     buildingFootprintCount: number;
+    elevatedCorridorCount?: number;
     coverage?: string;
     criticalRoadCoverage?: {
       found: number;
@@ -110,6 +111,7 @@ interface DerivedSiteVectors {
     };
   };
   roads: LinearFeature[];
+  elevatedCorridors: LinearFeature[];
   spaces: LinearFeature[];
   buildingFootprints: DerivedBuildingFootprint[];
 }
@@ -126,6 +128,14 @@ const persistentTerrainActive =
     "geospatial-derived" &&
   geo.terrain.fallbackActive === false &&
   derivedTerrain.available;
+const persistentElevatorCorridorsActive =
+  persistentTerrainActive &&
+  geo.vectors.active ===
+    "geospatial-derived" &&
+  geo.vectors.fallbackActive === false &&
+  derivedVectors.available &&
+  derivedVectors.elevatedCorridors
+    .length > 0;
 
 const provisionalUpperElevatorIds =
   new Set([
@@ -133,7 +143,7 @@ const provisionalUpperElevatorIds =
     "lacerda-upper-access",
   ]);
 const runtimeElevatorParts =
-  persistentTerrainActive
+  persistentElevatorCorridorsActive
     ? data.elevator.filter(
         (part) =>
           !provisionalUpperElevatorIds.has(
@@ -142,7 +152,7 @@ const runtimeElevatorParts =
       )
     : data.elevator;
 const runtimeLandmarks =
-  persistentTerrainActive
+  persistentElevatorCorridorsActive
     ? data.landmarks.filter(
         (landmark) =>
           landmark.id !==
@@ -479,6 +489,7 @@ export function SalvadorScene() {
             hydrateCuratedBuildingFootprints,
           },
           { createElevatorBlockout, createConnectionPoints },
+          { createElevatedCorridors },
           { createBarriers },
           { createCameras },
           { configurePlayer },
@@ -500,6 +511,7 @@ export function SalvadorScene() {
           import("../game/live-conder"),
           import("../game/derived-buildings"),
           import("../game/elevator"),
+          import("../game/elevated-corridors"),
           import("../game/barriers"),
           import("../game/cameras"),
           import("../game/player"),
@@ -677,6 +689,21 @@ export function SalvadorScene() {
           scene,
           runtimeElevatorParts,
         );
+        const elevatedCorridorMeshes =
+          persistentElevatorCorridorsActive
+            ? createElevatedCorridors(
+                scene,
+                derivedVectors.elevatedCorridors,
+                data.terrain,
+                data.levels,
+                runtimeElevatorParts.flatMap(
+                  (part) =>
+                    part.footprint
+                      ? [part.footprint]
+                      : [],
+                ),
+              )
+            : [];
         createConnectionPoints(
           scene,
           runtimeLandmarks,
@@ -696,6 +723,7 @@ export function SalvadorScene() {
         for (const mesh of [
           ...buildingMeshes,
           ...elevatorMeshes,
+          ...elevatedCorridorMeshes,
           ...barrierMeshes,
         ]) {
           shadows.addShadowCaster(mesh);
@@ -1211,7 +1239,8 @@ export function SalvadorScene() {
           <div className="mt-1 text-white/45">
             GIS materializado: {derivedVectors.metadata?.roadCount ?? 0} ruas ·{" "}
             {derivedVectors.metadata?.spaceCount ?? 0} espaços ·{" "}
-            {derivedVectors.metadata?.buildingFootprintCount ?? 0} edifícios
+            {derivedVectors.metadata?.buildingFootprintCount ?? 0} edifícios ·{" "}
+            {derivedVectors.metadata?.elevatedCorridorCount ?? 0} corredores elevados
           </div>
           <div className="mt-1 text-white/45">
             Vetores OSM:{" "}
