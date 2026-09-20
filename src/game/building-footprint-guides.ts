@@ -10,6 +10,8 @@ import type {
   TerrainConfig,
 } from "./types";
 
+const MAX_GUIDES = 500;
+
 export function createBuildingFootprintGuides(
   scene: Scene,
   buildings: DerivedBuildingFootprint[],
@@ -18,7 +20,10 @@ export function createBuildingFootprintGuides(
 ) {
   const guides: LinesMesh[] = [];
 
-  for (const building of buildings) {
+  for (const building of buildings.slice(
+    0,
+    MAX_GUIDES,
+  )) {
     if (building.footprint.length < 3) {
       continue;
     }
