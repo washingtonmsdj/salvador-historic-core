@@ -11,6 +11,7 @@ import type {
   MeasuredObject,
   SceneLevels,
   TerrainConfig,
+  TerrainRenderMask,
 } from "../game/types";
 import type { Engine } from "@babylonjs/core/Engines/engine";
 import type { Scene } from "@babylonjs/core/scene";
@@ -137,6 +138,30 @@ const runtimeLandmarks =
           "upperEntrance",
       )
     : data.landmarks;
+
+const terrainRenderMasks:
+  TerrainRenderMask[] =
+  runtimeElevatorParts.flatMap(
+    (part) =>
+      !part.estimated &&
+      part.footprint
+        ? [
+            {
+              id:
+                part.id +
+                "-terrain-mask",
+              polygon:
+                part.footprint,
+              padding:
+                manifestData
+                  .terrainStructureMaskPolicy
+                  .padding,
+              source:
+                part.source,
+            },
+          ]
+        : [],
+  );
 const runtimeBarriers =
   persistentTerrainActive
     ? data.barriers.filter(
@@ -412,6 +437,7 @@ export function SalvadorScene() {
           scene,
           data.terrain,
           data.levels,
+          terrainRenderMasks,
         );
         let mapReference = createOsmTerrainReference(
           scene,
@@ -917,6 +943,7 @@ export function SalvadorScene() {
                 liveScene,
                 data.terrain,
                 data.levels,
+                terrainRenderMasks,
               );
             } catch (error) {
               setRuntimeDerivedTerrain(null);
