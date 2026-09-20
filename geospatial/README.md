@@ -93,6 +93,8 @@ Polígonos de espaço são triangulados e acompanhados sobre o terreno ativo.
 
 ## Edifícios
 
+Marcos curados que já possuem footprint OSM versionado usam `footprintOsmId` como referência canônica. O runtime hidrata o polígono diretamente de `site-vectors.json`, recalcula centro/largura/profundidade e mantém altura/material/modelagem curada separadamente. O mesmo objeto não deve copiar os vértices OSM novamente em `site-data.json`.
+
 Footprints OSM só são promovidos automaticamente para blockouts 3D quando:
 
 - o polígono é válido;
