@@ -13,7 +13,8 @@ type SurfacePattern =
   | "aggregate"
   | "pavers"
   | "cobble"
-  | "slab";
+  | "slab"
+  | "masonry";
 
 type SurfaceStyle = {
   base: readonly [number, number, number];
@@ -25,6 +26,18 @@ type SurfaceStyle = {
   bumpStrength: number;
   bumpLevel: number;
 };
+
+const retainingWallStyle:
+  SurfaceStyle = {
+    base: [103, 94, 79],
+    variation: 42,
+    aggregate: 0.08,
+    jointSpacing: 44,
+    jointAlpha: 0.44,
+    pattern: "masonry",
+    bumpStrength: 1.08,
+    bumpLevel: 0.56,
+  };
 
 const styles: Record<
   RoadSurfaceKind,
@@ -149,7 +162,15 @@ function jointMask(
       ? row % 2 === 0
         ? 0
         : spacing / 2
-      : 0;
+      : style.pattern ===
+            "masonry" &&
+          row % 2 !== 0
+        ? spacing
+        : 0;
+  const verticalSpacing =
+    style.pattern === "masonry"
+      ? spacing * 2
+      : spacing;
 
   const horizontalCoord =
     positiveModulo(
@@ -159,7 +180,7 @@ function jointMask(
   const verticalCoord =
     positiveModulo(
       x + stagger,
-      spacing,
+      verticalSpacing,
     );
   const horizontalJoint =
     horizontalCoord < 1.2 ||
@@ -180,7 +201,8 @@ function jointMask(
   }
 
   if (
-    style.pattern === "pavers"
+    style.pattern === "pavers" ||
+    style.pattern === "masonry"
   ) {
     return horizontalJoint ||
       verticalJoint
@@ -220,8 +242,8 @@ function createRoadTextures(
   name: string,
   style: SurfaceStyle,
   seed: number,
+  size = 256,
 ) {
-  const size = 256;
   const diffuse =
     new DynamicTexture(
       name + "-diffuse",
@@ -549,4 +571,62 @@ export function roadMaterialFor(
     scene,
     classifyRoadSurface(feature),
   );
+}
+
+
+export function retainingWallMaterial(
+  scene: Scene,
+) {
+  const name =
+    "terrain-retaining-wall";
+  const existing =
+    scene.getMaterialByName(name);
+
+  if (
+    existing instanceof
+    StandardMaterial
+  ) {
+    return existing;
+  }
+
+  const material =
+    new StandardMaterial(
+      name,
+      scene,
+    );
+  const textures =
+    createRoadTextures(
+      scene,
+      name,
+      retainingWallStyle,
+      173,
+      512,
+    );
+
+  material.diffuseTexture =
+    textures.diffuse;
+  material.bumpTexture =
+    textures.bump;
+  material.diffuseColor =
+    Color3.White();
+  material.emissiveColor =
+    Color3.FromInts(
+      retainingWallStyle
+        .base[0],
+      retainingWallStyle
+        .base[1],
+      retainingWallStyle
+        .base[2],
+    ).scale(0.018);
+  material.specularColor =
+    new Color3(
+      0.015,
+      0.015,
+      0.015,
+    );
+  material.specularPower = 96;
+  material.backFaceCulling =
+    false;
+
+  return material;
 }
