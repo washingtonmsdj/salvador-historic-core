@@ -167,6 +167,10 @@ const structureTerrainRenderMasks:
                 manifestData
                   .terrainStructureMaskPolicy
                   .padding,
+              maxBoundaryEdge:
+                manifestData
+                  .terrainRenderMaskPolicy
+                  .maxBoundaryEdge,
               source:
                 part.source,
             },
@@ -285,9 +289,13 @@ const roadJunctionTerrainMasks:
             junction,
             manifestData
               .roadSurfacePolicy
-              .junctionTerrainMaskPadding,
+              .junctionTerrainMaskInset,
           ),
         padding: 0,
+        maxBoundaryEdge:
+          manifestData
+            .terrainRenderMaskPolicy
+            .maxBoundaryEdge,
         source:
           "Derived from complete OSM road junction " +
           junction.connectedFeatureIds.join(

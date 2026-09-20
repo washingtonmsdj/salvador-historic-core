@@ -11,8 +11,11 @@ import { createTerrainMaterials } from "./terrain-materials";
 import {
   distanceToPolygon,
   pointInPolygon,
-  triangleIntersectsPolygon,
 } from "./geometry-2d";
+import {
+  refineTriangleOutsideMasks,
+  terrainMaskIntersectsBounds,
+} from "./terrain-mask";
 import type {
   DerivedTerrainGrid,
   Point2,
@@ -835,6 +838,18 @@ export function createTerrain(
       const uvs: number[] = [];
       const indices: number[] = [];
       const cliffIndices: number[] = [];
+      const textureMeters = Math.max(
+        1,
+        config.presentation.textureScale,
+      );
+      const tileMasks = renderMasks.filter((mask) =>
+        terrainMaskIntersectsBounds(mask, {
+          minX: tx,
+          maxX: tx + tileWidth,
+          minZ: tz,
+          maxZ: tz + tileDepth,
+        }),
+      );
 
       for (let iz = 0; iz <= steps; iz++) {
         for (let ix = 0; ix <= steps; ix++) {
@@ -842,12 +857,6 @@ export function createTerrain(
           const z = tz + (iz / steps) * tileDepth;
           positions.push(x, terrainHeight(config, levels, x, z), z);
           normals.push(...terrainNormal(config, levels, x, z));
-          const textureMeters =
-            Math.max(
-              1,
-              config.presentation
-                .textureScale,
-            );
           uvs.push(
             x / textureMeters,
             z / textureMeters,
@@ -866,33 +875,34 @@ export function createTerrain(
         ] ?? 0,
       ];
 
-      const triangleMasked = (
-        triangle: readonly [
-          number,
-          number,
-          number,
-        ],
+      const appendRefinedTriangle = (
+        triangle: readonly [Point2, Point2, Point2],
+        cliff: boolean,
       ) => {
-        if (
-          renderMasks.length === 0
-        ) {
-          return false;
+        const firstVertex = positions.length / 3;
+        for (const [x, z] of triangle) {
+          positions.push(
+            x,
+            terrainHeight(config, levels, x, z),
+            z,
+          );
+          normals.push(
+            ...terrainNormal(config, levels, x, z),
+          );
+          uvs.push(
+            x / textureMeters,
+            z / textureMeters,
+          );
         }
-
-        const points = [
-          vertexPoint(triangle[0]),
-          vertexPoint(triangle[1]),
-          vertexPoint(triangle[2]),
-        ] as const;
-
-        return renderMasks.some(
-          (mask) =>
-            triangleIntersectsPolygon(
-              points,
-              mask.polygon,
-              mask.padding,
-            ),
-        );
+        const refined = [
+          firstVertex,
+          firstVertex + 1,
+          firstVertex + 2,
+        ];
+        indices.push(...refined);
+        if (cliff) {
+          cliffIndices.push(...refined);
+        }
       };
 
       for (
@@ -924,21 +934,32 @@ export function createTerrain(
             );
 
           for (const triangle of triangles) {
+            const trianglePoints = [
+              vertexPoint(triangle[0]),
+              vertexPoint(triangle[1]),
+              vertexPoint(triangle[2]),
+            ] as const;
+            const visibleTriangles =
+              tileMasks.length > 0
+                ? refineTriangleOutsideMasks(
+                    trianglePoints,
+                    tileMasks,
+                  )
+                : [trianglePoints];
+
             if (
-              triangleMasked(
-                triangle,
-              )
+              visibleTriangles.length === 1 &&
+              visibleTriangles[0] === trianglePoints
             ) {
+              indices.push(...triangle);
+              if (cliffQuad) {
+                cliffIndices.push(...triangle);
+              }
               continue;
             }
 
-            indices.push(
-              ...triangle,
-            );
-            if (cliffQuad) {
-              cliffIndices.push(
-                ...triangle,
-              );
+            for (const visible of visibleTriangles) {
+              appendRefinedTriangle(visible, cliffQuad);
             }
           }
         }

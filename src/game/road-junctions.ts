@@ -48,12 +48,13 @@ function distance(
 
 export function roadJunctionMaskPolygon(
   junction: RoadJunction,
-  padding: number,
+  inset: number,
   segments = 24,
 ): Point2[] {
-  const radius =
-    junction.radius +
-    Math.max(0, padding);
+  const radius = Math.max(
+    0.1,
+    junction.radius - Math.max(0, inset),
+  );
   const count = Math.max(
     12,
     Math.min(64, segments),
