@@ -76,6 +76,20 @@ if (
   fail("site-data vectors must be explicitly marked as fallback");
 }
 
+if (
+  runtime.terrain.active === "geospatial-derived" &&
+  runtime.derived?.terrain?.available !== true
+) {
+  fail("terrain cannot be marked geospatial-derived without a derived terrain product");
+}
+
+if (
+  runtime.vectors.active === "geospatial-derived" &&
+  runtime.derived?.vectors?.available !== true
+) {
+  fail("vectors cannot be marked geospatial-derived without a derived vector product");
+}
+
 if (runtime.sources.contours.available && runtime.sources.contours.featureCount <= 0) {
   fail("CONDER contours marked available but contain no features");
 }
