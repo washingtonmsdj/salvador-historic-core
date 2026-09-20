@@ -627,8 +627,13 @@ function deriveVectors(
       points.length >= 2
     ) {
       const width = roadWidth(tags);
+      const firstPoint = points[0];
+      const roadPoints =
+        closed && firstPoint
+          ? [...points, firstPoint]
+          : points;
       const parts = clipPolyline(
-        points,
+        roadPoints,
         bounds,
       );
 
