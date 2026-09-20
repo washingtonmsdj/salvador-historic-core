@@ -3,8 +3,13 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
 import manifestData from "../../geospatial/manifest.json";
-import { material } from "./materials";
-import { roadMaterialFor } from "./road-materials";
+import {
+  roadMaterialFor,
+  surfaceMaterialForKind,
+} from "./road-materials";
+import {
+  classifyPublicSpaceSurface,
+} from "./road-surface";
 import { terrainHeight } from "./terrain";
 import type { LinearFeature, Point2, SceneLevels, TerrainConfig } from "./types";
 
@@ -453,6 +458,7 @@ function createRoadRibbon(
   mesh.checkCollisions = true;
   mesh.metadata = {
     ...feature,
+    walkableSurface: true,
     roadSurfacePolicy: {
       sampleSpacing:
         ROAD_SAMPLE_SPACING,
@@ -673,7 +679,9 @@ function appendSubdividedTriangle(
 function createPolygonSpace(
   scene: Scene,
   space: LinearFeature,
-  squareMaterial: ReturnType<typeof material>,
+  squareMaterial: ReturnType<
+    typeof surfaceMaterialForKind
+  >,
   terrain?: TerrainConfig,
   levels?: SceneLevels,
 ) {
@@ -826,10 +834,14 @@ export function createSpaces(
   terrain?: TerrainConfig,
   levels?: SceneLevels,
 ) {
-  const squareMaterial = material(scene, "square");
-  squareMaterial.backFaceCulling = false;
-
   return spaces.flatMap((space) => {
+    const squareMaterial =
+      surfaceMaterialForKind(
+        scene,
+        classifyPublicSpaceSurface(
+          space,
+        ),
+      );
     const mesh = createPolygonSpace(
       scene,
       space,
