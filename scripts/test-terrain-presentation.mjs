@@ -113,6 +113,15 @@ if (
 }
 
 if (
+  presentation.cliffProjectionSharpness < 2 ||
+  presentation.cliffProjectionSharpness > 8
+) {
+  fail(
+    "Cliff projection sharpness must remain between 2 and 8 for stable continuous world projection.",
+  );
+}
+
+if (
   presentation.weatheringElevationMax <= 0 ||
   presentation.weatheringElevationMax > 30 ||
   presentation.weatheringConcavityRadius < 5 ||
