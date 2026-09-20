@@ -14,7 +14,14 @@ function elevationAt(
   z: number,
   terrain: TerrainConfig,
   levels: SceneLevels,
+  mode: LinearFeature["elevationMode"] = "terrain",
 ) {
+  if (mode === "upper") {
+    return levels.upperCity.elevation + SURFACE_GAP;
+  }
+  if (mode === "lower") {
+    return levels.lowerCity.elevation + SURFACE_GAP;
+  }
   return terrainHeight(terrain, levels, x, z) + SURFACE_GAP;
 }
 
@@ -72,7 +79,13 @@ function createRoadRibbon(
     const perpendicularX = -dz / length;
     const perpendicularZ = dx / length;
     const halfWidth = feature.width / 2;
-    const y = elevationAt(center[0], center[1], terrain, levels);
+    const y = elevationAt(
+      center[0],
+      center[1],
+      terrain,
+      levels,
+      feature.elevationMode,
+    );
 
     if (index > 0) {
       const before = centers[index - 1];

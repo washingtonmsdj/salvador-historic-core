@@ -26,7 +26,7 @@
       "source": "OpenStreetMap way 59224731 centroid",
       "estimated": false
     },
-    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements. Unverified generic plaza building placeholders and the provisional Ladeira da Montanha ribbon were removed rather than rendered with invented placement. Palácio Thomé de Souza horizontal blockout now follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); only vertical height remains estimated. TPTS terrain is flattened as a data-driven upper-city plateau following the IPHAN 46 x 50 m envelope; its local elevation remains estimated."
+    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements. Unverified generic plaza building placeholders and the provisional Ladeira da Montanha ribbon were removed rather than rendered with invented placement. Palácio Thomé de Souza horizontal blockout now follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); only vertical height remains estimated. TPTS terrain is flattened as a data-driven upper-city plateau following the IPHAN 46 x 50 m envelope; its local elevation remains estimated. Project Z perimeter expanded to ±300 m so the versioned verified Rua Chile OSM segment is inside the scene; procedural profiles beyond the previous ±230 m remain fallback-only."
   },
   "levels": {
     "lowerCity": {
@@ -46,10 +46,16 @@
     "bounds": {
       "minX": -150,
       "maxX": 150,
-      "minZ": -230,
-      "maxZ": 230
+      "minZ": -300,
+      "maxZ": 300
     },
     "profiles": [
+      {
+        "z": -300,
+        "toeX": -122,
+        "cliffX": -98,
+        "shoulderX": -72
+      },
       {
         "z": -230,
         "toeX": -122,
@@ -112,6 +118,12 @@
       },
       {
         "z": 230,
+        "toeX": 26,
+        "cliffX": 46,
+        "shoulderX": 66
+      },
+      {
+        "z": 300,
         "toeX": 26,
         "cliffX": 46,
         "shoulderX": 66

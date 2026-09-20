@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": null,
+  "generatedAt": "2026-09-20T14:10:00.000Z",
   "crs": "EPSG:32724",
   "units": "meters",
   "origin": {
@@ -12,14 +12,17 @@
   "perimeter": {
     "minX": -150,
     "maxX": 150,
-    "minZ": -230,
-    "maxZ": 230
+    "minZ": -300,
+    "maxZ": 300
   },
   "sources": {
     "osm": {
       "kind": "osm",
-      "available": false,
-      "featureCount": 0
+      "available": true,
+      "featureCount": 3,
+      "coverage": "seed-partial",
+      "generatedAt": "2026-09-20T14:10:00.000Z",
+      "source": "OpenStreetMap versioned seed from public/data/osm-reference.json"
     },
     "contours": {
       "kind": "conder-contours",
@@ -34,7 +37,7 @@
   },
   "vectors": {
     "preferred": "osm",
-    "active": "site-data-fallback",
+    "active": "geospatial-hybrid",
     "fallbackActive": true
   },
   "derived": {
@@ -45,15 +48,18 @@
     },
     "vectors": {
       "kind": "vectors-derived",
-      "available": false,
-      "featureCount": 0
+      "available": true,
+      "featureCount": 3,
+      "coverage": "seed-partial",
+      "generatedAt": "2026-09-20T14:10:00.000Z",
+      "source": "Versioned OSM seed from public/data/osm-reference.json"
     }
   },
   "geographicBounds": {
-    "south": -12.97617053659062,
-    "west": -38.51473870960592,
-    "north": -12.972005856571682,
-    "east": -38.511980712483926
+    "south": -12.976803505072183,
+    "west": -38.5147480015204,
+    "north": -12.971372888117422,
+    "east": -38.511971367113
   },
   "mapReference": {
     "provider": "OpenStreetMap Standard",

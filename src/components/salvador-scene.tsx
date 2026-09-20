@@ -76,18 +76,48 @@ const data = siteData as unknown as SalvadorSiteData;
 const geo = geospatialBase as GeospatialBaseRuntime;
 const derivedVectors =
   derivedVectorsData as unknown as DerivedSiteVectors;
-const derivedVectorsActive =
-  geo.vectors.active === "geospatial-derived" &&
-  geo.vectors.fallbackActive === false &&
+function normalizeFeatureName(name: string) {
+  return name.trim().toLocaleLowerCase("pt-BR");
+}
+
+function mergeLinearFeatures(
+  fallback: LinearFeature[],
+  derived: LinearFeature[],
+) {
+  const derivedNames = new Set(
+    derived.map((feature) => normalizeFeatureName(feature.name)),
+  );
+  return [
+    ...fallback.filter(
+      (feature) =>
+        !derivedNames.has(normalizeFeatureName(feature.name)),
+    ),
+    ...derived,
+  ];
+}
+
+const derivedVectorsUsable =
+  (geo.vectors.active === "geospatial-derived" ||
+    geo.vectors.active === "geospatial-hybrid") &&
   derivedVectors.available;
-const runtimeRoads = derivedVectorsActive
-  ? derivedVectors.roads
-  : data.roads;
-const runtimeSpaces = derivedVectorsActive
-  ? derivedVectors.spaces
-  : data.spaces;
+const runtimeRoads =
+  geo.vectors.active === "geospatial-derived" &&
+  derivedVectors.available
+    ? derivedVectors.roads
+    : geo.vectors.active === "geospatial-hybrid" &&
+        derivedVectors.available
+      ? [...data.roads, ...derivedVectors.roads]
+      : data.roads;
+const runtimeSpaces =
+  geo.vectors.active === "geospatial-derived" &&
+  derivedVectors.available
+    ? derivedVectors.spaces
+    : geo.vectors.active === "geospatial-hybrid" &&
+        derivedVectors.available
+      ? mergeLinearFeatures(data.spaces, derivedVectors.spaces)
+      : data.spaces;
 const derivedBuildingsEligible =
-  derivedVectorsActive &&
+  derivedVectorsUsable &&
   geo.terrain.active === "geospatial-derived" &&
   geo.terrain.fallbackActive === false;
 const geospatialFallback =

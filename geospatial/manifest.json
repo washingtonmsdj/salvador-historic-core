@@ -19,17 +19,18 @@
   "perimeter": {
     "minX": -150,
     "maxX": 150,
-    "minZ": -230,
-    "maxZ": 230
+    "minZ": -300,
+    "maxZ": 300
   },
   "sources": {
     "osm": {
       "kind": "vector",
       "authority": "OpenStreetMap contributors",
-      "status": "import-required",
+      "status": "seed-partial",
       "command": "npm run geospatial:import:osm",
       "rawOutput": "geospatial/raw/osm/overpass.json",
-      "normalizedOutput": "geospatial/normalized/osm/site.json"
+      "normalizedOutput": "geospatial/normalized/osm/site.json",
+      "notes": "A versioned OSM seed is active from public/data/osm-reference.json while full bbox import remains pending."
     },
     "conderContours": {
       "kind": "elevation-contours",
