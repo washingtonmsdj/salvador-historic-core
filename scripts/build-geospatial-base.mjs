@@ -16,6 +16,8 @@ const normalizedContoursPath = resolve(
   root,
   manifest.sources.conderContours.normalizedOutput,
 );
+const derivedTerrainPath = resolve(root, manifest.pipeline.derivedTerrain);
+const derivedVectorsPath = resolve(root, manifest.pipeline.derivedVectors);
 const outputPath = resolve(root, manifest.pipeline.runtimeManifest);
 
 async function summarize(path, kind) {
@@ -39,9 +41,11 @@ async function summarize(path, kind) {
   };
 }
 
-const [osm, contours] = await Promise.all([
+const [osm, contours, terrainDerived, vectorsDerived] = await Promise.all([
   summarize(normalizedOsmPath, "osm"),
   summarize(normalizedContoursPath, "conder-contours"),
+  summarize(derivedTerrainPath, "terrain-derived"),
+  summarize(derivedVectorsPath, "vectors-derived"),
 ]);
 
 const runtime = {
@@ -60,15 +64,23 @@ const runtime = {
     osm,
     contours,
   },
+  derived: {
+    terrain: terrainDerived,
+    vectors: vectorsDerived,
+  },
   terrain: {
     preferred: manifest.runtime.preferredTerrainSource,
-    active: contours.available ? "conder-contours" : "procedural-fallback",
-    fallbackActive: !contours.available,
+    active: terrainDerived.available
+      ? "geospatial-derived"
+      : "procedural-fallback",
+    fallbackActive: !terrainDerived.available,
   },
   vectors: {
     preferred: manifest.runtime.preferredVectorSource,
-    active: osm.available ? "osm" : "site-data-fallback",
-    fallbackActive: !osm.available,
+    active: vectorsDerived.available
+      ? "geospatial-derived"
+      : "site-data-fallback",
+    fallbackActive: !vectorsDerived.available,
   },
 };
 
