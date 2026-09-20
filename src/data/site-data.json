@@ -4,7 +4,7 @@
     "units": "meters",
     "coordinateSystem": { "x": "east/west; positive east", "y": "height; positive up", "z": "north/south; positive north" },
     "origin": { "id": "elevador-lacerda-osm-centroid", "name": "Elevador Lacerda", "latitude": -12.9740882, "longitude": -38.5133597, "local": [0, 0, 0], "source": "OpenStreetMap way 59224731 centroid", "estimated": false },
-    "notes": "Positions are local metres. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements."
+    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements."
   },
   "levels": {
     "lowerCity": { "elevation": 0, "source": "Local datum chosen at lower elevator access", "estimated": true },
