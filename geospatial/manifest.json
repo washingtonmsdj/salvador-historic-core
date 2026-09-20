@@ -167,7 +167,8 @@
     "maxSubdivisions": 32,
     "surfaceGap": 0.045,
     "textureRepeatMeters": 4,
-    "notes": "Walkable plazas and pedestrian polygons are tessellated before terrain draping so collision triangles do not bridge across terrain relief. This is a rendering/gameplay mesh policy; source polygon boundaries remain unchanged."
+    "notes": "Walkable hard-surface polygons are tessellated before terrain draping so collision triangles do not bridge across terrain relief. Generic leisure=park polygons without an explicit hard surface do not receive an invented paving overlay; the official terrain remains visible and walkable. Source polygon boundaries remain unchanged.",
+    "requireExplicitSurfaceForParks": true
   },
   "terrainQualityPolicy": {
     "maxPersistentGridSpacing": 2.5,
