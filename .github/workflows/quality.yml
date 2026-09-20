@@ -45,5 +45,8 @@ jobs:
       - name: Validate road surfaces
         run: bun run road:test
 
+      - name: Validate road junctions
+        run: bun run road:junction-test
+
       - name: Build
         run: bun run build
