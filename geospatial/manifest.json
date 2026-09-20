@@ -147,8 +147,12 @@
     "maxMiterScale": 2.2,
     "maxCrossSlope": 0.06,
     "maxGradeSmoothingDeviation": 0.12,
-    "notes": "Gameplay road mesh follows OSM centerlines and the active terrain. Longitudinal smoothing is limited to 0.12 m around sampled terrain height. Crossfall is capped at 6% only when the natural edge-to-edge relief is <= 0.75 m; steeper unsupported sections follow both terrain edges instead of inventing a large cut/fill. These are rendering/gameplay constraints, not surveyed road elevations.",
-    "maxCrossSlopeCorrectionRelief": 0.75
+    "notes": "Gameplay road mesh follows OSM centerlines and the active terrain. Longitudinal smoothing is limited to 0.12 m around sampled terrain height. Crossfall is capped at 6% only when the natural edge-to-edge relief is <= 0.75 m; steeper unsupported sections follow both terrain edges instead of inventing a large cut/fill. Endpoints from 2+ compatible OSM ways within 0.35 m receive a small terrain-draped junction patch to prevent collision seams; layer/bridge/tunnel separation is preserved. These are rendering/gameplay constraints, not surveyed road elevations.",
+    "maxCrossSlopeCorrectionRelief": 0.75,
+    "junctionSnapDistance": 0.35,
+    "junctionOverlap": 0.35,
+    "junctionSurfaceOffset": 0.008,
+    "junctionMaxSegments": 28
   },
   "publicSpaceSurfacePolicy": {
     "maxTriangleEdge": 4,
