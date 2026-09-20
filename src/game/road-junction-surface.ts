@@ -27,6 +27,7 @@ export interface RoadJunctionSurfacePolicy {
   surfaceGap: number;
   maxLongitudinalSlope: number;
   maxProfileIterations: number;
+  profileFallbackOsmIds: readonly number[];
   junctionSurfaceOffset: number;
   junctionMaxSegments: number;
   junctionMaxSlope: number;
@@ -120,6 +121,8 @@ function endpointObservations(
               policy.maxLongitudinalSlope,
             maxProfileIterations:
               policy.maxProfileIterations,
+            fallbackOsmIds:
+              policy.profileFallbackOsmIds,
           },
         });
       const profileIndex =
