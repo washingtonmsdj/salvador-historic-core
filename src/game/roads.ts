@@ -211,6 +211,13 @@ function smoothCenterHeights(
   );
 
   return raw.map((height, index) => {
+    if (
+      index === 0 ||
+      index === raw.length - 1
+    ) {
+      return height;
+    }
+
     const previous =
       raw[Math.max(0, index - 1)] ??
       height;
