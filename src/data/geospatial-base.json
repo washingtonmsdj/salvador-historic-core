@@ -36,5 +36,17 @@
     "preferred": "osm",
     "active": "site-data-fallback",
     "fallbackActive": true
+  },
+  "derived": {
+    "terrain": {
+      "kind": "terrain-derived",
+      "available": false,
+      "featureCount": 0
+    },
+    "vectors": {
+      "kind": "vectors-derived",
+      "available": false,
+      "featureCount": 0
+    }
   }
 }
