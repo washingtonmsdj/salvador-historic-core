@@ -106,6 +106,14 @@ if (!publicSpaceSurfacePolicy) {
       "public-space textureRepeatMeters must be between 1 and 20 metres",
     );
   }
+
+  if (
+    publicSpaceSurfacePolicy.requireExplicitSurfaceForParks !== true
+  ) {
+    fail(
+      "public-space parks must require an explicit hard surface before receiving a paving overlay",
+    );
+  }
 }
 
 const roadSurfacePolicy =
