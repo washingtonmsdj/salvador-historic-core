@@ -1,0 +1,291 @@
+[
+  {
+    "version": "0.6",
+    "generator": "openstreetmap-cgimap 2.1.0 (2942764 spike-08.openstreetmap.org)",
+    "copyright": "OpenStreetMap and contributors",
+    "attribution": "http://www.openstreetmap.org/copyright",
+    "license": "http://opendatacommons.org/licenses/odbl/1-0/",
+    "elements": [
+      {
+        "type": "node",
+        "id": 34592723,
+        "lat": -12.9741048,
+        "lon": -38.5133283,
+        "timestamp": "2024-10-14T00:13:49Z",
+        "version": 13,
+        "changeset": 157855352,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 734611676,
+        "lat": -12.9741368,
+        "lon": -38.5133628,
+        "timestamp": "2024-10-14T00:13:49Z",
+        "version": 7,
+        "changeset": 157855352,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 734611838,
+        "lat": -12.9740876,
+        "lon": -38.5133097,
+        "timestamp": "2024-10-14T00:13:49Z",
+        "version": 8,
+        "changeset": 157855352,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 736745764,
+        "lat": -12.9740528,
+        "lon": -38.5133708,
+        "timestamp": "2024-10-14T00:13:49Z",
+        "version": 10,
+        "changeset": 157855352,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 1703384783,
+        "lat": -12.9740396,
+        "lon": -38.5133565,
+        "timestamp": "2024-10-14T00:13:49Z",
+        "version": 8,
+        "changeset": 157855352,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 2892588118,
+        "lat": -12.9740888,
+        "lon": -38.5134096,
+        "timestamp": "2024-10-14T00:13:49Z",
+        "version": 8,
+        "changeset": 157855352,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 11734895379,
+        "lat": -12.9741207,
+        "lon": -38.5133454,
+        "timestamp": "2024-10-14T00:13:49Z",
+        "version": 2,
+        "changeset": 157855352,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "way",
+        "id": 59224731,
+        "timestamp": "2024-03-22T15:32:49Z",
+        "version": 23,
+        "changeset": 149019057,
+        "user": "JAILTON OLIVEIRA CUNHA",
+        "uid": 17479730,
+        "nodes": [
+          734611676,
+          11734895379,
+          34592723,
+          734611838,
+          1703384783,
+          736745764,
+          2892588118,
+          734611676
+        ],
+        "tags": {
+          "addr:street": "Praça Visconde de Cayru",
+          "building": "yes",
+          "ele": "72",
+          "elevator": "yes",
+          "fee": "no",
+          "height": "72",
+          "historic": "building",
+          "layer": "2",
+          "name": "Elevador Lacerda",
+          "opening_hours": "Mo-Su 07:00-19:30",
+          "postal_code": "40015-170",
+          "start_date": "1873-12-08",
+          "tourism": "attraction",
+          "wikidata": "Q1328348",
+          "wikipedia": "pt:Elevador Lacerda"
+        }
+      }
+    ]
+  },
+  {
+    "version": "0.6",
+    "generator": "openstreetmap-cgimap 2.1.0 (2942763 spike-08.openstreetmap.org)",
+    "copyright": "OpenStreetMap and contributors",
+    "attribution": "http://www.openstreetmap.org/copyright",
+    "license": "http://opendatacommons.org/licenses/odbl/1-0/",
+    "elements": [
+      {
+        "type": "node",
+        "id": 4047911490,
+        "lat": -12.9747002,
+        "lon": -38.5130692,
+        "timestamp": "2024-09-21T14:07:36Z",
+        "version": 4,
+        "changeset": 156913671,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 4047911491,
+        "lat": -12.9749424,
+        "lon": -38.5127855,
+        "timestamp": "2024-09-21T14:07:36Z",
+        "version": 3,
+        "changeset": 156913671,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 11734895386,
+        "lat": -12.9745411,
+        "lon": -38.5129247,
+        "timestamp": "2024-09-21T14:07:36Z",
+        "version": 2,
+        "changeset": 156913671,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 11734895387,
+        "lat": -12.974433,
+        "lon": -38.5128407,
+        "timestamp": "2024-09-21T14:07:36Z",
+        "version": 2,
+        "changeset": 156913671,
+        "user": "Sturm br",
+        "uid": 604619
+      },
+      {
+        "type": "node",
+        "id": 11734895389,
+        "lat": -12.9744788,
+        "lon": -38.5123875,
+        "timestamp": "2024-03-15T18:27:14Z",
+        "version": 1,
+        "changeset": 148702454,
+        "user": "JAILTON OLIVEIRA CUNHA",
+        "uid": 17479730
+      },
+      {
+        "type": "node",
+        "id": 11734895390,
+        "lat": -12.9742374,
+        "lon": -38.5126777,
+        "timestamp": "2024-03-15T18:27:14Z",
+        "version": 1,
+        "changeset": 148702454,
+        "user": "JAILTON OLIVEIRA CUNHA",
+        "uid": 17479730
+      },
+      {
+        "type": "way",
+        "id": 1263035782,
+        "timestamp": "2024-03-15T18:27:14Z",
+        "version": 1,
+        "changeset": 148702454,
+        "user": "JAILTON OLIVEIRA CUNHA",
+        "uid": 17479730,
+        "nodes": [
+          11734895386,
+          4047911490,
+          4047911491,
+          11734895389,
+          11734895390,
+          11734895387,
+          11734895386
+        ],
+        "tags": {
+          "leisure": "park",
+          "name": "Praça Tomé de Souza"
+        }
+      }
+    ]
+  },
+  {
+    "version": "0.6",
+    "generator": "openstreetmap-cgimap 2.1.0 (2942776 spike-08.openstreetmap.org)",
+    "copyright": "OpenStreetMap and contributors",
+    "attribution": "http://www.openstreetmap.org/copyright",
+    "license": "http://opendatacommons.org/licenses/odbl/1-0/",
+    "elements": [
+      {
+        "type": "node",
+        "id": 344371778,
+        "lat": -12.9767691,
+        "lon": -38.5143426,
+        "timestamp": "2024-10-14T00:13:49Z",
+        "version": 16,
+        "changeset": 157855352,
+        "user": "Sturm br",
+        "uid": 604619,
+        "tags": {
+          "highway": "traffic_signals",
+          "traffic_signals:direction": "both"
+        }
+      },
+      {
+        "type": "node",
+        "id": 3988415046,
+        "lat": -12.9763917,
+        "lon": -38.5140026,
+        "timestamp": "2020-03-06T12:01:11Z",
+        "version": 4,
+        "changeset": 81866583,
+        "user": "Ohiopyle",
+        "uid": 10409712,
+        "tags": {
+          "highway": "traffic_signals",
+          "traffic_signals": "signal",
+          "traffic_signals:direction": "forward"
+        }
+      },
+      {
+        "type": "way",
+        "id": 258560240,
+        "timestamp": "2021-08-24T20:16:13Z",
+        "version": 13,
+        "changeset": 110192269,
+        "user": "Raphaelkaart",
+        "uid": 12468685,
+        "nodes": [
+          344371778,
+          3988415046
+        ],
+        "tags": {
+          "bicycle:conditional": "yes @ (su 07:00-16:00)",
+          "cycleway:right": "lane",
+          "description": "A rua Chile é tida como a primeira do país. A via foi fundada em 1549 pelo governador Thomé de Souza como Rua Direita dos Mercadores. O atual nome é uma homenagem a quatro embaixadores chilenos que morreram de peste bubônica no Rio, em 1902.",
+          "highway": "secondary",
+          "lanes": "2",
+          "maxspeed": "30",
+          "name": "Rua Chile",
+          "oneway": "no",
+          "oneway:bicycle": "no",
+          "postal_code": "40020-000",
+          "source": "Companhia de Desenvolvimento Urbano dos Estado da Bahia;Livro: Histórias de Salvador nos Nomes das Suas Ruas",
+          "start_date": "1549",
+          "surface": "asphalt",
+          "wikidata": "Q25442475",
+          "wikipedia": "pt:Rua Chile (Salvador)"
+        }
+      }
+    ]
+  }
+]
