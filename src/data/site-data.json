@@ -169,10 +169,11 @@
             -0.07
           ]
         ],
-        "elevation": 0.15,
-        "feather": 1.5,
-        "source": "OpenStreetMap way 59224731 footprint projected to local metres; feather is presentation clearance only",
-        "estimated": true
+        "elevation": -0.15,
+        "feather": 2.5,
+        "source": "OpenStreetMap way 59224731 footprint projected to local metres; 2.5 m clearance equals one terrain sample cell and feather is presentation-only",
+        "estimated": true,
+        "clearance": 2.5
       }
     ]
   },
