@@ -131,6 +131,66 @@ for (const key of ["minX", "maxX", "minZ", "maxZ"]) {
   }
 }
 
+const expectedCorners = {
+  southWest: [bounds.minX, bounds.minZ],
+  southEast: [bounds.maxX, bounds.minZ],
+  northEast: [bounds.maxX, bounds.maxZ],
+  northWest: [bounds.minX, bounds.maxZ],
+};
+
+for (const [name, [x, z]] of Object.entries(expectedCorners)) {
+  const corner = runtime.geographicCorners?.[name];
+  if (!corner) {
+    fail(`runtime geographicCorners.${name} is missing`);
+    continue;
+  }
+
+  const values = [
+    corner.easting,
+    corner.northing,
+    corner.latitude,
+    corner.longitude,
+  ];
+  if (!values.every(Number.isFinite)) {
+    fail(`runtime geographicCorners.${name} contains non-finite coordinates`);
+    continue;
+  }
+
+  if (
+    corner.local?.[0] !== x ||
+    corner.local?.[1] !== z
+  ) {
+    fail(`runtime geographicCorners.${name} local coordinates differ from perimeter`);
+  }
+
+  const expectedEasting =
+    origin.projected.easting + x;
+  const expectedNorthing =
+    origin.projected.northing + z;
+  if (
+    Math.hypot(
+      corner.easting - expectedEasting,
+      corner.northing - expectedNorthing,
+    ) > 0.001
+  ) {
+    fail(`runtime geographicCorners.${name} projected coordinates are inconsistent`);
+  }
+
+  const [expectedLatitude, expectedLongitude] =
+    utm24SToLatLon(
+      expectedEasting,
+      expectedNorthing,
+    );
+  if (
+    Math.hypot(
+      corner.latitude - expectedLatitude,
+      corner.longitude - expectedLongitude,
+    ) > 0.0000002
+  ) {
+    fail(`runtime geographicCorners.${name} WGS84 transform is inconsistent`);
+  }
+}
+
 if (
   runtime.terrain.active === "procedural-fallback" &&
   runtime.terrain.fallbackActive !== true
