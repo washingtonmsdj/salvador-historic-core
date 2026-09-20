@@ -483,6 +483,7 @@ export function SalvadorScene() {
           { ShadowGenerator },
           { Vector3 },
           { Color3, Color4 },
+          { ImageProcessingConfiguration },
           {
             createTerrain,
             setRuntimeDerivedTerrain,
@@ -513,6 +514,7 @@ export function SalvadorScene() {
           import("@babylonjs/core/Lights/Shadows/shadowGenerator"),
           import("@babylonjs/core/Maths/math.vector"),
           import("@babylonjs/core/Maths/math.color"),
+          import("@babylonjs/core/Materials/imageProcessingConfiguration"),
           import("../game/terrain"),
           import("../game/osm-terrain-reference"),
           import("../game/roads"),
@@ -542,15 +544,23 @@ export function SalvadorScene() {
         );
 
         scene = new Scene(engine);
-        scene.clearColor = new Color4(0.16, 0.19, 0.2, 1);
+        scene.clearColor = new Color4(0.11, 0.14, 0.16, 1);
+        scene.imageProcessingConfiguration.toneMappingEnabled =
+          true;
+        scene.imageProcessingConfiguration.toneMappingType =
+          ImageProcessingConfiguration.TONEMAPPING_ACES;
+        scene.imageProcessingConfiguration.exposure =
+          1.08;
+        scene.imageProcessingConfiguration.contrast =
+          1.12;
 
         const ambient = new HemisphericLight(
           "ambient-light",
           new Vector3(0.2, 1, 0.1),
           scene,
         );
-        ambient.intensity = 1.12;
-        ambient.groundColor = new Color3(0.22, 0.2, 0.17);
+        ambient.intensity = 0.78;
+        ambient.groundColor = new Color3(0.16, 0.14, 0.12);
 
         const sun = new DirectionalLight(
           "sun-light",
@@ -558,7 +568,7 @@ export function SalvadorScene() {
           scene,
         );
         sun.position = new Vector3(120, 180, -80);
-        sun.intensity = 0.74;
+        sun.intensity = 1.18;
 
         clearRuntimeTerrain = () =>
           setRuntimeDerivedTerrain(null);
