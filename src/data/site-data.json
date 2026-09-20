@@ -42,7 +42,7 @@
   },
   "terrain": {
     "tileSize": 50,
-    "subdivisionsPerTile": 20,
+    "subdivisionsPerTile": 40,
     "bounds": {
       "minX": -150,
       "maxX": 150,
@@ -144,17 +144,17 @@
       "textureScale": 18,
       "rockNormalYMax": 0.84,
       "contourInterval": 10,
-      "cliffOverlayOffset": 0.06,
+      "cliffOverlayOffset": 0.04,
       "textureResolution": 512,
       "detailTextureResolution": 512,
-      "detailTextureTiling": 12,
-      "macroVariationScale": 96,
-      "macroVariationStrength": 0.14,
-      "elevationTintStrength": 0.08,
-      "concavityTintStrength": 0.1,
-      "rockBlendNormalYBand": 0.1
+      "detailTextureTiling": 18,
+      "macroVariationScale": 72,
+      "macroVariationStrength": 0.17,
+      "elevationTintStrength": 0.1,
+      "concavityTintStrength": 0.14,
+      "rockBlendNormalYBand": 0.12
     },
-    "source": "Procedural fallback profiles retained only for development recovery. Normal runtime terrain is the versioned geospatial-derived grid from CONDER Cartografia Sistemática 1992 REL_Curva_Nivel_L; these profiles are not surveyed contours. Runtime presentation uses a large-scale PBR terrain tile with independent detail texturing; this changes appearance only, not GIS elevations.",
+    "source": "Procedural fallback profiles retained only for development recovery. Normal runtime terrain is the versioned geospatial-derived grid from CONDER Cartografia Sistemática 1992 REL_Curva_Nivel_L. Source elevations remain on the 2.5 m persistent grid; runtime presentation interpolates that authoritative surface at 1.25 m render spacing for smoother third-person geometry and normals. PBR macro/detail texturing changes appearance only, not GIS elevations.",
     "estimated": true,
     "cutouts": [
       {
