@@ -60,6 +60,34 @@ if (runtime.crs !== "EPSG:32724") {
   fail(`runtime CRS must be EPSG:32724, got ${runtime.crs}`);
 }
 
+const mapReference = runtime.mapReference;
+if (!mapReference) {
+  fail("runtime mapReference configuration is required");
+} else {
+  if (
+    typeof mapReference.tileTemplate !== "string" ||
+    !mapReference.tileTemplate.startsWith("https://")
+  ) {
+    fail("mapReference.tileTemplate must use HTTPS");
+  }
+
+  if (
+    !Number.isInteger(mapReference.zoom) ||
+    mapReference.zoom < 0 ||
+    mapReference.zoom > 22
+  ) {
+    fail("mapReference.zoom must be an integer between 0 and 22");
+  }
+
+  if (
+    !Number.isInteger(mapReference.maxTiles) ||
+    mapReference.maxTiles < 1 ||
+    mapReference.maxTiles > 32
+  ) {
+    fail("mapReference.maxTiles must be between 1 and 32");
+  }
+}
+
 const [projectedEasting, projectedNorthing] = latLonToUtm24S(
   origin.latitude,
   origin.longitude,
