@@ -225,3 +225,46 @@ sobrepuser. Edifícios sem altura ou sobre encosta excessiva permanecem apenas c
 
 Essa promoção é temporária da sessão. Ela não grava novas dimensões em `site-data.json` nem
 promove dados live para `geospatial/derived/`.
+
+
+## Contrato de fidelidade viária
+
+O Preview não deve desenhar manualmente a via da encosta para “parecer correta”. A **Ladeira da
+Montanha** é tratada como feature geoespacial e só pode entrar pela geometria OSM.
+
+Vias-chave auditadas no recorte:
+
+- Rua Chile;
+- Ladeira da Montanha;
+- Rua da Conceição da Praia;
+- Avenida Lafayete Coutinho.
+
+O carregamento vetorial segue esta ordem:
+
+1. Overpass principal;
+2. Overpass alternativo;
+3. API direta `/api/0.6/map?bbox=...` do OpenStreetMap;
+4. seed versionada somente se todas as fontes live falharem.
+
+A API direta é usada apenas para o bbox pequeno do projeto. Os nós de cada `way` são reconstruídos,
+projetados para UTM 24S e convertidos para X/Z locais. Portanto a posição da rua vem do mapa, não de
+coordenadas inventadas no renderer.
+
+Quando uma via não possui `width`, uma largura continua sendo explicitamente estimada. Se houver
+`lanes`, o Preview usa `lanes × 3 m` como estimativa identificada; a geometria do eixo permanece
+a geometria OSM real.
+
+Nas encostas, cada borda da faixa viária amostra separadamente o terreno ativo para evitar que a
+rua atravesse a ribanceira ou flutue por usar apenas a cota do eixo central.
+
+## Coordenadas do perímetro
+
+Os quatro cantos do terreno são armazenados simultaneamente como:
+
+- X/Z locais em metros;
+- UTM 24S (EPSG:32724);
+- latitude/longitude WGS84.
+
+O runtime também possui transformação inversa X/Z → UTM → WGS84, portanto qualquer ponto da cena
+pode receber coordenadas geográficas sob demanda. No modo Debug, os quatro cantos exibem essas
+coordenadas para conferência visual.
