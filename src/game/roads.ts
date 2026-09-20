@@ -10,6 +10,10 @@ import {
 import {
   classifyPublicSpaceSurface,
 } from "./road-surface";
+import {
+  deriveRoadJunctions,
+  type RoadJunction,
+} from "./road-junctions";
 import { terrainHeight } from "./terrain";
 import type { LinearFeature, Point2, SceneLevels, TerrainConfig } from "./types";
 
@@ -30,6 +34,14 @@ const MAX_GRADE_SMOOTHING_DEVIATION =
   roadSurfacePolicy.maxGradeSmoothingDeviation;
 const MAX_CROSS_SLOPE_CORRECTION_RELIEF =
   roadSurfacePolicy.maxCrossSlopeCorrectionRelief;
+const JUNCTION_SNAP_DISTANCE =
+  roadSurfacePolicy.junctionSnapDistance;
+const JUNCTION_OVERLAP =
+  roadSurfacePolicy.junctionOverlap;
+const JUNCTION_SURFACE_OFFSET =
+  roadSurfacePolicy.junctionSurfaceOffset;
+const JUNCTION_MAX_SEGMENTS =
+  roadSurfacePolicy.junctionMaxSegments;
 const publicSpaceSurfacePolicy =
   manifestData.publicSpaceSurfacePolicy;
 const SPACE_MAX_TRIANGLE_EDGE =
@@ -473,6 +485,140 @@ function createRoadRibbon(
   return mesh;
 }
 
+function createRoadJunctionMesh(
+  scene: Scene,
+  junction: RoadJunction,
+  terrain: TerrainConfig,
+  levels: SceneLevels,
+) {
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+  const [centerX, centerZ] =
+    junction.center;
+  const radius = junction.radius;
+  const segments = Math.max(
+    12,
+    Math.min(
+      JUNCTION_MAX_SEGMENTS,
+      Math.ceil(
+        (Math.PI * 2 * radius) /
+          ROAD_SAMPLE_SPACING,
+      ),
+    ),
+  );
+
+  const centerY =
+    terrainHeight(
+      terrain,
+      levels,
+      centerX,
+      centerZ,
+    ) +
+    SURFACE_GAP +
+    JUNCTION_SURFACE_OFFSET;
+
+  positions.push(
+    centerX,
+    centerY,
+    centerZ,
+  );
+  uvs.push(
+    centerX /
+      TEXTURE_REPEAT_METERS,
+    centerZ /
+      TEXTURE_REPEAT_METERS,
+  );
+
+  for (
+    let segment = 0;
+    segment < segments;
+    segment++
+  ) {
+    const angle =
+      (segment / segments) *
+      Math.PI *
+      2;
+    const x =
+      centerX +
+      Math.cos(angle) * radius;
+    const z =
+      centerZ +
+      Math.sin(angle) * radius;
+    const y =
+      terrainHeight(
+        terrain,
+        levels,
+        x,
+        z,
+      ) +
+      SURFACE_GAP +
+      JUNCTION_SURFACE_OFFSET;
+
+    positions.push(x, y, z);
+    uvs.push(
+      x /
+        TEXTURE_REPEAT_METERS,
+      z /
+        TEXTURE_REPEAT_METERS,
+    );
+  }
+
+  for (
+    let segment = 0;
+    segment < segments;
+    segment++
+  ) {
+    const current =
+      segment + 1;
+    const next =
+      ((segment + 1) %
+        segments) +
+      1;
+    indices.push(
+      0,
+      next,
+      current,
+    );
+  }
+
+  VertexData.ComputeNormals(
+    positions,
+    indices,
+    normals,
+  );
+
+  const mesh = new Mesh(
+    junction.id,
+    scene,
+  );
+  const vertexData =
+    new VertexData();
+  vertexData.positions = positions;
+  vertexData.indices = indices;
+  vertexData.normals = normals;
+  vertexData.uvs = uvs;
+  vertexData.applyToMesh(mesh);
+
+  mesh.material = roadMaterialFor(
+    scene,
+    junction.feature,
+  );
+  mesh.receiveShadows = true;
+  mesh.checkCollisions = true;
+  mesh.metadata = {
+    category: "road-junction",
+    walkableSurface: true,
+    connectedFeatureIds:
+      junction.connectedFeatureIds,
+    center: junction.center,
+    radius,
+  };
+
+  return mesh;
+}
+
 function orientTrianglesUp(points: Point2[], indices: number[]) {
   if (indices.length < 3) return indices;
 
@@ -817,15 +963,41 @@ export function createRoads(
   terrain: TerrainConfig,
   levels: SceneLevels,
 ) {
-  return roads.flatMap((road) => {
-    const mesh = createRoadRibbon(
-      scene,
-      road,
-      terrain,
-      levels,
+  const ribbons = roads.flatMap(
+    (road) => {
+      const mesh =
+        createRoadRibbon(
+          scene,
+          road,
+          terrain,
+          levels,
+        );
+      return mesh ? [mesh] : [];
+    },
+  );
+
+  const junctions =
+    deriveRoadJunctions(
+      roads,
+      {
+        snapDistance:
+          JUNCTION_SNAP_DISTANCE,
+        overlap:
+          JUNCTION_OVERLAP,
+      },
+    ).map((junction) =>
+      createRoadJunctionMesh(
+        scene,
+        junction,
+        terrain,
+        levels,
+      ),
     );
-    return mesh ? [mesh] : [];
-  });
+
+  return [
+    ...ribbons,
+    ...junctions,
+  ];
 }
 
 export function createSpaces(
