@@ -37,7 +37,7 @@ jobs:
         run: bun run typecheck
 
       - name: Lint
-        run: bun run lint
+        run: bun run lint:ci
 
       - name: Validate geospatial contracts
         run: bun run geospatial:validate
