@@ -122,6 +122,41 @@ if (
 }
 
 if (
+  presentation.toneMappingExposure < 0.85 ||
+  presentation.toneMappingExposure > 1.3 ||
+  presentation.toneMappingContrast < 1 ||
+  presentation.toneMappingContrast > 1.3
+) {
+  fail(
+    "Terrain tone-mapping controls are outside the conservative cinematic range.",
+  );
+}
+
+if (
+  presentation.atmosphereFogStart < 120 ||
+  presentation.atmosphereFogStart > 320 ||
+  presentation.atmosphereFogEnd < 500 ||
+  presentation.atmosphereFogEnd > 900 ||
+  presentation.atmosphereFogEnd -
+      presentation.atmosphereFogStart <
+    250 ||
+  !Array.isArray(
+    presentation.atmosphereFogColor,
+  ) ||
+  presentation.atmosphereFogColor.length !== 3 ||
+  presentation.atmosphereFogColor.some(
+    (channel) =>
+      !Number.isFinite(channel) ||
+      channel < 0 ||
+      channel > 1,
+  )
+) {
+  fail(
+    "Terrain atmospheric perspective must remain subtle, distant and use a valid RGB fog color.",
+  );
+}
+
+if (
   presentation.weatheringElevationMax <= 0 ||
   presentation.weatheringElevationMax > 30 ||
   presentation.weatheringConcavityRadius < 5 ||
