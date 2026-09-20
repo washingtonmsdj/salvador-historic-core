@@ -68,6 +68,33 @@ function distanceToPolygon(point: Point2, polygon: Point2[]) {
   return distance;
 }
 
+function applyTerrainPlateaus(
+  config: TerrainConfig,
+  x: number,
+  z: number,
+  baseHeight: number,
+) {
+  let height = baseHeight;
+  const point: Point2 = [x, z];
+
+  for (const plateau of config.plateaus ?? []) {
+    if (plateau.polygon.length < 3) continue;
+
+    if (pointInPolygon(point, plateau.polygon)) {
+      height = plateau.elevation;
+      continue;
+    }
+
+    const distance = distanceToPolygon(point, plateau.polygon);
+    if (plateau.feather <= 0 || distance >= plateau.feather) continue;
+
+    const blend = smoothstep(distance / plateau.feather);
+    height = plateau.elevation + (height - plateau.elevation) * blend;
+  }
+
+  return height;
+}
+
 function applyTerrainCutouts(
   config: TerrainConfig,
   x: number,
@@ -192,7 +219,8 @@ export function terrainHeight(
     }
   }
 
-  return applyTerrainCutouts(config, x, z, height);
+  const plateauHeight = applyTerrainPlateaus(config, x, z, height);
+  return applyTerrainCutouts(config, x, z, plateauHeight);
 }
 
 function terrainNormal(
