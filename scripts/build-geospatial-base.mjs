@@ -8,8 +8,14 @@ import {
 
 const { manifest, origin, bounds } = await loadGeospatialContext();
 
-const rawOsmPath = resolve(root, manifest.sources.osm.output);
-const rawContoursPath = resolve(root, manifest.sources.conderContours.output);
+const normalizedOsmPath = resolve(
+  root,
+  manifest.sources.osm.normalizedOutput,
+);
+const normalizedContoursPath = resolve(
+  root,
+  manifest.sources.conderContours.normalizedOutput,
+);
 const outputPath = resolve(root, manifest.pipeline.runtimeManifest);
 
 async function summarize(path, kind) {
@@ -34,8 +40,8 @@ async function summarize(path, kind) {
 }
 
 const [osm, contours] = await Promise.all([
-  summarize(rawOsmPath, "osm"),
-  summarize(rawContoursPath, "conder-contours"),
+  summarize(normalizedOsmPath, "osm"),
+  summarize(normalizedContoursPath, "conder-contours"),
 ]);
 
 const runtime = {
