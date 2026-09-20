@@ -105,7 +105,23 @@
       "Rua da Conceição da Praia",
       "Avenida Lafayete Coutinho"
     ],
-    "notes": "Road centerlines and polygons are clipped to the project perimeter. Indoor highway features remain excluded from terrain-road derivation. Indoor highway=corridor features are preserved in a separate elevatedCorridors collection so structures such as the Elevador Lacerda upper bridge remain available without being draped onto terrain. Road width provenance follows explicit OSM width first, then integer OSM lanes × 3 m as an estimated carriageway width, then the highway-class fallback. Explicit OSM width/height tags are preserved; all derived widths remain marked estimated. Complete coverage requires every critical road name to be present."
+    "notes": "Road centerlines and polygons are clipped to the project perimeter. Indoor highway features remain excluded from terrain-road derivation. Terrain-support features such as retaining walls, embankments, cliffs and vegetation polygons are imported and preserved in dedicated terrainLines/terrainAreas collections. Indoor highway=corridor features are preserved in a separate elevatedCorridors collection so structures such as the Elevador Lacerda upper bridge remain available without being draped onto terrain. Road width provenance follows explicit OSM width first, then integer OSM lanes × 3 m as an estimated carriageway width, then the highway-class fallback. Explicit OSM width/height tags are preserved; all derived widths remain marked estimated. Complete coverage requires every critical road name to be present.",
+    "terrainFeatures": {
+      "lines": {
+        "barrier=retaining_wall": "retaining-wall",
+        "man_made=embankment": "embankment",
+        "natural=cliff": "cliff",
+        "natural=earth_bank": "earth-bank"
+      },
+      "areas": {
+        "landuse=grass": "grass",
+        "landuse=meadow": "meadow",
+        "landuse=forest": "wood",
+        "natural=grassland": "grassland",
+        "natural=wood": "wood",
+        "natural=scrub": "scrub"
+      }
+    }
   },
   "buildingBlockoutPolicy": {
     "maxAutoFoundationRelief": 0.75,

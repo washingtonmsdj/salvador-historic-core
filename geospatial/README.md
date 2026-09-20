@@ -26,6 +26,9 @@ O arquivo `manifest.json` registra fontes, políticas, comandos e limites de qua
 O produto `geospatial/derived/site-vectors.json` contém:
 
 - centerlines viárias recortadas ao perímetro;
+- linhas de terreno estruturais preservadas separadamente (`terrainLines`), como `barrier=retaining_wall`, `man_made=embankment`, `natural=cliff` e `natural=earth_bank` quando presentes no snapshot;
+- áreas de cobertura do terreno (`terrainAreas`) para classes OSM explícitas de gramado, meadow, floresta, grassland, wood e scrub;
+- centerlines viárias recortadas ao perímetro;
 - espaços urbanos/polígonos;
 - footprints de edifícios;
 - identidade OSM, tags, provenance e origem da largura/altura.
@@ -45,7 +48,7 @@ A fonte altimétrica persistente atual é a camada oficial `REL_Curva_Nivel_L`, 
 
 As curvas normalizadas são convertidas em uma grade regular de 2,5 m por um solver harmônico com as cotas das curvas como restrições fixas. O produto final fica em `geospatial/derived/terrain.json`.
 
-Essa derivação é geograficamente muito superior ao perfil procedural, mas não deve ser tratada como MDT/LiDAR moderno. Se a Prefeitura de Salvador publicar um MDT/LiDAR estável para o recorte, ele deve ser avaliado como fonte altimétrica preferencial.
+Essa derivação é geograficamente muito superior ao perfil procedural, mas não deve ser tratada como MDT/LiDAR moderno. A documentação pública da Prefeitura registra ortoimagem, nuvem LiDAR classificada, MDS e MDT no ecossistema GeoSalvador; a migração para essa fonte é a prioridade altimétrica assim que um endpoint/download público atual e estável para a folha do Centro Histórico for identificado e validado. Até lá, o produto CONDER permanece a fonte persistente autoritativa em vez de depender de uma URL municipal antiga ou migrada.
 
 ## Apresentação visual do terreno
 

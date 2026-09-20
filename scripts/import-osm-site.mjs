@@ -90,6 +90,41 @@ const osmApiBbox = [
   .map((value) => value.toFixed(7))
   .join(",");
 
+const terrainFeatureSelectors =
+  Object.keys(
+    manifest.vectorDerivation
+      ?.terrainFeatures?.lines ?? {},
+  )
+    .concat(
+      Object.keys(
+        manifest.vectorDerivation
+          ?.terrainFeatures?.areas ?? {},
+      ),
+    )
+    .map((selector) => {
+      const separator =
+        selector.indexOf("=");
+      const key =
+        selector.slice(
+          0,
+          separator,
+        );
+      const value =
+        selector.slice(
+          separator + 1,
+        );
+
+      return (
+        '  nwr["' +
+        key +
+        '"="' +
+        value +
+        '"](' +
+        bbox +
+        ');'
+      );
+    });
+
 const query = `
 [out:json][timeout:45];
 (
@@ -103,6 +138,7 @@ const query = `
   way["leisure"="square"](${bbox});
   way["leisure"="park"](${bbox});
   way["place"="square"](${bbox});
+${terrainFeatureSelectors.join("\n")}
 );
 out body geom;
 `.trim();

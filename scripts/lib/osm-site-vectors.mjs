@@ -348,6 +348,38 @@ function isTerrainRoad(tags, config) {
   return true;
 }
 
+function terrainFeatureKind(
+  tags,
+  mapping,
+) {
+  for (const [
+    selector,
+    kind,
+  ] of Object.entries(
+    mapping ?? {},
+  )) {
+    const separator =
+      selector.indexOf("=");
+    const key =
+      selector.slice(
+        0,
+        separator,
+      );
+    const value =
+      selector.slice(
+        separator + 1,
+      );
+
+    if (
+      key &&
+      tags[key] === value
+    ) {
+      return kind;
+    }
+  }
+
+  return null;
+}
 function isSquare(tags) {
   return (
     tags.place === "square" ||
@@ -369,6 +401,8 @@ export function deriveOsmSiteVectors({
 }) {
   const roads = [];
   const elevatedCorridors = [];
+  const terrainLines = [];
+  const terrainAreas = [];
   const spaces = [];
   const buildingFootprints = [];
 
@@ -376,6 +410,86 @@ export function deriveOsmSiteVectors({
     const tags = feature.tags ?? {};
     const points = feature.points ?? [];
 
+    const terrainLineKind =
+      terrainFeatureKind(
+        tags,
+        config.terrainFeatures
+          ?.lines,
+      );
+    const terrainAreaKind =
+      terrainFeatureKind(
+        tags,
+        config.terrainFeatures
+          ?.areas,
+      );
+
+    if (
+      feature.geometryType === "polyline" &&
+      terrainLineKind &&
+      points.length >= 2
+    ) {
+      const clippedParts =
+        clipPolylineToBounds(
+          points,
+          bounds,
+        );
+
+      clippedParts.forEach(
+        (part, index) => {
+          terrainLines.push({
+            id:
+              clippedParts.length > 1
+                ? `${feature.id}-part-${index + 1}`
+                : feature.id,
+            name:
+              tags.name ??
+              `Terrain line ${feature.osmType}/${feature.osmId}`,
+            kind:
+              terrainLineKind,
+            source:
+              `OpenStreetMap ${feature.id}`,
+            points: part,
+            osmId:
+              feature.osmId,
+            osmType:
+              feature.osmType,
+            tags,
+          });
+        },
+      );
+    }
+
+    if (
+      feature.geometryType === "polygon" &&
+      terrainAreaKind &&
+      points.length >= 3
+    ) {
+      const polygon =
+        clipPolygonToBounds(
+          points,
+          bounds,
+        );
+
+      if (polygon.length >= 3) {
+        terrainAreas.push({
+          id: feature.id,
+          name:
+            tags.name ??
+            `Terrain area ${feature.osmType}/${feature.osmId}`,
+          kind:
+            terrainAreaKind,
+          source:
+            `OpenStreetMap ${feature.id}`,
+          points:
+            polygon,
+          osmId:
+            feature.osmId,
+          osmType:
+            feature.osmType,
+          tags,
+        });
+      }
+    }
     if (
       feature.geometryType === "polyline" &&
       config.preserveIndoorCorridors !== false &&
@@ -525,6 +639,12 @@ export function deriveOsmSiteVectors({
   }
 
   roads.sort((a, b) => a.id.localeCompare(b.id));
+  terrainLines.sort((a, b) =>
+    a.id.localeCompare(b.id),
+  );
+  terrainAreas.sort((a, b) =>
+    a.id.localeCompare(b.id),
+  );
   elevatedCorridors.sort((a, b) =>
     a.id.localeCompare(b.id),
   );
@@ -536,6 +656,8 @@ export function deriveOsmSiteVectors({
   const featureCount =
     roads.length +
     elevatedCorridors.length +
+    terrainLines.length +
+    terrainAreas.length +
     spaces.length +
     buildingFootprints.length;
   const laneDerivedRoadCount =
@@ -585,12 +707,18 @@ export function deriveOsmSiteVectors({
       laneDerivedRoadCount,
       elevatedCorridorCount:
         elevatedCorridors.length,
+      terrainLineCount:
+        terrainLines.length,
+      terrainAreaCount:
+        terrainAreas.length,
       spaceCount: spaces.length,
       buildingFootprintCount:
         buildingFootprints.length,
     },
     roads,
     elevatedCorridors,
+    terrainLines,
+    terrainAreas,
     spaces,
     buildingFootprints,
   };
