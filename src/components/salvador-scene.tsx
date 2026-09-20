@@ -481,6 +481,7 @@ export function SalvadorScene() {
           { HemisphericLight },
           { DirectionalLight },
           { ShadowGenerator },
+          { CascadedShadowGenerator },
           { Vector3 },
           { Color3, Color4 },
           { ImageProcessingConfiguration },
@@ -512,6 +513,7 @@ export function SalvadorScene() {
           import("@babylonjs/core/Lights/hemisphericLight"),
           import("@babylonjs/core/Lights/directionalLight"),
           import("@babylonjs/core/Lights/Shadows/shadowGenerator"),
+          import("@babylonjs/core/Lights/Shadows/cascadedShadowGenerator"),
           import("@babylonjs/core/Maths/math.vector"),
           import("@babylonjs/core/Maths/math.color"),
           import("@babylonjs/core/Materials/imageProcessingConfiguration"),
@@ -734,12 +736,44 @@ export function SalvadorScene() {
           runtimeBarriers,
         );
 
-        const shadows = new ShadowGenerator(2048, sun);
-        shadows.useBlurExponentialShadowMap = true;
-        shadows.blurKernel = 24;
-        shadows.bias = 0.0005;
-        shadows.normalBias = 0.025;
-        shadows.setDarkness(0.3);
+        const shadows =
+          CascadedShadowGenerator.IsSupported
+            ? new CascadedShadowGenerator(
+                2048,
+                sun,
+              )
+            : new ShadowGenerator(
+                2048,
+                sun,
+              );
+
+        if (
+          shadows instanceof
+          CascadedShadowGenerator
+        ) {
+          shadows.numCascades = 4;
+          shadows.stabilizeCascades =
+            true;
+          shadows.lambda = 0.72;
+          shadows.cascadeBlendPercentage =
+            0.12;
+          shadows.shadowMaxZ =
+            450;
+          shadows.usePercentageCloserFiltering =
+            true;
+          shadows.filteringQuality =
+            ShadowGenerator.QUALITY_HIGH;
+          shadows.bias = 0.00035;
+          shadows.normalBias = 0.018;
+          shadows.setDarkness(0.26);
+        } else {
+          shadows.useBlurExponentialShadowMap =
+            true;
+          shadows.blurKernel = 24;
+          shadows.bias = 0.0005;
+          shadows.normalBias = 0.025;
+          shadows.setDarkness(0.3);
+        }
 
         for (const mesh of [
           ...buildingMeshes,
