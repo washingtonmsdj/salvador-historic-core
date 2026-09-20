@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "terrain:import:conder": "node scripts/import-conder-contours.mjs",
     "terrain:validate": "node scripts/validate-terrain-data.mjs",
-    "layout:validate": "node scripts/validate-site-layout.mjs"
+    "layout:validate": "node scripts/validate-site-layout.mjs",
+    "site:import:osm": "node scripts/import-osm-site.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"

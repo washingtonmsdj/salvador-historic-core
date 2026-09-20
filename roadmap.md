@@ -30,7 +30,8 @@
 - [x] Impedir vias de atravessarem Elevador e Mercado Modelo por validação geométrica
 - [x] Alinhar blockouts da Rua Chile a um único eixo OSM verificado
 - [x] Remover placeholders urbanos sem identidade/alinhamento verificável
-- [ ] Importar traçado verificável da Ladeira da Montanha antes de recolocá-la na cena
+- [x] Preparar importador OSM do recorte com fallback de endpoint e conversão para metros locais
+- [ ] Rodar importador OSM e promover traçado verificável da Ladeira da Montanha antes de recolocá-la na cena
 - [ ] Validar orientação, escala e alinhamento visual dos marcos principais contra referências verificadas
 - [ ] Restaurar typecheck/lint/build em CI quando o runner hospedado estiver disponível
 - [ ] Validar desktop, celular, desempenho e acessibilidade dos controles
