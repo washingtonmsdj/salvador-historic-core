@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-20T17:20:36.216Z",
+  "generatedAt": "2026-09-20T17:23:02.354Z",
   "crs": "EPSG:32724",
   "units": "meters",
   "origin": {
@@ -76,10 +76,10 @@
     "osm": {
       "kind": "osm",
       "available": true,
-      "featureCount": 340,
+      "featureCount": 391,
       "coverage": "complete",
-      "generatedAt": "2026-09-20T17:20:36.077Z",
-      "source": "OpenStreetMap via Overpass API"
+      "generatedAt": "2026-09-20T17:23:02.238Z",
+      "source": "OpenStreetMap official bbox API"
     },
     "contours": {
       "kind": "conder-contours",
@@ -102,10 +102,10 @@
     "vectors": {
       "kind": "vectors-derived",
       "available": true,
-      "featureCount": 327,
+      "featureCount": 324,
       "coverage": "complete",
-      "generatedAt": "2026-09-20T17:20:36.124Z",
-      "source": "OpenStreetMap via Overpass API"
+      "generatedAt": "2026-09-20T17:23:02.279Z",
+      "source": "OpenStreetMap official bbox API"
     }
   },
   "terrain": {
