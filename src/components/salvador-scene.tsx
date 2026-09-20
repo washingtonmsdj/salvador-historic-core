@@ -369,6 +369,10 @@ export function SalvadorScene() {
         window.addEventListener("resize", handleResize);
         setLoadState("ready");
 
+        let buildingGuideMeshes: ReturnType<
+          typeof createBuildingFootprintGuides
+        > = [];
+
         void loadLiveOsmVectors({
           geographicBounds: geo.geographicBounds,
           localBounds: data.terrain.bounds,
@@ -382,6 +386,7 @@ export function SalvadorScene() {
             if (disposed || !liveScene) return;
 
             if (live.roads.length > 0) {
+              activeRoadFeatures = live.roads;
               for (const mesh of roadMeshes) {
                 mesh.dispose();
               }
@@ -394,26 +399,34 @@ export function SalvadorScene() {
             }
 
             if (live.spaces.length > 0) {
+              activeSpaceFeatures =
+                mergeLinearFeatures(
+                  runtimeSpaces,
+                  live.spaces,
+                );
               for (const mesh of spaceMeshes) {
                 mesh.dispose();
               }
               spaceMeshes = createSpaces(
                 liveScene,
-                mergeLinearFeatures(
-                  runtimeSpaces,
-                  live.spaces,
-                ),
+                activeSpaceFeatures,
                 data.terrain,
                 data.levels,
               );
             }
 
-            createBuildingFootprintGuides(
-              liveScene,
-              live.buildingFootprints,
-              data.terrain,
-              data.levels,
-            );
+            activeBuildingFootprints =
+              live.buildingFootprints;
+            for (const mesh of buildingGuideMeshes) {
+              mesh.dispose();
+            }
+            buildingGuideMeshes =
+              createBuildingFootprintGuides(
+                liveScene,
+                activeBuildingFootprints,
+                data.terrain,
+                data.levels,
+              );
 
             setLiveOsmCounts({
               roads: live.roads.length,
