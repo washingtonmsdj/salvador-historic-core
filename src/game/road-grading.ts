@@ -25,7 +25,7 @@ export function gradeRoadCrossSection({
   longitudinalLift,
   crossSpan,
   maxCrossSlope,
-  maxCorrectionRelief,
+  maxSupportedFillHeight,
   surfaceGap,
 }: {
   leftTerrain: number;
@@ -33,7 +33,7 @@ export function gradeRoadCrossSection({
   longitudinalLift: number;
   crossSpan: number;
   maxCrossSlope: number;
-  maxCorrectionRelief: number;
+  maxSupportedFillHeight: number;
   surfaceGap: number;
 }) {
   const lift = Math.max(
@@ -56,44 +56,80 @@ export function gradeRoadCrossSection({
       0,
       maxCrossSlope,
     );
-  const regularize =
-    Math.abs(
-      naturalDelta,
-    ) <=
-    maxCorrectionRelief;
+
+  let requiredFill = 0;
+  let supportSide:
+    | "left"
+    | "right"
+    | null = null;
 
   if (
-    regularize &&
     naturalDelta >
       maximumDelta
   ) {
-    right = Math.max(
-      right,
-      left - maximumDelta,
-    );
+    const targetRight =
+      left - maximumDelta;
+    requiredFill =
+      targetRight - right;
+
+    if (
+      requiredFill <=
+      maxSupportedFillHeight
+    ) {
+      right = targetRight;
+      supportSide = "right";
+    }
   } else if (
-    regularize &&
     naturalDelta <
       -maximumDelta
   ) {
-    left = Math.max(
-      left,
-      right - maximumDelta,
-    );
+    const targetLeft =
+      right - maximumDelta;
+    requiredFill =
+      targetLeft - left;
+
+    if (
+      requiredFill <=
+      maxSupportedFillHeight
+    ) {
+      left = targetLeft;
+      supportSide = "left";
+    }
   }
 
+  const leftSurface =
+    left + surfaceGap;
+  const rightSurface =
+    right + surfaceGap;
+
   return {
-    leftY:
-      left + surfaceGap,
-    rightY:
-      right + surfaceGap,
+    leftY: leftSurface,
+    rightY: rightSurface,
+    leftSupportHeight:
+      Math.max(
+        0,
+        leftSurface -
+          (leftTerrain +
+            surfaceGap),
+      ),
+    rightSupportHeight:
+      Math.max(
+        0,
+        rightSurface -
+          (rightTerrain +
+            surfaceGap),
+      ),
     regularized:
-      regularize &&
-      Math.abs(
-        naturalDelta,
-      ) > maximumDelta,
+      supportSide !== null,
+    supportSide,
+    requiredFill:
+      Math.max(
+        0,
+        requiredFill,
+      ),
     naturalDelta,
     resultingDelta:
       left - right,
+    maximumDelta,
   };
 }
