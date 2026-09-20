@@ -182,3 +182,25 @@ Regras:
 - OSM ao vivo não altera `geospatial/derived/` e não muda a provenance persistida do projeto.
 
 A promoção definitiva continua exigindo importação, revisão e versionamento dos dados.
+
+
+## CONDER ao vivo no Preview
+
+O Preview também pode consultar diretamente a camada oficial `REL_Curva_Nivel_L` da CONDER e
+gerar um heightfield temporário durante a sessão.
+
+Regras do modo live:
+
+- consulta somente o envelope EPSG:32724 do projeto;
+- rejeita respostas ArcGIS marcadas como parciais por `exceededTransferLimit`;
+- recorta as curvas ao perímetro local antes da interpolação;
+- usa grade de 5 m, amostragem de curvas a cada 2,5 m e no máximo 750 iterações;
+- resolve as células não medidas por interpolação harmônica com as curvas como constraints fixas;
+- usa o menor valor derivado como datum vertical temporário;
+- mantém cache somente em `sessionStorage` por 15 minutos;
+- se a consulta ou derivação falhar, conserva o terreno procedural sem interromper a cena;
+- quando funciona, reconstrói terreno, mapa raster, ruas, áreas e guias OSM sobre a nova superfície;
+- não grava nem modifica `geospatial/derived/terrain.json`.
+
+O modo live é uma ferramenta de validação visual. A malha persistida continua exigindo a importação
+oficial, derivação de 2,5 m, validação e versionamento pelo pipeline `geospatial:refresh:terrain`.

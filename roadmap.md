@@ -50,6 +50,7 @@
 - [x] Ativar seed OSM versionada parcial para Rua Chile, Praça Tomé e Elevador
 - [x] Carregar OSM ao vivo no Preview com fallback para a seed versionada
 - [ ] Executar importação OSM completa do recorte e revisar features
+- [x] Visualizar curvas CONDER ao vivo como heightfield temporário no Preview
 - [ ] Executar importação CONDER do recorte
 - [x] Implementar gerador determinístico de heightfield derivado das curvas CONDER
 - [ ] Executar a derivação com o recorte CONDER real ou substituir pelo MDT municipal quando disponível
