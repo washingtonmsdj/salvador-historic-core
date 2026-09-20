@@ -47,6 +47,25 @@ As curvas normalizadas são convertidas em uma grade regular de 2,5 m por um sol
 
 Essa derivação é geograficamente muito superior ao perfil procedural, mas não deve ser tratada como MDT/LiDAR moderno. Se a Prefeitura de Salvador publicar um MDT/LiDAR estável para o recorte, ele deve ser avaliado como fonte altimétrica preferencial.
 
+## Apresentação visual do terreno
+
+A geometria geoespacial e a apresentação visual são camadas separadas. O runtime não adiciona microdeslocamento à malha CONDER para “embelezar” o relevo; detalhes pequenos são produzidos por material e iluminação para que a colisão e as cotas continuem coerentes.
+
+No estado atual:
+
+- material do terreno usa \`PBRMaterial\`, não \`StandardMaterial\`;
+- albedo e normal principais são procedurais em 512×512;
+- um mapa ORM procedural controla ambient occlusion e roughness por pixel;
+- detail map separado em 256×256 adiciona microvariação de albedo, normal e roughness;
+- os padrões procedurais são periódicos/tileable para evitar costuras;
+- macro textura repete a cada 18 m e o detail map usa tiling independente de 12×;
+- transição de superfície para rocha é suavizada por inclinação da normal, sem modificar a altura do terreno;
+- a ribanceira usa projeção vertical consistente por triângulo para reduzir stretching em faces íngremes;
+- ACES tone mapping é usado no runtime;
+- quando suportado pelo engine/navegador, a luz solar usa Cascaded Shadow Maps; existe fallback para o shadow generator convencional.
+
+Essas melhorias são visuais. Elas não tornam a fonte CONDER mais precisa e não devem ser descritas como LiDAR, MDT ou levantamento novo.
+
 ## Vias e gameplay
 
 As vias derivadas preservam a geometria OSM e amostram o terreno ativo.
