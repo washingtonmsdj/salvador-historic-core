@@ -1,7 +1,11 @@
 import {
   triangleIntersectsPolygon,
 } from "../src/game/geometry-2d";
-import type { Point2 } from "../src/game/types";
+import { refineTriangleOutsideMasks } from "../src/game/terrain-mask";
+import type {
+  Point2,
+  TerrainRenderMask,
+} from "../src/game/types";
 
 const square: Point2[] = [
   [0, 0],
@@ -71,6 +75,39 @@ if (
 ) {
   throw new Error(
     "Padding must mask near-wall terrain triangles.",
+  );
+}
+
+const adaptiveMask: TerrainRenderMask = {
+  id: "square-mask",
+  polygon: square,
+  padding: 0,
+  maxBoundaryEdge: 0.08,
+  source: "test",
+};
+const refined =
+  refineTriangleOutsideMasks(
+    crossing,
+    [adaptiveMask],
+  );
+
+if (refined.length === 0) {
+  throw new Error(
+    "Adaptive clipping must preserve the visible part of a boundary triangle.",
+  );
+}
+
+if (
+  refined.some((triangle) =>
+    triangleIntersectsPolygon(
+      triangle,
+      square,
+      0,
+    ),
+  )
+) {
+  throw new Error(
+    "Adaptive clipping must not leave a visible triangle crossing the mask boundary.",
   );
 }
 
