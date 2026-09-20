@@ -171,6 +171,7 @@ export function createRoads(
 
 export function createSpaces(scene: Scene, spaces: LinearFeature[]) {
   const squareMaterial = material(scene, "square");
+  squareMaterial.backFaceCulling = false;
 
   return spaces.flatMap((space) => {
     const mesh = createPolygonSpace(scene, space, squareMaterial);
