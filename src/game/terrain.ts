@@ -16,6 +16,87 @@ const smoothstep = (value: number) => {
   return t * t * (3 - 2 * t);
 };
 
+function pointInPolygon(point: Point2, polygon: Point2[]) {
+  let inside = false;
+  const [x, z] = point;
+
+  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index++) {
+    const currentPoint = polygon[index];
+    const previousPoint = polygon[previous];
+    if (!currentPoint || !previousPoint) continue;
+
+    const [xi, zi] = currentPoint;
+    const [xj, zj] = previousPoint;
+    const intersects =
+      zi > z !== zj > z &&
+      x < ((xj - xi) * (z - zi)) / Math.max(0.000001, zj - zi) + xi;
+
+    if (intersects) inside = !inside;
+  }
+
+  return inside;
+}
+
+function distanceToSegment(point: Point2, start: Point2, end: Point2) {
+  const [px, pz] = point;
+  const [ax, az] = start;
+  const [bx, bz] = end;
+  const dx = bx - ax;
+  const dz = bz - az;
+  const lengthSquared = dx * dx + dz * dz;
+
+  if (lengthSquared <= 0.000001) {
+    return Math.hypot(px - ax, pz - az);
+  }
+
+  const t = clamp(((px - ax) * dx + (pz - az) * dz) / lengthSquared, 0, 1);
+  const closestX = ax + dx * t;
+  const closestZ = az + dz * t;
+  return Math.hypot(px - closestX, pz - closestZ);
+}
+
+function distanceToPolygon(point: Point2, polygon: Point2[]) {
+  let distance = Number.POSITIVE_INFINITY;
+
+  for (let index = 0; index < polygon.length; index++) {
+    const start = polygon[index];
+    const end = polygon[(index + 1) % polygon.length];
+    if (!start || !end) continue;
+    distance = Math.min(distance, distanceToSegment(point, start, end));
+  }
+
+  return distance;
+}
+
+function applyTerrainCutouts(
+  config: TerrainConfig,
+  x: number,
+  z: number,
+  baseHeight: number,
+) {
+  let height = baseHeight;
+
+  for (const cutout of config.cutouts ?? []) {
+    if (cutout.polygon.length < 3) continue;
+
+    const point: Point2 = [x, z];
+    if (pointInPolygon(point, cutout.polygon)) {
+      height = Math.min(height, cutout.elevation);
+      continue;
+    }
+
+    const distance = distanceToPolygon(point, cutout.polygon);
+    if (cutout.feather <= 0 || distance >= cutout.feather) continue;
+
+    const blend = smoothstep(distance / cutout.feather);
+    const featheredHeight =
+      cutout.elevation + (height - cutout.elevation) * blend;
+    height = Math.min(height, featheredHeight);
+  }
+
+  return height;
+}
+
 function interpolateProfile(
   profiles: TerrainProfile[],
   z: number,
@@ -85,20 +166,27 @@ export function terrainHeight(
   const upperY =
     levels.upperCity.elevation + profile.upperOffset + upperVariation;
 
-  if (x <= profile.toeX) return lowerY;
-  if (x >= profile.shoulderX) return upperY;
+  let height: number;
 
-  const ledgeY = lowerY + (upperY - lowerY) * 0.18;
+  if (x <= profile.toeX) {
+    height = lowerY;
+  } else if (x >= profile.shoulderX) {
+    height = upperY;
+  } else {
+    const ledgeY = lowerY + (upperY - lowerY) * 0.18;
 
-  if (x <= profile.cliffX) {
-    const toeSpan = Math.max(0.001, profile.cliffX - profile.toeX);
-    const t = smoothstep((x - profile.toeX) / toeSpan);
-    return lowerY + (ledgeY - lowerY) * t;
+    if (x <= profile.cliffX) {
+      const toeSpan = Math.max(0.001, profile.cliffX - profile.toeX);
+      const t = smoothstep((x - profile.toeX) / toeSpan);
+      height = lowerY + (ledgeY - lowerY) * t;
+    } else {
+      const cliffSpan = Math.max(0.001, profile.shoulderX - profile.cliffX);
+      const t = smoothstep((x - profile.cliffX) / cliffSpan);
+      height = ledgeY + (upperY - ledgeY) * t;
+    }
   }
 
-  const cliffSpan = Math.max(0.001, profile.shoulderX - profile.cliffX);
-  const t = smoothstep((x - profile.cliffX) / cliffSpan);
-  return ledgeY + (upperY - ledgeY) * t;
+  return applyTerrainCutouts(config, x, z, height);
 }
 
 function terrainNormal(
