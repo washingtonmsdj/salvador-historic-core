@@ -109,6 +109,7 @@
   },
   "buildingBlockoutPolicy": {
     "maxAutoFoundationRelief": 0.75,
+    "maxSteppedFoundationRelief": 3,
     "minAutoRoadClearance": 0.15,
     "excludedOsmIds": [
       59224731,
@@ -127,7 +128,7 @@
     "removeFallbackTypesWhenActive": [
       "rua-chile"
     ],
-    "notes": "Automatic building volumes require a real OSM footprint plus explicit height or building:levels-derived height. Footprints crossing more than 0.75 m of terrain relief are skipped for manual foundation/model handling. A footprint that overlaps the rendered road/junction surface expanded by 0.15 m is preserved as source data but is not promoted to a collidable 3D blockout."
+    "notes": "Automatic building volumes require a real OSM footprint plus explicit height or building:levels-derived height. Up to 0.75 m of relief uses normal grounding. Between 0.75 m and 3 m, the measured building height begins at the highest sampled terrain and a separate stepped foundation extends to the lowest sampled terrain, avoiding terrain flattening and preserving the source height. Relief above 3 m remains pending specific foundation/model handling. A footprint that overlaps the rendered road/junction surface expanded by 0.15 m is preserved as source data but is not promoted to a collidable 3D blockout."
   },
   "elevatedCorridorPolicy": {
     "deckThickness": 0.35,
