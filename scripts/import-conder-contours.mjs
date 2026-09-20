@@ -41,6 +41,28 @@ if (!response.ok) {
 
 const payload = await response.json();
 
+if (payload.error) {
+  throw new Error(`CONDER ArcGIS error: ${JSON.stringify(payload.error)}`);
+}
+
+if (payload.exceededTransferLimit === true) {
+  throw new Error(
+    "CONDER response exceeded transfer limit; refusing to persist partial contours.",
+  );
+}
+
+if (!Array.isArray(payload.features)) {
+  throw new Error(
+    "CONDER response has no features array.",
+  );
+}
+
+if (payload.features.length === 0) {
+  throw new Error(
+    "CONDER response contains no contour features.",
+  );
+}
+
 await mkdir(dirname(rawOutputPath), { recursive: true });
 await writeFile(
   rawOutputPath,
@@ -48,13 +70,9 @@ await writeFile(
   "utf8",
 );
 
-if (payload.error) {
-  throw new Error(`CONDER ArcGIS error: ${JSON.stringify(payload.error)}`);
-}
-
 const contours = [];
 
-for (const feature of payload.features ?? []) {
+for (const feature of payload.features) {
   const elevation = feature.attributes?.[source.elevationField];
   const objectId = feature.attributes?.OBJECTID;
   if (!Number.isFinite(elevation)) continue;
