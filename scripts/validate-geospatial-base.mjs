@@ -478,6 +478,12 @@ if (derivedVectors?.available === true) {
     ) {
       fail(`${space.id} must preserve OSM identity`);
     }
+
+    if (space.elevationMode !== "terrain") {
+      fail(
+        `${space.id} must follow the active terrain; fixed upper/lower elevation is not allowed for derived OSM areas`,
+      );
+    }
   }
 
   for (const building of buildings) {
