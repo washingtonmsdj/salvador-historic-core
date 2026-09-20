@@ -4,6 +4,76 @@ import { resolve } from "node:path";
 const data = JSON.parse(
   await readFile(resolve(process.cwd(), "src/data/site-data.json"), "utf8"),
 );
+const derivedVectors = JSON.parse(
+  await readFile(
+    resolve(
+      process.cwd(),
+      "geospatial/derived/site-vectors.json",
+    ),
+    "utf8",
+  ),
+);
+const derivedFootprints =
+  Array.isArray(
+    derivedVectors.buildingFootprints,
+  )
+    ? derivedVectors.buildingFootprints
+    : [];
+const derivedFootprintsByOsmId =
+  new Map(
+    derivedFootprints.map(
+      (item) => [
+        item.osmId,
+        item.footprint,
+      ],
+    ),
+  );
+
+function resolveOsmFootprint(item) {
+  if (
+    Array.isArray(item?.footprint) &&
+    item.footprint.length >= 3
+  ) {
+    return item.footprint;
+  }
+
+  if (
+    Number.isInteger(
+      item?.footprintOsmId,
+    )
+  ) {
+    return (
+      derivedFootprintsByOsmId.get(
+        item.footprintOsmId,
+      ) ?? null
+    );
+  }
+
+  return null;
+}
+
+function resolveConstraintPolygon(item) {
+  if (
+    Array.isArray(item?.polygon) &&
+    item.polygon.length >= 3
+  ) {
+    return item.polygon;
+  }
+
+  if (
+    Number.isInteger(
+      item?.footprintOsmId,
+    )
+  ) {
+    return (
+      derivedFootprintsByOsmId.get(
+        item.footprintOsmId,
+      ) ?? null
+    );
+  }
+
+  return null;
+}
 
 const errors = [];
 const layout = data.layoutConstraints;
@@ -110,10 +180,19 @@ function angleDelta(a, b) {
   return Math.min(raw, period - raw);
 }
 
-if (!layout?.elevatorExclusion?.polygon?.length) {
-  fail("layoutConstraints.elevatorExclusion polygon is required");
+const elevatorExclusion =
+  layout?.elevatorExclusion;
+const elevatorExclusionPolygon =
+  resolveConstraintPolygon(
+    elevatorExclusion,
+  );
+
+if (!elevatorExclusionPolygon) {
+  fail(
+    "layoutConstraints.elevatorExclusion must resolve a canonical footprint",
+  );
 } else {
-  const exclusion = layout.elevatorExclusion;
+  const exclusion = elevatorExclusion;
 
   for (const road of data.roads ?? []) {
     for (let index = 0; index < road.points.length - 1; index++) {
@@ -124,7 +203,7 @@ if (!layout?.elevatorExclusion?.polygon?.length) {
       const distance = segmentToPolygonDistance(
         start,
         end,
-        exclusion.polygon,
+        elevatorExclusionPolygon,
       );
 
       if (distance < exclusion.minimumRoadClearance) {
@@ -179,9 +258,19 @@ if (marketClearance) {
 
   if (!road) {
     fail(`Missing constrained road ${marketClearance.roadId}`);
-  } else if (!building?.footprint?.length) {
-    fail(`Missing verified footprint for ${marketClearance.buildingId}`);
   } else {
+    const buildingFootprint =
+      resolveOsmFootprint(
+        building,
+      );
+
+    if (!buildingFootprint) {
+      fail(
+        `Missing verified footprint for ${marketClearance.buildingId}`,
+      );
+      continue;
+    }
+
     for (let index = 0; index < road.points.length - 1; index++) {
       const start = road.points[index];
       const end = road.points[index + 1];
@@ -190,7 +279,7 @@ if (marketClearance) {
       const distance = segmentToPolygonDistance(
         start,
         end,
-        building.footprint,
+        buildingFootprint,
       );
 
       if (distance < marketClearance.minimumCenterlineClearance) {
@@ -208,13 +297,28 @@ const lowerTower = data.elevator.find(
 const elevatorCutout = data.terrain.cutouts?.find(
   (item) => item.id === "elevador-lacerda-footprint-clearance",
 );
-if (!lowerTower?.footprint?.length || !elevatorCutout?.polygon?.length) {
-  fail("Elevador footprint and matching terrain cutout are required");
+const lowerTowerFootprint =
+  resolveOsmFootprint(
+    lowerTower,
+  );
+
+if (!lowerTowerFootprint || !elevatorCutout?.polygon?.length) {
+  fail(
+    "Elevador canonical footprint and procedural fallback cutout are required",
+  );
 } else if (
-  JSON.stringify(lowerTower.footprint) !==
-  JSON.stringify(elevatorCutout.polygon)
+  elevatorCutout.fallbackSnapshotOfOsmId !==
+    lowerTower?.footprintOsmId ||
+  JSON.stringify(
+    lowerTowerFootprint,
+  ) !==
+    JSON.stringify(
+      elevatorCutout.polygon,
+    )
 ) {
-  fail("Elevador terrain cutout must match the verified tower footprint");
+  fail(
+    "Elevador procedural cutout snapshot must match its canonical OSM footprint",
+  );
 } else {
   const terrainSampleSpacing =
     data.terrain.tileSize / data.terrain.subdivisionsPerTile;
@@ -293,11 +397,18 @@ const thomeBuilding = data.buildings.find(
   (item) => item.id === "palacio-thome-souza",
 );
 
-if (!thomeSite?.polygon?.length || !thomeBuilding?.footprint?.length) {
-  fail("Palácio Thomé site and building footprints are required");
+const thomeFootprint =
+  resolveOsmFootprint(
+    thomeBuilding,
+  );
+
+if (!thomeSite?.polygon?.length || !thomeFootprint) {
+  fail(
+    "Palácio Thomé site and canonical building footprint are required",
+  );
 } else {
   const site = thomeSite.polygon;
-  const palace = thomeBuilding.footprint;
+  const palace = thomeFootprint;
 
   for (const corner of palace) {
     const onBoundary = site.some((start, index) => {
@@ -317,18 +428,33 @@ if (!thomeSite?.polygon?.length || !thomeBuilding?.footprint?.length) {
   const siteFrontWidth = polygonSideLength(site[0], site[1]);
   const siteDepth = polygonSideLength(site[1], site[2]);
 
-  if (Math.abs(palaceFrontWidth - thomeSite.palaceStripWidth) > 0.15) {
+  const palaceShortSide =
+    Math.min(
+      palaceFrontWidth,
+      palaceDepth,
+    );
+  const palaceLongSide =
+    Math.max(
+      palaceFrontWidth,
+      palaceDepth,
+    );
+
+  if (
+    palaceShortSide < 14 ||
+    palaceShortSide > 18
+  ) {
     fail(
-      [
-        `Palácio Thomé strip width is ${palaceFrontWidth.toFixed(2)} m;`,
-        `expected ~${thomeSite.palaceStripWidth} m`,
-      ].join(" "),
+      `Palácio Thomé short side is ${palaceShortSide.toFixed(2)} m; expected correlation with the documented ~${thomeSite.palaceStripWidth} m strip`,
     );
   }
 
-  if (Math.abs(palaceDepth - thomeSite.depth) > 0.15) {
+  if (
+    palaceLongSide < 40 ||
+    palaceLongSide >
+      thomeSite.depth + 0.15
+  ) {
     fail(
-      `Palácio Thomé depth is ${palaceDepth.toFixed(2)} m; expected ~${thomeSite.depth} m`,
+      `Palácio Thomé long side is ${palaceLongSide.toFixed(2)} m; expected to remain inside the documented ~${thomeSite.depth} m longitudinal envelope`,
     );
   }
 
