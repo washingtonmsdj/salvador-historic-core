@@ -30,7 +30,8 @@
     "lint:ci": "eslint . --rule 'prettier/prettier: off'",
     "format:check": "prettier --check .",
     "road:test": "bun scripts/test-road-surface.ts",
-    "road:junction-test": "bun scripts/test-road-junctions.ts"
+    "road:junction-test": "bun scripts/test-road-junctions.ts",
+    "player:spawn-test": "bun scripts/test-walkable-spawn.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
