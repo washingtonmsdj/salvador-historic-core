@@ -268,3 +268,25 @@ Os quatro cantos do terreno são armazenados simultaneamente como:
 O runtime também possui transformação inversa X/Z → UTM → WGS84, portanto qualquer ponto da cena
 pode receber coordenadas geográficas sob demanda. No modo Debug, os quatro cantos exibem essas
 coordenadas para conferência visual.
+
+
+## Endpoint OSM same-origin
+
+O Preview não depende mais apenas de chamadas cross-origin feitas pelo browser. O servidor do app expõe:
+
+`GET /api/geospatial/osm`
+
+O endpoint:
+
+- usa exclusivamente o bbox versionado do projeto;
+- consulta Overpass no servidor;
+- tenta a API bbox oficial do OpenStreetMap como fallback;
+- devolve JSON Overpass ou XML OSM preservando a geometria original;
+- aplica cache HTTP curto;
+- não aceita bbox arbitrário do cliente e, portanto, não funciona como proxy aberto.
+
+O browser tenta essa rota primeiro. Chamadas diretas aos provedores externos ficam apenas como fallback.
+
+Com dados OSM ativos, as ruas fallback manuais são substituídas por centerlines reais. O dataset
+curado não contém mais a via inferior inventada nem eixos extrapolados de Rua Chile; quando o
+live falha, a cena mostra apenas vetores já versionados e verificáveis.
