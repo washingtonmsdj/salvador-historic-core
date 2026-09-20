@@ -481,8 +481,10 @@ export function SalvadorScene() {
           { HemisphericLight },
           { DirectionalLight },
           { ShadowGenerator },
+          { CascadedShadowGenerator },
           { Vector3 },
           { Color3, Color4 },
+          { ImageProcessingConfiguration },
           {
             createTerrain,
             setRuntimeDerivedTerrain,
@@ -511,8 +513,10 @@ export function SalvadorScene() {
           import("@babylonjs/core/Lights/hemisphericLight"),
           import("@babylonjs/core/Lights/directionalLight"),
           import("@babylonjs/core/Lights/Shadows/shadowGenerator"),
+          import("@babylonjs/core/Lights/Shadows/cascadedShadowGenerator"),
           import("@babylonjs/core/Maths/math.vector"),
           import("@babylonjs/core/Maths/math.color"),
+          import("@babylonjs/core/Materials/imageProcessingConfiguration"),
           import("../game/terrain"),
           import("../game/osm-terrain-reference"),
           import("../game/roads"),
@@ -542,15 +546,23 @@ export function SalvadorScene() {
         );
 
         scene = new Scene(engine);
-        scene.clearColor = new Color4(0.16, 0.19, 0.2, 1);
+        scene.clearColor = new Color4(0.11, 0.14, 0.16, 1);
+        scene.imageProcessingConfiguration.toneMappingEnabled =
+          true;
+        scene.imageProcessingConfiguration.toneMappingType =
+          ImageProcessingConfiguration.TONEMAPPING_ACES;
+        scene.imageProcessingConfiguration.exposure =
+          1.08;
+        scene.imageProcessingConfiguration.contrast =
+          1.12;
 
         const ambient = new HemisphericLight(
           "ambient-light",
           new Vector3(0.2, 1, 0.1),
           scene,
         );
-        ambient.intensity = 1.12;
-        ambient.groundColor = new Color3(0.22, 0.2, 0.17);
+        ambient.intensity = 0.78;
+        ambient.groundColor = new Color3(0.16, 0.14, 0.12);
 
         const sun = new DirectionalLight(
           "sun-light",
@@ -558,7 +570,7 @@ export function SalvadorScene() {
           scene,
         );
         sun.position = new Vector3(120, 180, -80);
-        sun.intensity = 0.74;
+        sun.intensity = 1.18;
 
         clearRuntimeTerrain = () =>
           setRuntimeDerivedTerrain(null);
@@ -724,12 +736,44 @@ export function SalvadorScene() {
           runtimeBarriers,
         );
 
-        const shadows = new ShadowGenerator(2048, sun);
-        shadows.useBlurExponentialShadowMap = true;
-        shadows.blurKernel = 24;
-        shadows.bias = 0.0005;
-        shadows.normalBias = 0.025;
-        shadows.setDarkness(0.3);
+        const shadows =
+          CascadedShadowGenerator.IsSupported
+            ? new CascadedShadowGenerator(
+                2048,
+                sun,
+              )
+            : new ShadowGenerator(
+                2048,
+                sun,
+              );
+
+        if (
+          shadows instanceof
+          CascadedShadowGenerator
+        ) {
+          shadows.numCascades = 4;
+          shadows.stabilizeCascades =
+            true;
+          shadows.lambda = 0.72;
+          shadows.cascadeBlendPercentage =
+            0.12;
+          shadows.shadowMaxZ =
+            450;
+          shadows.usePercentageCloserFiltering =
+            true;
+          shadows.filteringQuality =
+            ShadowGenerator.QUALITY_HIGH;
+          shadows.bias = 0.00035;
+          shadows.normalBias = 0.018;
+          shadows.setDarkness(0.26);
+        } else {
+          shadows.useBlurExponentialShadowMap =
+            true;
+          shadows.blurKernel = 24;
+          shadows.bias = 0.0005;
+          shadows.normalBias = 0.025;
+          shadows.setDarkness(0.3);
+        }
 
         for (const mesh of [
           ...buildingMeshes,

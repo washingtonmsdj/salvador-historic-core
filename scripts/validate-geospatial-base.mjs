@@ -173,6 +173,75 @@ if (!publicSpaceSurfacePolicy) {
   }
 }
 
+const terrainPresentation =
+  siteData.terrain?.presentation;
+
+if (!terrainPresentation) {
+  fail(
+    "site terrain must define presentation settings",
+  );
+} else {
+  if (
+    !Number.isInteger(
+      terrainPresentation.textureResolution,
+    ) ||
+    terrainPresentation.textureResolution < 256 ||
+    terrainPresentation.textureResolution > 2048
+  ) {
+    fail(
+      "terrain textureResolution must be an integer between 256 and 2048",
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      terrainPresentation.detailTextureResolution,
+    ) ||
+    terrainPresentation.detailTextureResolution < 128 ||
+    terrainPresentation.detailTextureResolution > 1024
+  ) {
+    fail(
+      "terrain detailTextureResolution must be an integer between 128 and 1024",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      terrainPresentation.detailTextureTiling,
+    ) ||
+    terrainPresentation.detailTextureTiling < 2 ||
+    terrainPresentation.detailTextureTiling > 32
+  ) {
+    fail(
+      "terrain detailTextureTiling must be between 2 and 32",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      terrainPresentation.textureScale,
+    ) ||
+    terrainPresentation.textureScale < 8 ||
+    terrainPresentation.textureScale > 40
+  ) {
+    fail(
+      "terrain textureScale must be between 8 and 40 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      terrainPresentation.rockBlendNormalYBand,
+    ) ||
+    terrainPresentation.rockBlendNormalYBand <= 0 ||
+    terrainPresentation.rockBlendNormalYBand > 0.2
+  ) {
+    fail(
+      "terrain rockBlendNormalYBand must be > 0 and <= 0.2",
+    );
+  }
+}
+
 const roadSurfacePolicy =
   manifest.roadSurfacePolicy;
 

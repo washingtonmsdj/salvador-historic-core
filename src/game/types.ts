@@ -131,7 +131,11 @@ export interface TerrainConfig {
     baseY: number;
     perimeterSampleSpacing: number;
     textureScale: number;
+    textureResolution: number;
+    detailTextureResolution: number;
+    detailTextureTiling: number;
     rockNormalYMax: number;
+    rockBlendNormalYBand: number;
     contourInterval: number;
     cliffOverlayOffset: number;
   };

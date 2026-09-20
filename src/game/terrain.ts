@@ -413,6 +413,7 @@ function createSurfaceMesh(
   material: Material,
   metadata: Record<string, unknown>,
   checkCollisions: boolean,
+  colors?: number[],
 ) {
   const mesh = new Mesh(name, scene);
   const vertexData = new VertexData();
@@ -420,13 +421,68 @@ function createSurfaceMesh(
   vertexData.normals = normals;
   vertexData.uvs = uvs;
   vertexData.indices = indices;
+  if (
+    colors &&
+    colors.length ===
+      positions.length / 3 * 4
+  ) {
+    vertexData.colors =
+      colors;
+  }
   vertexData.applyToMesh(mesh);
+
+  if (colors) {
+    mesh.useVertexColors =
+      true;
+    mesh.hasVertexAlpha =
+      true;
+  }
 
   mesh.material = material;
   mesh.receiveShadows = true;
   mesh.checkCollisions = checkCollisions;
   mesh.metadata = metadata;
   return mesh;
+}
+
+function cliffBlendNormalYMax(
+  config: TerrainConfig,
+) {
+  return Math.min(
+    0.98,
+    config.presentation
+      .rockNormalYMax +
+      config.presentation
+        .rockBlendNormalYBand,
+  );
+}
+
+function cliffBlendWeight(
+  config: TerrainConfig,
+  normalY: number,
+) {
+  const fullRock =
+    config.presentation
+      .rockNormalYMax;
+  const blendEnd =
+    cliffBlendNormalYMax(
+      config,
+    );
+
+  if (normalY <= fullRock) {
+    return 1;
+  }
+  if (normalY >= blendEnd) {
+    return 0;
+  }
+
+  return smoothstep(
+    (blendEnd - normalY) /
+      Math.max(
+        0.001,
+        blendEnd - fullRock,
+      ),
+  );
 }
 
 function isCliffQuad(
@@ -441,75 +497,158 @@ function isCliffQuad(
   }
 
   averageNormalY /= indices.length;
-  return averageNormalY <= config.presentation.rockNormalYMax;
+  return (
+    averageNormalY <=
+    cliffBlendNormalYMax(
+      config,
+    )
+  );
 }
 
-function projectedCliffUvs(
+function createCliffOverlayGeometry(
+  config: TerrainConfig,
   positions: number[],
   normals: number[],
-  scale: number,
+  cliffIndices: number[],
 ) {
-  const uvs: number[] = [];
+  const overlayPositions: number[] = [];
+  const overlayNormals: number[] = [];
+  const overlayUvs: number[] = [];
+  const overlayColors: number[] = [];
+  const overlayIndices: number[] = [];
   const textureScale =
-    Math.max(1, scale);
+    Math.max(
+      1,
+      config.presentation
+        .textureScale *
+        0.8,
+    );
+  const offset =
+    config.presentation
+      .cliffOverlayOffset;
 
   for (
     let index = 0;
-    index < positions.length;
+    index < cliffIndices.length;
     index += 3
   ) {
-    const x =
-      positions[index] ?? 0;
-    const y =
-      positions[index + 1] ?? 0;
-    const z =
-      positions[index + 2] ?? 0;
-    const nx =
-      normals[index] ?? 0;
-    const nz =
-      normals[index + 2] ?? 0;
+    const triangle = [
+      cliffIndices[index],
+      cliffIndices[index + 1],
+      cliffIndices[index + 2],
+    ];
 
     if (
-      Math.abs(nx) >=
-      Math.abs(nz)
+      triangle.some(
+        (vertex) =>
+          vertex === undefined,
+      )
     ) {
-      uvs.push(
-        z / textureScale,
+      continue;
+    }
+
+    let averageNx = 0;
+    let averageNz = 0;
+
+    for (const vertex of triangle) {
+      const vertexIndex =
+        vertex ?? 0;
+      averageNx +=
+        normals[
+          vertexIndex * 3
+        ] ?? 0;
+      averageNz +=
+        normals[
+          vertexIndex * 3 +
+            2
+        ] ?? 0;
+    }
+
+    const projectOnX =
+      Math.abs(averageNx) >=
+      Math.abs(averageNz);
+    const firstOverlayVertex =
+      overlayPositions.length /
+      3;
+
+    for (const vertex of triangle) {
+      const vertexIndex =
+        vertex ?? 0;
+      const x =
+        positions[
+          vertexIndex * 3
+        ] ?? 0;
+      const y =
+        positions[
+          vertexIndex * 3 +
+            1
+        ] ?? 0;
+      const z =
+        positions[
+          vertexIndex * 3 +
+            2
+        ] ?? 0;
+      const nx =
+        normals[
+          vertexIndex * 3
+        ] ?? 0;
+      const ny =
+        normals[
+          vertexIndex * 3 +
+            1
+        ] ?? 1;
+      const nz =
+        normals[
+          vertexIndex * 3 +
+            2
+        ] ?? 0;
+
+      overlayPositions.push(
+        x + nx * offset,
+        y + ny * offset,
+        z + nz * offset,
+      );
+      overlayNormals.push(
+        nx,
+        ny,
+        nz,
+      );
+      overlayUvs.push(
+        projectOnX
+          ? z / textureScale
+          : x / textureScale,
         y / textureScale,
       );
-    } else {
-      uvs.push(
-        x / textureScale,
-        y / textureScale,
+      overlayColors.push(
+        1,
+        1,
+        1,
+        cliffBlendWeight(
+          config,
+          ny,
+        ),
       );
     }
-  }
 
-  return uvs;
-}
-
-function offsetPositions(
-  positions: number[],
-  normals: number[],
-  distance: number,
-) {
-  const offset: number[] = [];
-
-  for (let index = 0; index < positions.length; index += 3) {
-    const x = positions[index] ?? 0;
-    const y = positions[index + 1] ?? 0;
-    const z = positions[index + 2] ?? 0;
-    const nx = normals[index] ?? 0;
-    const ny = normals[index + 1] ?? 1;
-    const nz = normals[index + 2] ?? 0;
-    offset.push(
-      x + nx * distance,
-      y + ny * distance,
-      z + nz * distance,
+    overlayIndices.push(
+      firstOverlayVertex,
+      firstOverlayVertex + 1,
+      firstOverlayVertex + 2,
     );
   }
 
-  return offset;
+  return {
+    positions:
+      overlayPositions,
+    normals:
+      overlayNormals,
+    uvs:
+      overlayUvs,
+    colors:
+      overlayColors,
+    indices:
+      overlayIndices,
+  };
 }
 
 function sampleEdge(a: Point2, b: Point2, spacing: number) {
@@ -1002,28 +1141,27 @@ export function createTerrain(
       meshes.push(surface);
 
       if (cliffIndices.length > 0) {
+        const cliffGeometry =
+          createCliffOverlayGeometry(
+            config,
+            positions,
+            normals,
+            cliffIndices,
+          );
         const cliff = createSurfaceMesh(
           scene,
           `terrain-cliff-accent-${tx}-${tz}`,
-          offsetPositions(
-            positions,
-            normals,
-            config.presentation.cliffOverlayOffset,
-          ),
-          normals,
-          projectedCliffUvs(
-            positions,
-            normals,
-            config.presentation
-              .textureScale * 0.8,
-          ),
-          cliffIndices,
+          cliffGeometry.positions,
+          cliffGeometry.normals,
+          cliffGeometry.uvs,
+          cliffGeometry.indices,
           materials.cliff,
           {
             ...metadata,
             category: "terrain-cliff-accent",
           },
           false,
+          cliffGeometry.colors,
         );
         cliff.isPickable = false;
         meshes.push(cliff);
