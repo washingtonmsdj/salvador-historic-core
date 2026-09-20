@@ -10,13 +10,21 @@ export function createBuildings(scene: Scene, buildings: MeasuredObject[]) {
     "rua-chile": material(scene, "building"),
     market: material(scene, "market"),
   };
+
   return buildings.map((item) => {
-    const mesh = MeshBuilder.CreateBox(item.id, {
-      width: item.width,
-      depth: item.depth,
-      height: item.height,
-    }, scene);
-    mesh.position.set(item.position[0], item.position[1] - item.height / 2, item.position[2]);
+    const mesh = MeshBuilder.CreateBox(
+      item.id,
+      {
+        width: item.width,
+        depth: item.depth,
+        height: item.height,
+      },
+      scene,
+    );
+
+    // site-data uses object-center coordinates consistently. Keeping that
+    // convention avoids silently sinking buildings by half their height.
+    mesh.position.set(...item.position);
     mesh.rotation.set(...item.rotation);
     mesh.material = mats[item.type as keyof typeof mats] ?? mats.context;
     mesh.checkCollisions = true;
