@@ -41,7 +41,7 @@ const regularized =
     longitudinalLift: 0,
     crossSpan: 7,
     maxCrossSlope: 0.06,
-    maxCorrectionRelief: 0.75,
+    maxSupportedFillHeight: 12,
     surfaceGap: 0.045,
   });
 
@@ -76,28 +76,49 @@ const steep =
     longitudinalLift: 0,
     crossSpan: 7,
     maxCrossSlope: 0.06,
-    maxCorrectionRelief: 0.75,
+    maxSupportedFillHeight: 12,
     surfaceGap: 0.045,
   });
 
-if (steep.regularized) {
+if (!steep.regularized) {
   throw new Error(
-    "Unsupported steep relief must not be artificially regularized.",
+    "Steep road relief within supported fill height must receive a walkable bench.",
   );
 }
 
 if (
   Math.abs(
-    steep.leftY -
-      (11 + 0.045),
-  ) > 0.000001 ||
-  Math.abs(
-    steep.rightY -
-      (10 + 0.045),
-  ) > 0.000001
+    steep.resultingDelta,
+  ) >
+  7 * 0.06 + 0.000001
 ) {
   throw new Error(
-    "Unsupported steep relief must follow both terrain edges.",
+    "Steep supported road must still respect maximum cross slope.",
+  );
+}
+
+if (
+  steep.rightSupportHeight <= 0
+) {
+  throw new Error(
+    "Lower road edge must report retaining support height.",
+  );
+}
+
+const unsupported =
+  gradeRoadCrossSection({
+    leftTerrain: 25,
+    rightTerrain: 10,
+    longitudinalLift: 0,
+    crossSpan: 7,
+    maxCrossSlope: 0.06,
+    maxSupportedFillHeight: 12,
+    surfaceGap: 0.045,
+  });
+
+if (unsupported.regularized) {
+  throw new Error(
+    "Road relief requiring more than maximum supported fill must not invent an unbounded structure.",
   );
 }
 
