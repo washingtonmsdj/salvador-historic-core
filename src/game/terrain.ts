@@ -25,6 +25,15 @@ const geospatialBase = geospatialBaseData as {
   };
 };
 
+let runtimeDerivedTerrain: DerivedTerrainGrid | null =
+  null;
+
+export function setRuntimeDerivedTerrain(
+  terrain: DerivedTerrainGrid | null,
+) {
+  runtimeDerivedTerrain = terrain;
+}
+
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
 
@@ -33,59 +42,131 @@ const smoothstep = (value: number) => {
   return t * t * (3 - 2 * t);
 };
 
-function isDerivedTerrainActive(config: TerrainConfig) {
-  const grid = derivedTerrain.grid;
-  if (
-    geospatialBase.terrain.active !== "geospatial-derived" ||
-    geospatialBase.terrain.fallbackActive ||
-    !derivedTerrain.available ||
-    !grid
-  ) {
+function isCompatibleDerivedTerrain(
+  terrain: DerivedTerrainGrid,
+  config: TerrainConfig,
+) {
+  const grid = terrain.grid;
+  if (!terrain.available || !grid) {
     return false;
   }
 
-  const expectedVertices = grid.columns * grid.rows;
+  const expectedVertices =
+    grid.columns * grid.rows;
   if (
     grid.columns < 2 ||
     grid.rows < 2 ||
     grid.spacing <= 0 ||
-    derivedTerrain.heights.length !== expectedVertices
+    terrain.heights.length !== expectedVertices
   ) {
     return false;
   }
 
   return (
-    derivedTerrain.bounds.minX === config.bounds.minX &&
-    derivedTerrain.bounds.maxX === config.bounds.maxX &&
-    derivedTerrain.bounds.minZ === config.bounds.minZ &&
-    derivedTerrain.bounds.maxZ === config.bounds.maxZ
+    terrain.bounds.minX === config.bounds.minX &&
+    terrain.bounds.maxX === config.bounds.maxX &&
+    terrain.bounds.minZ === config.bounds.minZ &&
+    terrain.bounds.maxZ === config.bounds.maxZ
   );
 }
 
-function sampleDerivedTerrain(x: number, z: number) {
-  const grid = derivedTerrain.grid;
-  if (!grid) {
-    throw new Error("Derived terrain grid is unavailable.");
+function activeDerivedTerrain(
+  config: TerrainConfig,
+) {
+  if (
+    runtimeDerivedTerrain &&
+    isCompatibleDerivedTerrain(
+      runtimeDerivedTerrain,
+      config,
+    )
+  ) {
+    return runtimeDerivedTerrain;
   }
 
-  const { bounds } = derivedTerrain;
-  const localX = clamp(x, bounds.minX, bounds.maxX);
-  const localZ = clamp(z, bounds.minZ, bounds.maxZ);
-  const gridX = (localX - bounds.minX) / grid.spacing;
-  const gridZ = (localZ - bounds.minZ) / grid.spacing;
-  const x0 = clamp(Math.floor(gridX), 0, grid.columns - 1);
-  const z0 = clamp(Math.floor(gridZ), 0, grid.rows - 1);
-  const x1 = Math.min(x0 + 1, grid.columns - 1);
-  const z1 = Math.min(z0 + 1, grid.rows - 1);
+  if (
+    geospatialBase.terrain.active ===
+      "geospatial-derived" &&
+    !geospatialBase.terrain.fallbackActive &&
+    isCompatibleDerivedTerrain(
+      derivedTerrain,
+      config,
+    )
+  ) {
+    return derivedTerrain;
+  }
+
+  return null;
+}
+
+function isDerivedTerrainActive(
+  config: TerrainConfig,
+) {
+  return activeDerivedTerrain(config) !== null;
+}
+
+function sampleDerivedTerrain(
+  terrain: DerivedTerrainGrid,
+  x: number,
+  z: number,
+) {
+  const grid = terrain.grid;
+  if (!grid) {
+    throw new Error(
+      "Derived terrain grid is unavailable.",
+    );
+  }
+
+  const { bounds } = terrain;
+  const localX = clamp(
+    x,
+    bounds.minX,
+    bounds.maxX,
+  );
+  const localZ = clamp(
+    z,
+    bounds.minZ,
+    bounds.maxZ,
+  );
+  const gridX =
+    (localX - bounds.minX) / grid.spacing;
+  const gridZ =
+    (localZ - bounds.minZ) / grid.spacing;
+  const x0 = clamp(
+    Math.floor(gridX),
+    0,
+    grid.columns - 1,
+  );
+  const z0 = clamp(
+    Math.floor(gridZ),
+    0,
+    grid.rows - 1,
+  );
+  const x1 = Math.min(
+    x0 + 1,
+    grid.columns - 1,
+  );
+  const z1 = Math.min(
+    z0 + 1,
+    grid.rows - 1,
+  );
   const tx = gridX - x0;
   const tz = gridZ - z0;
-  const index = (column: number, row: number) =>
-    row * grid.columns + column;
+  const index = (
+    column: number,
+    row: number,
+  ) => row * grid.columns + column;
 
-  const h00 = derivedTerrain.heights[index(x0, z0)] ?? 0;
-  const h10 = derivedTerrain.heights[index(x1, z0)] ?? h00;
-  const h01 = derivedTerrain.heights[index(x0, z1)] ?? h00;
-  const h11 = derivedTerrain.heights[index(x1, z1)] ?? h01;
+  const h00 =
+    terrain.heights[index(x0, z0)] ?? 0;
+  const h10 =
+    terrain.heights[index(x1, z0)] ??
+    h00;
+  const h01 =
+    terrain.heights[index(x0, z1)] ??
+    h00;
+  const h11 =
+    terrain.heights[index(x1, z1)] ??
+    h01;
   const south = h00 + (h10 - h00) * tx;
   const north = h01 + (h11 - h01) * tx;
   return south + (north - south) * tz;
@@ -304,14 +385,22 @@ export function terrainHeight(
   x: number,
   z: number,
 ) {
-  if (isDerivedTerrainActive(config)) {
-    const baseHeight = sampleDerivedTerrain(x, z);
-    const plateauHeight = applyTerrainPlateaus(
-      config,
+  const derived = activeDerivedTerrain(
+    config,
+  );
+  if (derived) {
+    const baseHeight = sampleDerivedTerrain(
+      derived,
       x,
       z,
-      baseHeight,
     );
+    const plateauHeight =
+      applyTerrainPlateaus(
+        config,
+        x,
+        z,
+        baseHeight,
+      );
     return applyTerrainCutouts(
       config,
       x,
@@ -757,14 +846,24 @@ export function createTerrain(
         }
       }
 
-      const derivedActive = isDerivedTerrainActive(config);
+      const activeTerrain =
+        activeDerivedTerrain(config);
+      const derivedActive =
+        activeTerrain !== null;
       const metadata = {
         category: "terrain",
         source: derivedActive
-          ? derivedTerrain.source ?? config.source
+          ? activeTerrain?.source ??
+            config.source
           : config.source,
-        estimated: derivedActive ? true : config.estimated,
-        derivedFromVerifiedContours: derivedActive,
+        estimated: derivedActive
+          ? true
+          : config.estimated,
+        derivedFromVerifiedContours:
+          derivedActive,
+        runtimeDerived:
+          activeTerrain ===
+          runtimeDerivedTerrain,
       };
 
       const surface = createSurfaceMesh(
