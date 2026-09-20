@@ -46,14 +46,14 @@ function distance(
   );
 }
 
-export function roadJunctionMaskPolygon(
+export function roadJunctionSurfacePolygon(
   junction: RoadJunction,
-  inset: number,
+  padding = 0,
   segments = 24,
 ): Point2[] {
   const radius = Math.max(
     0.1,
-    junction.radius - Math.max(0, inset),
+    junction.radius + padding,
   );
   const count = Math.max(
     12,
@@ -76,6 +76,18 @@ export function roadJunctionMaskPolygon(
             radius,
       ];
     },
+  );
+}
+
+export function roadJunctionMaskPolygon(
+  junction: RoadJunction,
+  inset: number,
+  segments = 24,
+): Point2[] {
+  return roadJunctionSurfacePolygon(
+    junction,
+    -Math.max(0, inset),
+    segments,
   );
 }
 
