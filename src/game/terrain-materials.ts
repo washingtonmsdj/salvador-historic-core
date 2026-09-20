@@ -1,5 +1,4 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
@@ -134,13 +133,12 @@ export function createTerrainMaterials(scene: Scene, config: TerrainConfig) {
   base.diffuseColor = new Color3(0.18, 0.17, 0.15);
   base.specularColor = Color3.Black();
 
-  const surface = new MultiMaterial("terrain-surface-multi", scene);
-  surface.subMaterials = [lower, cliff, upper];
-
   wall.backFaceCulling = false;
 
   return {
-    surface,
+    lower,
+    cliff,
+    upper,
     wall,
     base,
   };
