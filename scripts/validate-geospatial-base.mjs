@@ -1176,6 +1176,65 @@ if (derivedVectors?.available === true) {
   }
 }
 
+const curatedBuildings =
+  Array.isArray(siteData.buildings)
+    ? siteData.buildings
+    : [];
+const derivedBuildingFootprints =
+  Array.isArray(
+    derivedVectors?.buildingFootprints,
+  )
+    ? derivedVectors.buildingFootprints
+    : [];
+const derivedBuildingOsmIds =
+  new Set(
+    derivedBuildingFootprints
+      .map((item) => item.osmId)
+      .filter(Number.isFinite),
+  );
+
+for (const building of curatedBuildings) {
+  if (
+    building.footprintOsmId === undefined
+  ) {
+    continue;
+  }
+
+  if (
+    !Number.isInteger(
+      building.footprintOsmId,
+    ) ||
+    building.footprintOsmId <= 0
+  ) {
+    fail(
+      `${building.id} has an invalid footprintOsmId`,
+    );
+    continue;
+  }
+
+  if (
+    Array.isArray(
+      building.footprint,
+    ) &&
+    building.footprint.length > 0
+  ) {
+    fail(
+      `${building.id} must not duplicate vertices when footprintOsmId is configured`,
+    );
+  }
+
+  if (
+    derivedVectors?.available === true &&
+    !derivedBuildingOsmIds.has(
+      building.footprintOsmId,
+    )
+  ) {
+    fail(
+      `${building.id} references missing derived OSM footprint ${building.footprintOsmId}`,
+    );
+  }
+}
+
 if (
   derivedVectors?.available === true &&
   !vectorRuntimeActive

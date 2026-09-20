@@ -1,7 +1,9 @@
+import vectorsData from "../geospatial/derived/site-vectors.json";
 import siteData from "../src/data/site-data.json";
 import {
   alignEstimatedBuildingsToTerrain,
   deriveRuntimeBuildingBlockouts,
+  hydrateCuratedBuildingFootprints,
   sampleTerrainFootprint,
 } from "../src/game/derived-buildings";
 import type {
@@ -19,9 +21,84 @@ const data =
     levels: SceneLevels;
   };
 
+const vectors =
+  vectorsData as unknown as {
+    buildingFootprints:
+      DerivedBuildingFootprint[];
+  };
+
+const sourced =
+  hydrateCuratedBuildingFootprints(
+    data.buildings,
+    vectors.buildingFootprints,
+  );
+
+let referencedCount = 0;
+
+for (
+  let index = 0;
+  index < data.buildings.length;
+  index++
+) {
+  const before =
+    data.buildings[index];
+  const hydrated =
+    sourced[index];
+  if (!before || !hydrated) {
+    continue;
+  }
+
+  if (
+    typeof before.footprintOsmId !==
+    "number"
+  ) {
+    continue;
+  }
+
+  referencedCount += 1;
+
+  if (before.footprint) {
+    throw new Error(
+      `Building ${before.id} duplicates a referenced OSM footprint in site-data.json.`,
+    );
+  }
+
+  const source =
+    vectors.buildingFootprints.find(
+      (item) =>
+        item.osmId ===
+        before.footprintOsmId,
+    );
+
+  if (!source) {
+    throw new Error(
+      `Building ${before.id} references missing OSM footprint ${before.footprintOsmId}.`,
+    );
+  }
+
+  if (
+    JSON.stringify(
+      hydrated.footprint,
+    ) !==
+    JSON.stringify(
+      source.footprint,
+    )
+  ) {
+    throw new Error(
+      `Building ${before.id} did not hydrate the canonical OSM footprint exactly.`,
+    );
+  }
+}
+
+if (referencedCount < 2) {
+  throw new Error(
+    "Expected curated landmark OSM footprint references.",
+  );
+}
+
 const aligned =
   alignEstimatedBuildingsToTerrain(
-    data.buildings,
+    sourced,
     data.terrain,
     data.levels,
   );
@@ -43,7 +120,7 @@ for (
   index++
 ) {
   const before =
-    data.buildings[index];
+    sourced[index];
   const after = aligned[index];
 
   if (!before || !after) {

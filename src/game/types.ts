@@ -11,6 +11,7 @@ export interface MeasuredObject {
   depth: number;
   height: number;
   footprint?: Point2[];
+  footprintOsmId?: number;
   source: string;
   estimated: boolean;
 }

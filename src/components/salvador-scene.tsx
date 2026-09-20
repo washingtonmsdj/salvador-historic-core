@@ -476,6 +476,7 @@ export function SalvadorScene() {
           {
             deriveRuntimeBuildingBlockouts,
             alignEstimatedBuildingsToTerrain,
+            hydrateCuratedBuildingFootprints,
           },
           { createElevatorBlockout, createConnectionPoints },
           { createBarriers },
@@ -563,14 +564,21 @@ export function SalvadorScene() {
         let activeBuildingFootprints:
           DerivedBuildingFootprint[] = [];
 
+        const sourcedCuratedBuildings =
+          derivedVectorsUsable
+            ? hydrateCuratedBuildingFootprints(
+                data.buildings,
+                derivedVectors.buildingFootprints,
+              )
+            : data.buildings;
         const groundedCuratedBuildings =
           persistentTerrainActive
             ? alignEstimatedBuildingsToTerrain(
-                data.buildings,
+                sourcedCuratedBuildings,
                 data.terrain,
                 data.levels,
               )
-            : data.buildings;
+            : sourcedCuratedBuildings;
 
         let spaceMeshes = createSpaces(
           scene,
