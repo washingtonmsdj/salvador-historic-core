@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
+import { utm24SToLatLon } from "./lib/utm-wgs84.mjs";
 import {
   loadGeospatialContext,
   pathExists,
@@ -7,6 +8,15 @@ import {
 } from "./lib/geospatial-context.mjs";
 
 const { manifest, origin, bounds } = await loadGeospatialContext();
+
+const [southLatitude, westLongitude] = utm24SToLatLon(
+  origin.projected.easting + bounds.minX,
+  origin.projected.northing + bounds.minZ,
+);
+const [northLatitude, eastLongitude] = utm24SToLatLon(
+  origin.projected.easting + bounds.maxX,
+  origin.projected.northing + bounds.maxZ,
+);
 
 const normalizedOsmPath = resolve(
   root,
@@ -62,6 +72,12 @@ const runtime = {
     northing: origin.projected.northing,
   },
   perimeter: bounds,
+  geographicBounds: {
+    south: southLatitude,
+    west: westLongitude,
+    north: northLatitude,
+    east: eastLongitude,
+  },
   sources: {
     osm,
     contours,
