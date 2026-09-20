@@ -20,6 +20,24 @@ O Elevador é a âncora local da cena.
 O cutout não inventa uma nova geometria do Elevador: ele apenas impede que a superfície do
 terreno atravesse o volume verificado da torre.
 
+## Palácio Tomé de Souza
+
+O IPHAN documenta o Terreno à Praça Tomé de Souza (TPTS) com aproximadamente 46 m de largura
+por 50 m de profundidade. O Palácio atual ocupa uma faixa longitudinal central de aproximadamente
+16 m de largura, da Praça Tomé de Souza até a Ladeira da Misericórdia, com um pavimento elevado
+sobre pilotis.
+
+No blockout atual:
+
+- o envelope do TPTS é derivado do bordo sudoeste verificado da Praça e mede 46 x 50 m;
+- o footprint horizontal do Palácio mede 16 x 50 m e fica centralizado no TPTS;
+- a implantação horizontal é tratada como verificada por fonte oficial;
+- a altura vertical continua `estimated: true` porque a fonte consultada não informa a altura exata
+  do edifício atual;
+- o terreno e o Palácio não podem ser reposicionados manualmente sem atualizar as constraints.
+
+Fonte: IPHAN, Anexo XXIII — Orientação para Agenciamento e Projeto, Terreno à Praça Tomé de Souza.
+
 ## Praça Tomé de Souza
 
 O polígono versionado da Praça Tomé de Souza é a referência de implantação do entorno imediato.
