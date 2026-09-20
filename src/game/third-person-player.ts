@@ -14,7 +14,9 @@ import type {
   TerrainConfig,
 } from "./types";
 
-const PLAYER_HEIGHT = 1.8;
+export const THIRD_PERSON_PLAYER_HEIGHT = 1.8;
+const PLAYER_HEIGHT =
+  THIRD_PERSON_PLAYER_HEIGHT;
 const PLAYER_RADIUS = 0.36;
 const PLAYER_HALF_HEIGHT =
   PLAYER_HEIGHT / 2;
