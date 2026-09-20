@@ -24,7 +24,6 @@ import {
 } from "./road-path";
 import {
   fitBoundedSurfacePlane,
-  liftPlaneAboveSamples,
   surfacePlaneHeight,
   type PlaneObservation,
 } from "./surface-plane";
@@ -64,8 +63,10 @@ const JUNCTION_MAX_SEGMENTS =
   roadSurfacePolicy.junctionMaxSegments;
 const JUNCTION_MAX_SLOPE =
   roadSurfacePolicy.junctionMaxSlope;
-const JUNCTION_MAX_LIFT =
-  roadSurfacePolicy.junctionMaxLift;
+const JUNCTION_MAX_CUT =
+  roadSurfacePolicy.junctionMaxCut;
+const JUNCTION_MAX_FILL =
+  roadSurfacePolicy.junctionMaxFill;
 const publicSpaceSurfacePolicy =
   manifestData.publicSpaceSurfacePolicy;
 const SPACE_MAX_TRIANGLE_EDGE =
@@ -443,7 +444,9 @@ function createRoadRibbon(
         u0,
         Math.max(
           1,
-          a.support /
+          Math.abs(
+            a.verticalOffset,
+          ) /
             SUPPORT_WALL_TEXTURE_REPEAT_METERS,
         ),
         u1,
@@ -451,7 +454,9 @@ function createRoadRibbon(
         u1,
         Math.max(
           1,
-          b.support /
+          Math.abs(
+            b.verticalOffset,
+          ) /
             SUPPORT_WALL_TEXTURE_REPEAT_METERS,
         ),
       );
@@ -738,18 +743,37 @@ function createRoadJunctionMesh(
     });
   }
 
-  const lifted =
-    liftPlaneAboveSamples(
-      fittedPlane,
-      terrainSamples,
-      JUNCTION_MAX_LIFT,
-    );
+  const plane = fittedPlane;
+  let maxCut = 0;
+  let maxFill = 0;
 
-  if (!lifted.fullySupported) {
+  for (const sample of terrainSamples) {
+    const delta =
+      surfacePlaneHeight(
+        plane,
+        sample.x,
+        sample.z,
+      ) -
+      sample.y;
+    maxFill = Math.max(
+      maxFill,
+      delta,
+    );
+    maxCut = Math.max(
+      maxCut,
+      -delta,
+    );
+  }
+
+  if (
+    maxCut >
+      JUNCTION_MAX_CUT ||
+    maxFill >
+      JUNCTION_MAX_FILL
+  ) {
     return [];
   }
 
-  const plane = lifted.plane;
   const centerY =
     surfacePlaneHeight(
       plane,
@@ -773,7 +797,7 @@ function createRoadJunctionMesh(
     z: number;
     topY: number;
     terrainY: number;
-    support: number;
+    verticalOffset: number;
   }> = [];
 
   for (
@@ -823,13 +847,10 @@ function createRoadJunctionMesh(
       terrainY:
         terrainY -
         SUPPORT_WALL_SINK,
-      support:
-        Math.max(
-          0,
-          topY -
-            (terrainY +
-              SURFACE_GAP),
-        ),
+      verticalOffset:
+        topY -
+        (terrainY +
+          SURFACE_GAP),
     });
   }
 
@@ -901,8 +922,8 @@ function createRoadJunctionMesh(
     center: junction.center,
     radius,
     planeSlope: plane.slope,
-    requiredLift:
-      lifted.requiredLift,
+    maxCut,
+    maxFill,
     maxRoadEdgeDelta,
   };
 
@@ -932,9 +953,13 @@ function createRoadJunctionMesh(
     }
 
     if (
-      a.support <
+      Math.abs(
+        a.verticalOffset,
+      ) <
         SUPPORT_WALL_THRESHOLD &&
-      b.support <
+      Math.abs(
+        b.verticalOffset,
+      ) <
         SUPPORT_WALL_THRESHOLD
     ) {
       continue;
