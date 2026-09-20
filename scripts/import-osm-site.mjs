@@ -138,7 +138,7 @@ const query = `
   way["leisure"="square"](${bbox});
   way["leisure"="park"](${bbox});
   way["place"="square"](${bbox});
-${terrainFeatureSelectors.join("\\n")}
+${terrainFeatureSelectors.join("\n")}
 );
 out body geom;
 `.trim();
