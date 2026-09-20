@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "available": true,
-  "generatedAt": "2026-09-20T17:03:42.807Z",
+  "generatedAt": "2026-09-20T17:04:16.710Z",
   "source": "OpenStreetMap via Overpass API",
   "crs": "EPSG:32724",
   "units": "meters",
