@@ -38,6 +38,22 @@ No blockout atual:
 
 Fonte: IPHAN, Anexo XXIII — Orientação para Agenciamento e Projeto, Terreno à Praça Tomé de Souza.
 
+
+### Patamar topográfico do TPTS
+
+O envelope do TPTS também controla o terreno. Como o IPHAN documenta uma ocupação semienterrada
+que se estende por toda a área do terreno, com laje superior relacionada ao nível da Praça, o
+blockout trata esse envelope como um patamar plano da Cidade Alta.
+
+- footprint do patamar: idêntico ao envelope TPTS 46 x 50 m;
+- cota local atual: 65,2 m, igual ao datum usado pela Praça Tomé de Souza no blockout;
+- a geometria horizontal do envelope é derivada da fonte oficial;
+- a cota vertical continua `estimated: true`;
+- a transição nas bordas usa no máximo uma célula da malha para evitar degraus numéricos.
+
+O patamar é aplicado antes dos cutouts. Portanto, recortes especiais como o do Elevador continuam
+tendo precedência sobre a laje urbana.
+
 ## Praça Tomé de Souza
 
 O polígono versionado da Praça Tomé de Souza é a referência de implantação do entorno imediato.

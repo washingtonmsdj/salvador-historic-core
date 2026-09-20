@@ -261,6 +261,33 @@ function polygonSideLength(a, b) {
   return Math.hypot(b[0] - a[0], b[1] - a[1]);
 }
 
+const tptsPlateau = data.terrain.plateaus?.find(
+  (item) => item.id === "tpts-upper-slab",
+);
+
+if (!tptsPlateau) {
+  fail("TPTS terrain plateau is required");
+} else if (
+  JSON.stringify(tptsPlateau.polygon) !==
+  JSON.stringify(layout?.palacioThomeSite?.polygon)
+) {
+  fail("TPTS terrain plateau must match the IPHAN site envelope");
+} else {
+  const plazaDatum = plaza?.elevation;
+  if (
+    Number.isFinite(plazaDatum) &&
+    Math.abs(tptsPlateau.elevation - plazaDatum) > 0.05
+  ) {
+    fail("TPTS terrain plateau must use the same blockout datum as the plaza");
+  }
+
+  const sampleSpacing =
+    data.terrain.tileSize / data.terrain.subdivisionsPerTile;
+  if (tptsPlateau.feather > sampleSpacing + 0.001) {
+    fail("TPTS plateau feather must not exceed one terrain sample cell");
+  }
+}
+
 const thomeSite = layout?.palacioThomeSite;
 const thomeBuilding = data.buildings.find(
   (item) => item.id === "palacio-thome-souza",
