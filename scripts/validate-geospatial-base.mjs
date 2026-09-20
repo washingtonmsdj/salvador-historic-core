@@ -166,13 +166,49 @@ if (!roadSurfacePolicy) {
 
   if (
     !Number.isFinite(
-      roadSurfacePolicy.maxCrossSlopeCorrectionRelief,
+      roadSurfacePolicy.maxSupportedFillHeight,
     ) ||
-    roadSurfacePolicy.maxCrossSlopeCorrectionRelief <= 0 ||
-    roadSurfacePolicy.maxCrossSlopeCorrectionRelief > 2
+    roadSurfacePolicy.maxSupportedFillHeight <= 0 ||
+    roadSurfacePolicy.maxSupportedFillHeight > 20
   ) {
     fail(
-      "road maxCrossSlopeCorrectionRelief must be > 0 and <= 2 metres",
+      "road maxSupportedFillHeight must be > 0 and <= 20 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.supportWallThreshold,
+    ) ||
+    roadSurfacePolicy.supportWallThreshold < 0.05 ||
+    roadSurfacePolicy.supportWallThreshold > 1
+  ) {
+    fail(
+      "road supportWallThreshold must be between 0.05 and 1 metre",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.supportWallTextureRepeatMeters,
+    ) ||
+    roadSurfacePolicy.supportWallTextureRepeatMeters < 1 ||
+    roadSurfacePolicy.supportWallTextureRepeatMeters > 10
+  ) {
+    fail(
+      "road supportWallTextureRepeatMeters must be between 1 and 10 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.supportWallSink,
+    ) ||
+    roadSurfacePolicy.supportWallSink < 0 ||
+    roadSurfacePolicy.supportWallSink > 0.2
+  ) {
+    fail(
+      "road supportWallSink must be between 0 and 0.2 metres",
     );
   }
 
