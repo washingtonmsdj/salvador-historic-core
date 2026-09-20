@@ -149,5 +149,12 @@
     "maxGradeSmoothingDeviation": 0.12,
     "notes": "Gameplay road mesh follows OSM centerlines and the active terrain. Longitudinal smoothing is limited to 0.12 m around sampled terrain height. Crossfall is capped at 6% only when the natural edge-to-edge relief is <= 0.75 m; steeper unsupported sections follow both terrain edges instead of inventing a large cut/fill. These are rendering/gameplay constraints, not surveyed road elevations.",
     "maxCrossSlopeCorrectionRelief": 0.75
+  },
+  "publicSpaceSurfacePolicy": {
+    "maxTriangleEdge": 4,
+    "maxSubdivisions": 32,
+    "surfaceGap": 0.045,
+    "textureRepeatMeters": 4,
+    "notes": "Walkable plazas and pedestrian polygons are tessellated before terrain draping so collision triangles do not bridge across terrain relief. This is a rendering/gameplay mesh policy; source polygon boundaries remain unchanged."
   }
 }
