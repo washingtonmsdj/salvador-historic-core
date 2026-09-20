@@ -392,6 +392,58 @@ function solveContourX(
   return (left + right) / 2;
 }
 
+function createTerrainOutline(
+  scene: Scene,
+  config: TerrainConfig,
+  levels: SceneLevels,
+) {
+  const { bounds, presentation } = config;
+  const south = sampleEdge(
+    [bounds.minX, bounds.minZ],
+    [bounds.maxX, bounds.minZ],
+    presentation.perimeterSampleSpacing,
+  );
+  const east = sampleEdge(
+    [bounds.maxX, bounds.minZ],
+    [bounds.maxX, bounds.maxZ],
+    presentation.perimeterSampleSpacing,
+  ).slice(1);
+  const north = sampleEdge(
+    [bounds.maxX, bounds.maxZ],
+    [bounds.minX, bounds.maxZ],
+    presentation.perimeterSampleSpacing,
+  ).slice(1);
+  const west = sampleEdge(
+    [bounds.minX, bounds.maxZ],
+    [bounds.minX, bounds.minZ],
+    presentation.perimeterSampleSpacing,
+  ).slice(1);
+
+  const perimeter = [...south, ...east, ...north, ...west];
+  const points = perimeter.map(
+    ([x, z]) => new Vector3(x, terrainHeight(config, levels, x, z) + 0.16, z),
+  );
+
+  if (points.length > 0) {
+    points.push(points[0]!.clone());
+  }
+
+  const line = MeshBuilder.CreateLines(
+    "terrain-perimeter-outline",
+    { points, updatable: false },
+    scene,
+  );
+  line.color = new Color3(0.86, 0.74, 0.48);
+  line.alpha = 0.72;
+  line.isPickable = false;
+  line.checkCollisions = false;
+  line.metadata = {
+    category: "terrain-perimeter-outline",
+    estimated: config.estimated,
+  };
+  return line;
+}
+
 function createTerrainContours(
   scene: Scene,
   config: TerrainConfig,
@@ -529,5 +581,6 @@ export function createTerrain(
 
   meshes.push(...createTerrainStructure(scene, config, levels, materials));
   meshes.push(...createTerrainContours(scene, config, levels));
+  meshes.push(createTerrainOutline(scene, config, levels));
   return meshes;
 }
