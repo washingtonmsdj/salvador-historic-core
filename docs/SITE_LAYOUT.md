@@ -143,3 +143,29 @@ A promoção de uma feature para `site-data.json` exige:
 
 Não substituir uma feature verificada por uma aproximação manual quando ela já estiver disponível
 no arquivo de referência.
+
+
+## Contrato de coordenadas do mapa
+
+A cena não usa posicionamento visual livre para ruas ou edifícios de contexto.
+
+- Todo ponto horizontal entra primeiro como WGS84 ou EPSG:32724.
+- A origem projetada é o Elevador Lacerda.
+- O runtime converte cada vértice para X/Z local em metros.
+- Os quatro cantos do perímetro possuem WGS84 e UTM explícitos em `geospatial-base.json`.
+- Footprints OSM preservam a geometria vértice a vértice; altura pode continuar estimada sem alterar a posição horizontal.
+- Ruas são geradas da centerline OSM; em encosta, a centerline é reamostrada e drapeada sobre o terrain ativo.
+- Quando OSM live não está disponível, somente geometrias já versionadas/verificadas podem ser desenhadas. Não existe ribbon rodoviário genérico de substituição.
+- Blocos genéricos da Rua Chile não são mais usados como fallback; footprints reais entram quando disponíveis.
+
+### Via da encosta do Elevador
+
+A via histórica relevante é a **Ladeira da Montanha**. Ela é tratada como feature geoespacial crítica,
+assim como Rua Chile, Rua da Conceição da Praia e Avenida Lafayete Coutinho.
+
+A Ladeira deve:
+1. vir de geometria OSM/API do recorte;
+2. manter os vértices projetados em metros locais;
+3. usar `elevationMode: terrain`;
+4. ser amostrada densamente no runtime para acompanhar a ribanceira/terrain CONDER;
+5. nunca ser substituída por uma faixa manual desenhada “parecida”.

@@ -8,6 +8,7 @@ import type { LinearFeature, Point2, SceneLevels, TerrainConfig } from "./types"
 
 const SURFACE_GAP = 0.08;
 const ROAD_SAMPLE_SPACING = 5;
+const TERRAIN_ROAD_SAMPLE_SPACING = 2;
 
 function elevationAt(
   x: number,
@@ -25,7 +26,10 @@ function elevationAt(
   return terrainHeight(terrain, levels, x, z) + SURFACE_GAP;
 }
 
-function samplePolyline(points: Point2[]) {
+function samplePolyline(
+  points: Point2[],
+  spacing: number,
+) {
   if (points.length < 2) return [...points];
 
   const sampled: Point2[] = [];
@@ -38,7 +42,10 @@ function samplePolyline(points: Point2[]) {
     const dx = b[0] - a[0];
     const dz = b[1] - a[1];
     const distance = Math.hypot(dx, dz);
-    const steps = Math.max(1, Math.ceil(distance / ROAD_SAMPLE_SPACING));
+    const steps = Math.max(
+      1,
+      Math.ceil(distance / spacing),
+    );
 
     for (let step = 0; step < steps; step++) {
       const t = step / steps;
@@ -58,7 +65,12 @@ function createRoadRibbon(
   levels: SceneLevels,
   roadMaterial: ReturnType<typeof material>,
 ) {
-  const centers = samplePolyline(feature.points);
+  const centers = samplePolyline(
+    feature.points,
+    feature.elevationMode === "terrain"
+      ? TERRAIN_ROAD_SAMPLE_SPACING
+      : ROAD_SAMPLE_SPACING,
+  );
   if (centers.length < 2) return null;
 
   const positions: number[] = [];

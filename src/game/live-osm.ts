@@ -42,6 +42,7 @@ interface VectorDerivationConfig {
 
 export interface LiveOsmVectors {
   source:
+    | "app-server-live"
     | "overpass-live"
     | "osm-api-live"
     | "session-cache";
@@ -673,6 +674,88 @@ function parseOsmApiXml(
   return { elements };
 }
 
+async function fetchProjectServerOsm() {
+  const endpoint = "/api/geospatial/osm";
+  const controller = new AbortController();
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    15_000,
+  );
+
+  try {
+    const response = await fetch(endpoint, {
+      signal: controller.signal,
+      headers: {
+        accept:
+          "application/json,application/xml,text/xml",
+      },
+    });
+
+    if (!response.ok) {
+      const detail = await response
+        .text()
+        .catch(() => "");
+      throw new Error(
+        `${response.status} ${response.statusText}${
+          detail ? ` · ${detail.slice(0, 240)}` : ""
+        }`,
+      );
+    }
+
+    const contentType =
+      response.headers.get("content-type") ?? "";
+    const provider =
+      response.headers.get(
+        "x-geodata-provider",
+      ) ?? "app-server";
+
+    if (
+      contentType.includes(
+        "application/json",
+      )
+    ) {
+      const payload =
+        (await response.json()) as
+          OverpassPayload;
+      if (
+        !Array.isArray(
+          payload.elements,
+        )
+      ) {
+        throw new Error(
+          "App server returned JSON without elements.",
+        );
+      }
+
+      return {
+        endpoint:
+          `${endpoint}#${provider}`,
+        payload,
+      };
+    }
+
+    const payload = parseOsmApiXml(
+      await response.text(),
+    );
+    if (
+      !Array.isArray(payload.elements) ||
+      payload.elements.length === 0
+    ) {
+      throw new Error(
+        "App server returned XML without usable ways.",
+      );
+    }
+
+    return {
+      endpoint:
+        `${endpoint}#${provider}`,
+      payload,
+    };
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 async function fetchOsmApi(
   bounds: GeographicBounds,
 ) {
@@ -765,6 +848,7 @@ function deriveVectors(
   payload: OverpassPayload,
   endpoint: string,
   sourceKind:
+    | "app-server-live"
     | "overpass-live"
     | "osm-api-live",
   origin: ProjectedOrigin,
@@ -800,9 +884,11 @@ function deriveVectors(
 
     const osmId = element.id;
     const source =
-      sourceKind === "osm-api-live"
-        ? `OpenStreetMap API way/${osmId}`
-        : `OpenStreetMap Overpass way/${osmId}`;
+      sourceKind === "app-server-live"
+        ? `OpenStreetMap via app server way/${osmId}`
+        : sourceKind === "osm-api-live"
+          ? `OpenStreetMap API way/${osmId}`
+          : `OpenStreetMap Overpass way/${osmId}`;
 
     if (
       tags["highway"] &&
@@ -935,6 +1021,42 @@ export async function loadLiveOsmVectors({
 
   const query = queryFor(geographicBounds);
   const errors: string[] = [];
+
+  try {
+    const { endpoint, payload } =
+      await fetchProjectServerOsm();
+    const result = deriveVectors(
+      payload,
+      endpoint,
+      "app-server-live",
+      origin,
+      localBounds,
+    );
+
+    if (
+      result.roads.length === 0 &&
+      result.spaces.length === 0 &&
+      result.buildingFootprints.length === 0
+    ) {
+      throw new Error(
+        "App server returned no usable site features.",
+      );
+    }
+
+    writeCache(
+      geographicBounds,
+      result,
+    );
+    return result;
+  } catch (error) {
+    errors.push(
+      `/api/geospatial/osm: ${
+        error instanceof Error
+          ? error.message
+          : String(error)
+      }`,
+    );
+  }
 
   for (const endpoint of OVERPASS_ENDPOINTS) {
     try {
