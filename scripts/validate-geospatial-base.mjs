@@ -445,6 +445,14 @@ if (derivedVectors?.available === true) {
     if (!road.points.every(inBounds)) {
       fail(`${road.id} contains a road point outside project bounds`);
     }
+
+    if (
+      !Number.isFinite(road.osmId) ||
+      typeof road.osmType !== "string" ||
+      road.osmType.length === 0
+    ) {
+      fail(`${road.id} must preserve OSM identity`);
+    }
   }
 
   for (const space of spaces) {
@@ -455,6 +463,14 @@ if (derivedVectors?.available === true) {
 
     if (!space.points.every(inBounds)) {
       fail(`${space.id} contains a space point outside project bounds`);
+    }
+
+    if (
+      !Number.isFinite(space.osmId) ||
+      typeof space.osmType !== "string" ||
+      space.osmType.length === 0
+    ) {
+      fail(`${space.id} must preserve OSM identity`);
     }
   }
 

@@ -93,18 +93,44 @@ function normalizeFeatureName(name: string) {
   return name.trim().toLocaleLowerCase("pt-BR");
 }
 
+function osmFeatureKey(feature: LinearFeature) {
+  return (
+    typeof feature.osmId === "number" &&
+    feature.osmType
+  )
+    ? `${feature.osmType}/${feature.osmId}`
+    : null;
+}
+
 function mergeLinearFeatures(
   fallback: LinearFeature[],
   derived: LinearFeature[],
 ) {
-  const derivedNames = new Set(
-    derived.map((feature) => normalizeFeatureName(feature.name)),
+  const derivedOsmKeys = new Set(
+    derived
+      .map(osmFeatureKey)
+      .filter(
+        (key): key is string => key !== null,
+      ),
   );
-  return [
-    ...fallback.filter(
-      (feature) =>
-        !derivedNames.has(normalizeFeatureName(feature.name)),
+  const derivedNames = new Set(
+    derived.map((feature) =>
+      normalizeFeatureName(feature.name),
     ),
+  );
+
+  return [
+    ...fallback.filter((feature) => {
+      const osmKey = osmFeatureKey(feature);
+
+      if (osmKey) {
+        return !derivedOsmKeys.has(osmKey);
+      }
+
+      return !derivedNames.has(
+        normalizeFeatureName(feature.name),
+      );
+    }),
     ...derived,
   ];
 }
@@ -119,7 +145,10 @@ const runtimeRoads =
     ? derivedVectors.roads
     : geo.vectors.active === "geospatial-hybrid" &&
         derivedVectors.available
-      ? [...data.roads, ...derivedVectors.roads]
+      ? mergeLinearFeatures(
+          data.roads,
+          derivedVectors.roads,
+        )
       : data.roads;
 const runtimeSpaces =
   geo.vectors.active === "geospatial-derived" &&

@@ -936,9 +936,13 @@ function deriveVectors(
             `Via OSM ${osmId}`,
           type: `osm-${tags["highway"]}`,
           width: width.width,
+          widthSource: width.source,
           source,
           estimated: width.estimated,
           points: part,
+          osmId,
+          osmType: "way",
+          tags,
           elevationMode:
             tags["name"] === "Rua Chile"
               ? "upper"
@@ -970,6 +974,9 @@ function deriveVectors(
         source,
         estimated: false,
         points: polygon,
+        osmId,
+        osmType: "way",
+        tags,
         elevationMode:
           tags["name"] === "Praça Tomé de Souza"
             ? "upper"

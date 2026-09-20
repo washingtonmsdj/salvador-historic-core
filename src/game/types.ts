@@ -39,6 +39,10 @@ export interface LinearFeature {
   points: Point2[];
   elevationMode?: "upper" | "lower" | "terrain";
   elevation?: number;
+  widthSource?: string;
+  osmId?: number;
+  osmType?: string;
+  tags?: Record<string, string>;
 }
 
 export interface TerrainProfile {
