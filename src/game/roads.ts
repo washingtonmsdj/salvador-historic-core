@@ -151,6 +151,8 @@ function createPolygonSpace(
   scene: Scene,
   space: LinearFeature,
   squareMaterial: ReturnType<typeof material>,
+  terrain?: TerrainConfig,
+  levels?: SceneLevels,
 ) {
   const points = space.points;
   if (points.length < 3) return null;
@@ -159,8 +161,13 @@ function createPolygonSpace(
   const indices = orientTrianglesUp(points, earcut(flat));
   if (indices.length < 3) return null;
 
-  const elevation = (space.elevation ?? 0) + SURFACE_GAP;
-  const positions = points.flatMap(([x, z]) => [x, elevation, z]);
+  const positions = points.flatMap(([x, z]) => {
+    const elevation =
+      space.elevationMode === "terrain" && terrain && levels
+        ? elevationAt(x, z, terrain, levels)
+        : (space.elevation ?? 0) + SURFACE_GAP;
+    return [x, elevation, z];
+  });
   const normals = new Array<number>(positions.length).fill(0);
   const xs = points.map(([x]) => x);
   const zs = points.map(([, z]) => z);
@@ -204,12 +211,23 @@ export function createRoads(
   });
 }
 
-export function createSpaces(scene: Scene, spaces: LinearFeature[]) {
+export function createSpaces(
+  scene: Scene,
+  spaces: LinearFeature[],
+  terrain?: TerrainConfig,
+  levels?: SceneLevels,
+) {
   const squareMaterial = material(scene, "square");
   squareMaterial.backFaceCulling = false;
 
   return spaces.flatMap((space) => {
-    const mesh = createPolygonSpace(scene, space, squareMaterial);
+    const mesh = createPolygonSpace(
+      scene,
+      space,
+      squareMaterial,
+      terrain,
+      levels,
+    );
     return mesh ? [mesh] : [];
   });
 }
