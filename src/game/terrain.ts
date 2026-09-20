@@ -413,6 +413,7 @@ function createSurfaceMesh(
   material: Material,
   metadata: Record<string, unknown>,
   checkCollisions: boolean,
+  colors?: number[],
 ) {
   const mesh = new Mesh(name, scene);
   const vertexData = new VertexData();
@@ -420,13 +421,67 @@ function createSurfaceMesh(
   vertexData.normals = normals;
   vertexData.uvs = uvs;
   vertexData.indices = indices;
+  if (
+    colors &&
+    colors.length ===
+      positions.length / 3 * 4
+  ) {
+    vertexData.colors =
+      colors;
+  }
   vertexData.applyToMesh(mesh);
+
+  if (colors) {
+    mesh.useVertexColors =
+      true;
+    mesh.hasVertexAlpha =
+      true;
+  }
 
   mesh.material = material;
   mesh.receiveShadows = true;
   mesh.checkCollisions = checkCollisions;
   mesh.metadata = metadata;
   return mesh;
+}
+
+function cliffBlendNormalYMax(
+  config: TerrainConfig,
+) {
+  return Math.min(
+    0.98,
+    config.presentation
+      .rockNormalYMax +
+      0.1,
+  );
+}
+
+function cliffBlendWeight(
+  config: TerrainConfig,
+  normalY: number,
+) {
+  const fullRock =
+    config.presentation
+      .rockNormalYMax;
+  const blendEnd =
+    cliffBlendNormalYMax(
+      config,
+    );
+
+  if (normalY <= fullRock) {
+    return 1;
+  }
+  if (normalY >= blendEnd) {
+    return 0;
+  }
+
+  return smoothstep(
+    (blendEnd - normalY) /
+      Math.max(
+        0.001,
+        blendEnd - fullRock,
+      ),
+  );
 }
 
 function isCliffQuad(
@@ -441,7 +496,39 @@ function isCliffQuad(
   }
 
   averageNormalY /= indices.length;
-  return averageNormalY <= config.presentation.rockNormalYMax;
+  return (
+    averageNormalY <=
+    cliffBlendNormalYMax(
+      config,
+    )
+  );
+}
+
+function cliffVertexColors(
+  config: TerrainConfig,
+  normals: number[],
+) {
+  const colors: number[] = [];
+
+  for (
+    let index = 0;
+    index < normals.length;
+    index += 3
+  ) {
+    const normalY =
+      normals[index + 1] ?? 1;
+    colors.push(
+      1,
+      1,
+      1,
+      cliffBlendWeight(
+        config,
+        normalY,
+      ),
+    );
+  }
+
+  return colors;
 }
 
 function projectedCliffUvs(
@@ -1024,6 +1111,10 @@ export function createTerrain(
             category: "terrain-cliff-accent",
           },
           false,
+          cliffVertexColors(
+            config,
+            normals,
+          ),
         );
         cliff.isPickable = false;
         meshes.push(cliff);
