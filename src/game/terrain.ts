@@ -1396,6 +1396,7 @@ export function createTerrain(
       const normals: number[] = [];
       const uvs: number[] = [];
       const colors: number[] = [];
+      const weatheringWeights: number[] = [];
       const indices: number[] = [];
       const cliffIndices: number[] = [];
       const textureMeters = Math.max(
@@ -1441,15 +1442,20 @@ export function createTerrain(
             x / textureMeters,
             z / textureMeters,
           );
-          colors.push(
-            ...terrainMacroColor(
+          const presentationSample =
+            terrainPresentationSample(
               config,
               levels,
               x,
               y,
               z,
               normal[1],
-            ),
+            );
+          colors.push(
+            ...presentationSample.color,
+          );
+          weatheringWeights.push(
+            presentationSample.weatheringWeight,
           );
         }
       }
@@ -1497,15 +1503,20 @@ export function createTerrain(
             x / textureMeters,
             z / textureMeters,
           );
-          colors.push(
-            ...terrainMacroColor(
+          const presentationSample =
+            terrainPresentationSample(
               config,
               levels,
               x,
               y,
               z,
               normal[1],
-            ),
+            );
+          colors.push(
+            ...presentationSample.color,
+          );
+          weatheringWeights.push(
+            presentationSample.weatheringWeight,
           );
         }
         const refined = [
@@ -1615,6 +1626,42 @@ export function createTerrain(
         colors,
       );
       meshes.push(surface);
+
+      const weatheringGeometry =
+        createWeatheringOverlayGeometry(
+          config,
+          positions,
+          normals,
+          uvs,
+          indices,
+          weatheringWeights,
+        );
+      if (
+        weatheringGeometry.indices.length >
+        0
+      ) {
+        const weathering =
+          createSurfaceMesh(
+            scene,
+            `terrain-weathering-${tx}-${tz}`,
+            weatheringGeometry.positions,
+            weatheringGeometry.normals,
+            weatheringGeometry.uvs,
+            weatheringGeometry.indices,
+            materials.weathering,
+            {
+              ...metadata,
+              category:
+                "terrain-weathering",
+              visualOnly: true,
+            },
+            false,
+            weatheringGeometry.colors,
+          );
+        weathering.isPickable =
+          false;
+        meshes.push(weathering);
+      }
 
       if (cliffIndices.length > 0) {
         const cliffGeometry =
