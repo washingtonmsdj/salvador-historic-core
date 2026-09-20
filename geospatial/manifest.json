@@ -28,7 +28,8 @@
       "authority": "OpenStreetMap contributors",
       "status": "import-required",
       "command": "npm run geospatial:import:osm",
-      "output": "geospatial/raw/osm/site.json"
+      "rawOutput": "geospatial/raw/osm/overpass.json",
+      "normalizedOutput": "geospatial/normalized/osm/site.json"
     },
     "conderContours": {
       "kind": "elevation-contours",
@@ -39,7 +40,8 @@
       "elevationField": "ELEVATION",
       "crs": "EPSG:32724",
       "command": "npm run geospatial:import:conder",
-      "output": "geospatial/raw/conder/contours.json"
+      "rawOutput": "geospatial/raw/conder/contours.arcgis.json",
+      "normalizedOutput": "geospatial/normalized/conder/contours.json"
     },
     "salvadorMunicipalCartography": {
       "kind": "dem-lidar-orthophoto",
