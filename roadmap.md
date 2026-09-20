@@ -49,8 +49,10 @@
 - [x] Expor no runtime quando terreno/vetores ainda estão em fallback
 - [ ] Executar importação OSM completa do recorte e revisar features
 - [ ] Executar importação CONDER do recorte
-- [ ] Gerar superfície TIN/heightfield derivada das curvas ou, preferencialmente, do MDT municipal
-- [ ] Trocar o runtime de terrain.profiles para a superfície geoespacial derivada
+- [x] Implementar gerador determinístico de heightfield derivado das curvas CONDER
+- [ ] Executar a derivação com o recorte CONDER real ou substituir pelo MDT municipal quando disponível
+- [x] Preparar o runtime para preferir a superfície geoespacial derivada validada
+- [ ] Ativar geospatial-derived após importar/validar o recorte real
 - [ ] Promover ruas, praças e footprints verificados para a base derivada do jogo
 - [ ] Integrar ortofoto apenas como camada de conferência/debug, sem acoplar gameplay a tiles externos
 - [ ] Remover o terreno procedural da experiência normal quando a base real estiver validada
