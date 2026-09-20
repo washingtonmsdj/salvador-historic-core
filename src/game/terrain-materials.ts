@@ -26,16 +26,28 @@ function createSurfaceTexture(
   striated = false,
 ) {
   const size = 128;
-  const texture = new DynamicTexture(name, { width: size, height: size }, scene, false);
+  const texture = new DynamicTexture(
+    name,
+    { width: size, height: size },
+    scene,
+    false,
+  );
   const context = texture.getContext();
   const cell = 4;
 
   for (let y = 0; y < size; y += cell) {
     for (let x = 0; x < size; x += cell) {
-      const coarse = deterministicNoise(Math.floor(x / 12), Math.floor(y / 12), seed);
+      const coarse = deterministicNoise(
+        Math.floor(x / 12),
+        Math.floor(y / 12),
+        seed,
+      );
       const fine = deterministicNoise(x / cell, y / cell, seed + 11);
-      const band = striated ? Math.sin(y * 0.24 + coarse * 2.2) * 0.28 : 0;
-      const delta = (coarse * 0.58 + fine * 0.42 - 0.5 + band) * variation;
+      const band = striated
+        ? Math.sin(y * 0.24 + coarse * 2.2) * 0.22
+        : 0;
+      const delta =
+        (coarse * 0.58 + fine * 0.42 - 0.5 + band) * variation;
       const red = clampChannel(base[0] + delta);
       const green = clampChannel(base[1] + delta);
       const blue = clampChannel(base[2] + delta);
@@ -46,7 +58,7 @@ function createSurfaceTexture(
   }
 
   if (striated) {
-    context.fillStyle = "rgba(43, 37, 31, 0.16)";
+    context.fillStyle = "rgba(54, 46, 37, 0.14)";
     for (let y = 8; y < size; y += 13) {
       context.fillRect(0, y, size, 1);
     }
@@ -68,8 +80,10 @@ function createTerrainMaterial(
   scale: number,
   seed: number,
   striated = false,
+  alpha = 1,
 ) {
-  const diffuse = createSurfaceTexture(
+  const material = new StandardMaterial(name, scene);
+  material.diffuseTexture = createSurfaceTexture(
     scene,
     `${name}-diffuse`,
     base,
@@ -78,73 +92,60 @@ function createTerrainMaterial(
     seed,
     striated,
   );
-  const bump = createSurfaceTexture(
-    scene,
-    `${name}-bump`,
-    [128, 128, 128],
-    striated ? 86 : 46,
-    scale * 1.35,
-    seed + 101,
-    striated,
-  );
-
-  const material = new StandardMaterial(name, scene);
-  material.diffuseTexture = diffuse;
-  material.bumpTexture = bump;
-  bump.level = striated ? 0.42 : 0.22;
   material.diffuseColor = Color3.White();
-  material.specularColor = new Color3(0.035, 0.035, 0.035);
-  material.emissiveColor = new Color3(0.022, 0.026, 0.021);
+  material.specularColor = new Color3(0.025, 0.025, 0.025);
+  material.emissiveColor = Color3.FromInts(base[0], base[1], base[2]).scale(
+    striated ? 0.045 : 0.075,
+  );
+  material.alpha = alpha;
   return material;
 }
 
 export function createTerrainMaterials(scene: Scene, config: TerrainConfig) {
   const { textureScale } = config.presentation;
 
-  const lower = createTerrainMaterial(
+  const surface = createTerrainMaterial(
     scene,
-    "terrain-lower",
-    [116, 112, 98],
-    40,
-    textureScale,
+    "terrain-surface",
+    [126, 136, 105],
+    30,
+    textureScale * 0.85,
     17,
   );
+
   const cliff = createTerrainMaterial(
     scene,
-    "terrain-cliff",
-    [101, 91, 75],
-    52,
-    textureScale * 1.15,
+    "terrain-cliff-accent",
+    [124, 104, 79],
+    42,
+    textureScale,
     29,
     true,
+    0.94,
   );
-  const upper = createTerrainMaterial(
-    scene,
-    "terrain-upper",
-    [103, 117, 91],
-    44,
-    textureScale,
-    43,
-  );
+
   const wall = createTerrainMaterial(
     scene,
     "terrain-perimeter-wall",
-    [82, 74, 63],
-    45,
-    textureScale * 0.8,
+    [92, 81, 65],
+    34,
+    textureScale * 0.72,
     61,
     true,
   );
+
   const base = new StandardMaterial("terrain-base", scene);
-  base.diffuseColor = new Color3(0.18, 0.17, 0.15);
+  base.diffuseColor = new Color3(0.26, 0.24, 0.21);
+  base.emissiveColor = new Color3(0.018, 0.016, 0.014);
   base.specularColor = Color3.Black();
 
+  surface.backFaceCulling = false;
+  cliff.backFaceCulling = false;
   wall.backFaceCulling = false;
 
   return {
-    lower,
+    surface,
     cliff,
-    upper,
     wall,
     base,
   };
