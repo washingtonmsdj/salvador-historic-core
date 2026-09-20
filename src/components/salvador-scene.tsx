@@ -412,7 +412,7 @@ export function SalvadorScene() {
             ...data.barriers,
           ]);
 
-                    setLiveBuildingStats({
+          setLiveBuildingStats({
             promoted: result.buildings.length,
             noHeight: result.skipped.noHeight,
             excessiveRelief:
