@@ -1185,14 +1185,14 @@ export function SalvadorScene() {
             {derivedVectors.metadata?.buildingFootprintCount ?? 0} edifícios
           </div>
           <div className="mt-1 text-white/45">
-            OSM ao vivo:{" "}
+            Vetores OSM:{" "}
             {liveOsmState === "loading"
               ? "carregando"
               : liveOsmState === "active"
                 ? "ativo"
                 : liveOsmState === "cached"
                   ? "cache da sessão"
-                  : "indisponível — usando seed"}
+                  : "indisponível — usando fallback geoespacial"}
             {(liveOsmState === "active" ||
               liveOsmState === "cached") && (
               <>
@@ -1235,7 +1235,7 @@ export function SalvadorScene() {
             )}
           </div>
           <div className="mt-1 text-white/45">
-            Blockouts OSM live: {liveBuildingStats.promoted}
+            Blockouts OSM: {liveBuildingStats.promoted}
             {liveBuildingStats.noHeight > 0 && (
               <> · {liveBuildingStats.noHeight} sem altura</>
             )}
