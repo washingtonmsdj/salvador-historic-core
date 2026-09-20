@@ -70,6 +70,8 @@ for (const junction of junctions) {
           policy.maxLongitudinalSlope,
         maxProfileIterations:
           policy.longitudinalProfileIterations,
+        profileFallbackOsmIds:
+          policy.longitudinalProfileFallbackOsmIds,
         junctionSurfaceOffset:
           policy.junctionSurfaceOffset,
         junctionMaxSegments:
