@@ -38,6 +38,11 @@
 - [x] Terrain procedural mantido apenas como fallback
 - [x] Junctions com limites automáticos de slope/cut/fill/road-edge delta
 - [x] Estradas auditadas contra o terreno ativo em toda a coleção derivada
+- [x] Migrar materiais do terreno para PBR com albedo/normal/ORM/detail multiescala
+- [x] Eliminar costuras de tiling nas texturas procedurais do terreno
+- [x] Suavizar blend solo ↔ rocha por inclinação sem alterar a topografia
+- [x] Usar projeção por face na ribanceira para reduzir stretching
+- [x] Ativar ACES tone mapping e Cascaded Shadow Maps com fallback
 
 - [x] Palácio Thomé de Souza: substituir retângulo manual pelo footprint OSM correlacionado ao lote IPHAN e proteger a correlação em CI.
 - [x] Elevador Lacerda: preservar corredores indoor OSM separadamente das ruas e renderizar a passarela superior como deck elevado caminhável.
@@ -56,7 +61,9 @@
 - [ ] Validar desempenho das máscaras adaptativas e malhas viárias em desktop/mobile
 - [ ] Validar acessibilidade e controles da experiência jogável
 - [ ] Preparar substituição progressiva de blockouts por GLB
-- [ ] Revisar iluminação, materiais e LOD sem alterar geometria geoespacial
+- [ ] Adicionar LOD/HLOD de cena e culling orientado por distância sem reduzir precisão perto do jogador
+- [ ] Adicionar decals/ground scatter verificados (folhas, sujeira, pequenas pedras) sem invadir vias/footprints
+- [ ] Avaliar textura fotogramétrica/ortofoto licenciável como camada visual opcional, mantendo a geometria GIS separada
 - [ ] Executar uma auditoria final de documentação antes do merge de cada grande fase
 
 ## Regra permanente
