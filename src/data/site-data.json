@@ -12,7 +12,7 @@
   },
   "terrain": {
     "tileSize": 60,
-    "subdivisionsPerTile": 12,
+    "subdivisionsPerTile": 16,
     "bounds": { "minX": -120, "maxX": 180, "minZ": -340, "maxZ": 240 },
     "profiles": [
       { "z": -340, "toeX": -180, "cliffX": -155, "shoulderX": -132 },
