@@ -121,7 +121,7 @@ export function createTerrainMaterials(scene: Scene, config: TerrainConfig) {
     textureScale,
     29,
     true,
-    0.94,
+    0.88,
   );
 
   const wall = createTerrainMaterial(
@@ -132,6 +132,7 @@ export function createTerrainMaterials(scene: Scene, config: TerrainConfig) {
     textureScale * 0.72,
     61,
     true,
+    0.76,
   );
 
   const base = new StandardMaterial("terrain-base", scene);
