@@ -169,6 +169,12 @@ if (
   failures.push("derived road did not preserve OSM identity");
 }
 
+if (residential?.elevationMode !== "terrain") {
+  failures.push(
+    "OSM roads must follow the active terrain instead of a name-based elevation override",
+  );
+}
+
 const explicit = derived.roads.find(
   (road) => road.id === "way/2",
 );
