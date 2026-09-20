@@ -1,11 +1,14 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import proj4 from "proj4";
 import {
   loadGeospatialContext,
   projectedToLocal,
   root,
 } from "./lib/geospatial-context.mjs";
+import {
+  latLonToUtm24S,
+  utm24SToLatLon,
+} from "./lib/utm-wgs84.mjs";
 
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
@@ -15,18 +18,14 @@ const OVERPASS_ENDPOINTS = [
 const { manifest, origin, bounds, projected } = await loadGeospatialContext();
 const rawOutputPath = resolve(root, manifest.sources.osm.rawOutput);\nconst normalizedOutputPath = resolve(root, manifest.sources.osm.normalizedOutput);
 
-const WGS84 = "EPSG:4326";
-const UTM24S = "+proj=utm +zone=24 +south +datum=WGS84 +units=m +no_defs";
-
 function localToGeographic(x, z) {
   const easting = projected.easting + x;
   const northing = projected.northing + z;
-  const [longitude, latitude] = proj4(UTM24S, WGS84, [easting, northing]);
-  return [latitude, longitude];
+  return utm24SToLatLon(easting, northing);
 }
 
 function geographicToLocal(latitude, longitude) {
-  const [easting, northing] = proj4(WGS84, UTM24S, [longitude, latitude]);
+  const [easting, northing] = latLonToUtm24S(latitude, longitude);
   return projectedToLocal(projected, easting, northing);
 }
 
@@ -175,7 +174,7 @@ const output = {
     source: "OpenStreetMap via Overpass API",
     sourceCrs: "EPSG:4326",
     normalizedCrs: manifest.localCoordinateSystem.horizontalCrs,
-    transform: "proj4 WGS84 -> UTM zone 24S -> local metres",
+    transform: "deterministic WGS84 -> UTM zone 24S -> local metres",
     endpoint,
     generatedAt: new Date().toISOString(),
     localOrigin: {
