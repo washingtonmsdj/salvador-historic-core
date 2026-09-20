@@ -9,8 +9,8 @@
   "bounds": {
     "minX": -150,
     "maxX": 150,
-    "minZ": -230,
-    "maxZ": 230
+    "minZ": -300,
+    "maxZ": 300
   },
   "grid": null,
   "verticalDatum": null,
