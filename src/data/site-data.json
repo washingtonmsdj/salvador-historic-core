@@ -3,7 +3,7 @@
     "title": "Centro Histórico de Salvador — blockout v1",
     "units": "meters",
     "coordinateSystem": { "x": "east/west; positive east", "y": "height; positive up", "z": "north/south; positive north" },
-    "origin": { "id": "elevador-lacerda-osm-centroid", "name": "Elevador Lacerda", "latitude": -12.9740882, "longitude": -38.5133597, "local": [0, 0, 0], "projected": { "crs": "EPSG:32724", "easting": 552777.9809, "northing": 8565679.442, "source": "Deterministic projection of the WGS84 origin coordinate to SIRGAS/UTM zone 24S" }, "source": "OpenStreetMap way 59224731 centroid", "estimated": false },
+    "origin": { "id": "elevador-lacerda-osm-centroid", "name": "Elevador Lacerda", "latitude": -12.9740882, "longitude": -38.5133597, "local": [0, 0, 0], "projected": { "crs": "EPSG:32724", "easting": 552777.9809, "northing": 8565679.442, "source": "Deterministic projection of the WGS84 origin coordinate to WGS 84 / UTM zone 24S (EPSG:32724)" }, "source": "OpenStreetMap way 59224731 centroid", "estimated": false },
     "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements."
   },
   "levels": {
@@ -11,10 +11,27 @@
     "upperCity": { "elevation": 65, "source": "IPHAN historical description: Cidade Alta approximately 65 m above the port; local blockout datum, not a surveyed point elevation", "estimated": true }
   },
   "terrain": {
-    "tileSize": 80,
+    "tileSize": 60,
+    "subdivisionsPerTile": 12,
     "bounds": { "minX": -120, "maxX": 180, "minZ": -340, "maxZ": 240 },
-    "cliffTransition": { "lowX": -18, "highX": 26, "lowerY": 0, "upperY": 72, "source": "Blockout interpretation of the escarpment beside Elevador Lacerda", "estimated": true },
-    "source": "Prepared procedural grid; replace samples with surveyed DEM", "estimated": true
+    "profiles": [
+      { "z": -340, "toeX": -180, "cliffX": -155, "shoulderX": -132 },
+      { "z": -300, "toeX": -160, "cliffX": -135, "shoulderX": -112 },
+      { "z": -250, "toeX": -125, "cliffX": -100, "shoulderX": -78 },
+      { "z": -200, "toeX": -90, "cliffX": -65, "shoulderX": -43 },
+      { "z": -150, "toeX": -60, "cliffX": -35, "shoulderX": -13 },
+      { "z": -100, "toeX": -32, "cliffX": -7, "shoulderX": 15 },
+      { "z": -50, "toeX": -25, "cliffX": 0, "shoulderX": 18 },
+      { "z": 0, "toeX": -26, "cliffX": -2, "shoulderX": 18 },
+      { "z": 50, "toeX": -2, "cliffX": 22, "shoulderX": 42 },
+      { "z": 100, "toeX": 2, "cliffX": 28, "shoulderX": 48 },
+      { "z": 160, "toeX": 5, "cliffX": 32, "shoulderX": 52 },
+      { "z": 240, "toeX": 8, "cliffX": 36, "shoulderX": 56 }
+    ],
+    "lowerGrade": { "risePerMeterX": 0.004, "maxRise": 1.2 },
+    "upperGrade": { "risePerMeterX": 0.002, "risePerMeterZ": -0.001, "maxVariation": 1.5 },
+    "source": "Provisional 2D escarpment control profiles prepared for blockout. CONDER Cartografia Sistemática 1992 REL_Curva_Nivel_L is the official contour reference to import next; profiles must not be treated as surveyed contours.",
+    "estimated": true
   },
   "landmarks": [
     { "id": "upperEntrance", "name": "Entrada superior", "type": "connection-point", "position": [15, 65, -2], "rotation": [0, 0, 0], "width": 2, "depth": 2, "height": 2, "source": "OSM way 59224731 spatial relation; exact portal pending survey", "estimated": true },
