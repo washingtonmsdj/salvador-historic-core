@@ -26,7 +26,7 @@
       "source": "OpenStreetMap way 59224731 centroid",
       "estimated": false
     },
-    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements. Unverified generic plaza building placeholders and the provisional Ladeira da Montanha ribbon were removed rather than rendered with invented placement. Palácio Thomé de Souza horizontal blockout now follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); only vertical height remains estimated."
+    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements. Unverified generic plaza building placeholders and the provisional Ladeira da Montanha ribbon were removed rather than rendered with invented placement. Palácio Thomé de Souza horizontal blockout now follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); only vertical height remains estimated. TPTS terrain is flattened as a data-driven upper-city plateau following the IPHAN 46 x 50 m envelope; its local elevation remains estimated."
   },
   "levels": {
     "lowerCity": {
@@ -174,6 +174,33 @@
         "source": "OpenStreetMap way 59224731 footprint projected to local metres; 2.5 m clearance equals one terrain sample cell and feather is presentation-only",
         "estimated": true,
         "clearance": 2.5
+      }
+    ],
+    "plateaus": [
+      {
+        "id": "tpts-upper-slab",
+        "polygon": [
+          [
+            72.26,
+            -15.114
+          ],
+          [
+            107.24,
+            -44.986
+          ],
+          [
+            139.71,
+            -6.964
+          ],
+          [
+            104.73,
+            22.909
+          ]
+        ],
+        "elevation": 65.2,
+        "feather": 2.5,
+        "source": "IPHAN Anexo XXIII documents the TPTS as fully occupied by a semi-underground level with an upper slab; horizontal envelope is official/derived, elevation 65.2 m is the current local blockout plaza datum and remains estimated.",
+        "estimated": true
       }
     ]
   },
