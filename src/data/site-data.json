@@ -172,7 +172,7 @@
         "elevation": 0.15,
         "feather": 1.5,
         "source": "OpenStreetMap way 59224731 footprint projected to local metres; feather is presentation clearance only",
-        "estimated": false
+        "estimated": true
       }
     ]
   },
@@ -753,5 +753,71 @@
       "source": "Safety edge blockout; exact alignment pending survey",
       "estimated": true
     }
-  ]
+  ],
+  "layoutConstraints": {
+    "elevatorExclusion": {
+      "polygon": [
+        [
+          -0.34,
+          -5.4
+        ],
+        [
+          1.55,
+          -3.61
+        ],
+        [
+          3.4,
+          -1.85
+        ],
+        [
+          5.42,
+          0.07
+        ],
+        [
+          0.35,
+          5.4
+        ],
+        [
+          -1.2,
+          3.94
+        ],
+        [
+          -5.41,
+          -0.07
+        ]
+      ],
+      "minimumRoadClearance": 12,
+      "source": "OpenStreetMap way 59224731 footprint; road clearance is a gameplay/blockout safety margin",
+      "estimated": true
+    },
+    "plazaNortheastFrontage": {
+      "edge": [
+        [
+          105.5,
+          -43.5
+        ],
+        [
+          74,
+          -16.6
+        ]
+      ],
+      "source": "Praça Tomé de Souza OpenStreetMap way 1263035782 edge",
+      "estimated": false
+    },
+    "ruaChileAxis": {
+      "points": [
+        [
+          -106.5,
+          -298.1
+        ],
+        [
+          -69.66,
+          -256.14
+        ]
+      ],
+      "rotationY": -0.8503,
+      "source": "OpenStreetMap way 258560240 projected to local metres",
+      "estimated": false
+    }
+  }
 }
