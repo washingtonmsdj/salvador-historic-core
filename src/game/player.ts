@@ -31,7 +31,7 @@ export function playerGroundHeight(
   );
 }
 
-function walkableSurfaceHeight(
+export function walkableSurfaceHeight(
   scene: Scene,
   terrain: TerrainConfig,
   levels: SceneLevels,
