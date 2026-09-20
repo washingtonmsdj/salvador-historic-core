@@ -26,7 +26,7 @@
       "source": "OpenStreetMap way 59224731 centroid",
       "estimated": false
     },
-    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements. Unverified generic plaza building placeholders and the provisional Ladeira da Montanha ribbon were removed rather than rendered with invented placement."
+    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements. Unverified generic plaza building placeholders and the provisional Ladeira da Montanha ribbon were removed rather than rendered with invented placement. Palácio Thomé de Souza horizontal blockout now follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); only vertical height remains estimated."
   },
   "levels": {
     "lowerCity": {
@@ -357,20 +357,38 @@
       "name": "Prefeitura / Palácio Thomé de Souza",
       "type": "civic",
       "position": [
-        96.9,
-        73,
-        -21.7
+        105.985,
+        69.5,
+        -11.039
       ],
       "rotation": [
         0,
-        0.707,
+        0,
         0
       ],
-      "width": 39,
-      "depth": 19,
-      "height": 16,
-      "source": "Named building on Praça Tomé de Souza; blockout positioned from the northeast edge of verified OSM square polygon, dimensions still estimated",
-      "estimated": true
+      "width": 16,
+      "depth": 50,
+      "height": 9,
+      "source": "IPHAN Anexo XXIII: TPTS approximately 46 m wide x 50 m deep; current Palácio Tomé de Souza occupies a central longitudinal strip approximately 16 m wide from Praça Tomé de Souza to Ladeira da Misericórdia. Footprint derived from the verified southwest plaza edge and those dimensions; vertical height remains estimated for blockout.",
+      "estimated": true,
+      "footprint": [
+        [
+          83.666,
+          -24.855
+        ],
+        [
+          95.834,
+          -35.245
+        ],
+        [
+          128.304,
+          2.777
+        ],
+        [
+          116.136,
+          13.168
+        ]
+      ]
     },
     {
       "id": "palacio-rio-branco",
@@ -814,6 +832,41 @@
       "minimumCenterlineClearance": 10,
       "source": "Gameplay/blockout clearance around verified Mercado Modelo footprint",
       "estimated": true
+    },
+    "palacioThomeSite": {
+      "polygon": [
+        [
+          72.259,
+          -14.553
+        ],
+        [
+          107.241,
+          -45.547
+        ],
+        [
+          139.711,
+          -7.525
+        ],
+        [
+          104.729,
+          23.469
+        ]
+      ],
+      "width": 46,
+      "depth": 50,
+      "palaceStripWidth": 16,
+      "frontageEdge": [
+        [
+          105.5,
+          -43.5
+        ],
+        [
+          74,
+          -16.6
+        ]
+      ],
+      "source": "IPHAN Anexo XXIII — Orientação para Agenciamento e Projeto, Terreno à Praça Tomé de Souza: site approximately 46 m x 50 m; current Palácio occupies central longitudinal strip approximately 16 m wide.",
+      "estimated": false
     }
   }
 }
