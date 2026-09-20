@@ -40,6 +40,16 @@ const styles: Record<
     bumpStrength: 0.34,
     bumpLevel: 0.16,
   },
+  paved: {
+    base: [103, 104, 101],
+    variation: 18,
+    aggregate: 0.08,
+    jointSpacing: null,
+    jointAlpha: 0,
+    pattern: "aggregate",
+    bumpStrength: 0.22,
+    bumpLevel: 0.12,
+  },
   paving: {
     base: [132, 122, 107],
     variation: 30,
@@ -489,11 +499,13 @@ export function surfaceMaterialForKind(
       style,
       kind === "asphalt"
         ? 43
-        : kind === "paving"
-          ? 71
-          : kind === "stone"
-            ? 97
-            : 121,
+        : kind === "paved"
+          ? 59
+          : kind === "paving"
+            ? 71
+            : kind === "stone"
+              ? 97
+              : 121,
     );
 
   material.diffuseTexture =
