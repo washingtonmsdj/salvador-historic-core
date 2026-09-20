@@ -6,7 +6,7 @@
     "normalizedCrs": "EPSG:32724",
     "transform": "deterministic WGS84 -> UTM zone 24S -> local metres",
     "endpoint": "https://overpass-api.de/api/interpreter",
-    "generatedAt": "2026-09-20T17:02:09.373Z",
+    "generatedAt": "2026-09-20T17:03:42.752Z",
     "localOrigin": {
       "latitude": -12.9740882,
       "longitude": -38.5133597,
