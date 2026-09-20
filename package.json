@@ -35,7 +35,8 @@
     "terrain:mask-test": "bun scripts/test-terrain-mask.ts",
     "building:grounding-test": "bun scripts/test-building-grounding.ts",
     "road:grading-test": "bun scripts/test-road-grading.ts",
-    "geospatial:test:osm-api": "node scripts/test-osm-api-xml.mjs"
+    "geospatial:test:osm-api": "node scripts/test-osm-api-xml.mjs",
+    "road:terrain-fit-test": "bun scripts/test-critical-road-terrain-fit.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
