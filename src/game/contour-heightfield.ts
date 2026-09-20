@@ -126,8 +126,10 @@ export function deriveContourHeightfield({
     }
 
     const index = indexOf(column, row);
-    fixedSum[index] += elevation;
-    fixedWeight[index] += 1;
+    fixedSum[index] =
+      (fixedSum[index] ?? 0) + elevation;
+    fixedWeight[index] =
+      (fixedWeight[index] ?? 0) + 1;
   };
 
   const sampleSegment = (
