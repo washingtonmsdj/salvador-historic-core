@@ -123,3 +123,22 @@ Critérios automáticos:
 Footprints em encosta forte são deliberadamente ignorados até receberem uma fundação ou modelo
 específico. Quando essa base entra em operação, os placeholders genéricos do tipo `rua-chile`
 são removidos do runtime.
+
+
+## Referência raster no terreno
+
+Enquanto os produtos vetoriais e o MDT/heightfield real ainda estão sendo materializados, o
+Preview pode exibir uma camada raster do OpenStreetMap diretamente sobre a superfície 3D.
+
+Essa camada:
+
+- usa o mesmo bbox WGS84 calculado a partir do perímetro local;
+- é convertida para o mesmo sistema X/Z centrado no Elevador Lacerda;
+- acompanha a altura do terreno apenas para comparação visual;
+- não gera ruas, colisões, edifícios ou gameplay;
+- fica abaixo das superfícies 3D de ruas e praças;
+- possui limite explícito de tiles e attribution visível;
+- pode ser desligada pelo botão `Mapa no terreno`.
+
+A finalidade é detectar imediatamente desalinhamentos entre blockouts e cartografia real. Ela não
+substitui a promoção de OSM/CONDER para `geospatial/derived/`.
