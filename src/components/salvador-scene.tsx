@@ -499,6 +499,10 @@ export function SalvadorScene() {
                 data.levels,
               );
 
+            rebuildLiveBuildingBlockouts(
+              liveScene,
+            );
+
             setLiveOsmCounts({
               roads: live.roads.length,
               spaces: live.spaces.length,
@@ -603,6 +607,11 @@ export function SalvadorScene() {
                 data.terrain,
                 data.levels,
               );
+
+            runtimeTerrainReady = true;
+            rebuildLiveBuildingBlockouts(
+              liveScene,
+            );
 
             setLiveTerrainStats({
               contours: live.contourCount,
@@ -783,6 +792,18 @@ export function SalvadorScene() {
                 {liveTerrainStats.columns}×{liveTerrainStats.rows} ·{" "}
                 ΔY {liveTerrainStats.maxHeight.toFixed(1)} m
               </>
+            )}
+          </div>
+          <div className="mt-1 text-white/45">
+            Blockouts OSM live: {liveBuildingStats.promoted}
+            {liveBuildingStats.noHeight > 0 && (
+              <> · {liveBuildingStats.noHeight} sem altura</>
+            )}
+            {liveBuildingStats.excessiveRelief > 0 && (
+              <> · {liveBuildingStats.excessiveRelief} em encosta</>
+            )}
+            {liveBuildingStats.protected > 0 && (
+              <> · {liveBuildingStats.protected} protegidos</>
             )}
           </div>
         </div>
