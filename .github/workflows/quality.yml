@@ -42,6 +42,9 @@ jobs:
       - name: Validate geospatial contracts
         run: bun run geospatial:validate
 
+      - name: Validate site layout
+        run: bun run layout:validate
+
       - name: Validate road surfaces
         run: bun run road:test
 
