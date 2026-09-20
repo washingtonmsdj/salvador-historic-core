@@ -85,6 +85,18 @@ if (!roadSurfacePolicy) {
 
   if (
     !Number.isFinite(
+      roadSurfacePolicy.maxCrossSlopeCorrectionRelief,
+    ) ||
+    roadSurfacePolicy.maxCrossSlopeCorrectionRelief <= 0 ||
+    roadSurfacePolicy.maxCrossSlopeCorrectionRelief > 2
+  ) {
+    fail(
+      "road maxCrossSlopeCorrectionRelief must be > 0 and <= 2 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
       roadSurfacePolicy.maxMiterScale,
     ) ||
     roadSurfacePolicy.maxMiterScale < 1 ||
