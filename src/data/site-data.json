@@ -183,9 +183,10 @@
         ],
         "elevation": -0.15,
         "feather": 2.5,
-        "source": "OpenStreetMap way 59224731 footprint projected to local metres; 2.5 m clearance equals one terrain sample cell and feather is presentation-only",
+        "source": "Procedural-terrain recovery snapshot of OpenStreetMap way 59224731; normal runtime uses the canonical derived OSM footprint and persistent CONDER terrain.",
         "estimated": true,
-        "clearance": 2.5
+        "clearance": 2.5,
+        "fallbackSnapshotOfOsmId": 59224731
       }
     ],
     "plateaus": [
@@ -296,38 +297,9 @@
       "width": 10.83,
       "depth": 10.81,
       "height": 72,
-      "source": "Height 72 m and footprint from OpenStreetMap way 59224731; footprint projected to local metres",
+      "source": "Height 72 m and canonical horizontal footprint from OpenStreetMap way 59224731; runtime hydrates the versioned derived OSM polygon instead of duplicating vertices in site-data.json.",
       "estimated": false,
-      "footprint": [
-        [
-          -0.34,
-          -5.4
-        ],
-        [
-          1.55,
-          -3.61
-        ],
-        [
-          3.4,
-          -1.85
-        ],
-        [
-          5.42,
-          0.07
-        ],
-        [
-          0.35,
-          5.4
-        ],
-        [
-          -1.2,
-          3.94
-        ],
-        [
-          -5.41,
-          -0.07
-        ]
-      ]
+      "footprintOsmId": 59224731
     },
     {
       "id": "lacerda-walkway",
@@ -568,39 +540,10 @@
   ],
   "layoutConstraints": {
     "elevatorExclusion": {
-      "polygon": [
-        [
-          -0.34,
-          -5.4
-        ],
-        [
-          1.55,
-          -3.61
-        ],
-        [
-          3.4,
-          -1.85
-        ],
-        [
-          5.42,
-          0.07
-        ],
-        [
-          0.35,
-          5.4
-        ],
-        [
-          -1.2,
-          3.94
-        ],
-        [
-          -5.41,
-          -0.07
-        ]
-      ],
       "minimumRoadClearance": 12,
-      "source": "OpenStreetMap way 59224731 footprint; road clearance is a gameplay/blockout safety margin",
-      "estimated": true
+      "source": "OpenStreetMap way 59224731 canonical footprint reference; road-clearance constraint resolves the versioned derived polygon.",
+      "estimated": true,
+      "footprintOsmId": 59224731
     },
     "plazaNortheastFrontage": {
       "edge": [
