@@ -345,6 +345,67 @@ if (derivedVectors?.available === true) {
     ? derivedVectors.buildingFootprints
     : [];
 
+  const criticalRoadNames =
+    manifest.vectorDerivation?.criticalRoadNames ?? [];
+  const normalizedRoadNames = new Set(
+    roads.map((road) =>
+      String(road.name ?? "")
+        .trim()
+        .toLocaleLowerCase("pt-BR"),
+    ),
+  );
+  const missingCriticalRoads =
+    criticalRoadNames.filter(
+      (name) =>
+        !normalizedRoadNames.has(
+          name
+            .trim()
+            .toLocaleLowerCase("pt-BR"),
+        ),
+    );
+  const expectedCriticalCoverage = {
+    found:
+      criticalRoadNames.length -
+      missingCriticalRoads.length,
+    total: criticalRoadNames.length,
+    missing: missingCriticalRoads,
+    complete:
+      missingCriticalRoads.length === 0,
+  };
+  const declaredCriticalCoverage =
+    derivedVectors.metadata?.criticalRoadCoverage;
+
+  if (declaredCriticalCoverage) {
+    if (
+      declaredCriticalCoverage.found !==
+        expectedCriticalCoverage.found ||
+      declaredCriticalCoverage.total !==
+        expectedCriticalCoverage.total ||
+      declaredCriticalCoverage.complete !==
+        expectedCriticalCoverage.complete ||
+      JSON.stringify(
+        declaredCriticalCoverage.missing ?? [],
+      ) !==
+        JSON.stringify(
+          expectedCriticalCoverage.missing,
+        )
+    ) {
+      fail(
+        "derived vector criticalRoadCoverage does not match actual road names",
+      );
+    }
+  }
+
+  if (
+    derivedVectors.metadata?.coverage ===
+      "complete" &&
+    !expectedCriticalCoverage.complete
+  ) {
+    fail(
+      `complete vector coverage is missing critical roads: ${missingCriticalRoads.join(", ")}`,
+    );
+  }
+
   const expectedCount =
     roads.length + spaces.length + buildings.length;
 
