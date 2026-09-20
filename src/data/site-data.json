@@ -219,8 +219,8 @@
           ]
         ],
         "elevation": 65.2,
-        "feather": 2.5,
-        "source": "IPHAN Anexo XXIII documents the TPTS as fully occupied by a semi-underground level with an upper slab; horizontal envelope is official/derived, elevation 65.2 m is the current local blockout plaza datum and remains estimated.",
+        "feather": 1.25,
+        "source": "IPHAN Anexo XXIII documents the TPTS as fully occupied by a semi-underground level with an upper slab; horizontal envelope is official/derived, elevation 65.2 m is the current local blockout plaza datum and remains estimated. The 1.25 m feather is presentation-only and matches one fallback render sample cell.",
         "estimated": true
       }
     ]
