@@ -2,13 +2,8 @@ import manifest from "../geospatial/manifest.json";
 import vectorsData from "../geospatial/derived/site-vectors.json";
 import siteData from "../src/data/site-data.json";
 import {
-  gradeRoadCrossSection,
-} from "../src/game/road-grading";
-import {
-  roadOffset,
-  samplePolyline,
-} from "../src/game/road-path";
-import { terrainHeight } from "../src/game/terrain";
+  deriveRoadSurfaceProfile,
+} from "../src/game/road-surface-profile";
 import type {
   LinearFeature,
   SceneLevels,
@@ -26,222 +21,181 @@ const data =
   };
 const policy =
   manifest.roadSurfacePolicy;
-const critical =
+const critical = new Set(
   manifest.vectorDerivation
-    .criticalRoadNames;
-
+    .criticalRoadNames,
+);
+const configuredFallbacks =
+  new Set(
+    policy.longitudinalProfileFallbackOsmIds,
+  );
+const observedFallbacks =
+  new Set<number>();
 const failures: string[] = [];
 const report: Array<{
   name: string;
+  id: string;
+  valid: boolean;
+  regularized: boolean;
   samples: number;
-  supports: number;
   maxSupport: number;
-  maxCrossSlope: number;
+  maxCrossSlopePct: number;
+  maxLongitudinalSlopePct: number;
 }> = [];
 
-const grouped = new Map<
-  string,
-  LinearFeature[]
->();
-
 for (const road of vectors.roads) {
-  const key =
-    road.name ||
-    road.id;
-  const group =
-    grouped.get(key) ?? [];
-  group.push(road);
-  grouped.set(key, group);
-}
+  const profile =
+    deriveRoadSurfaceProfile({
+      feature: road,
+      terrain: data.terrain,
+      levels: data.levels,
+      policy: {
+        sampleSpacing:
+          policy.sampleSpacing,
+        maxMiterScale:
+          policy.maxMiterScale,
+        maxCrossSlope:
+          policy.maxCrossSlope,
+        maxSupportedFillHeight:
+          policy.maxSupportedFillHeight,
+        surfaceGap:
+          policy.surfaceGap,
+        maxLongitudinalSlope:
+          policy.maxLongitudinalSlope,
+        maxProfileIterations:
+          policy.longitudinalProfileIterations,
+      },
+    });
+  const osmId = road.osmId;
 
-for (const name of critical) {
+  report.push({
+    name: road.name,
+    id: road.id,
+    valid: profile.valid,
+    regularized:
+      profile.regularized,
+    samples:
+      profile.samples.length,
+    maxSupport: Number(
+      profile.maxSupportHeight.toFixed(
+        3,
+      ),
+    ),
+    maxCrossSlopePct: Number(
+      (
+        profile.maxCrossSlope *
+        100
+      ).toFixed(3),
+    ),
+    maxLongitudinalSlopePct:
+      Number(
+        (
+          profile.maxLongitudinalSlope *
+          100
+        ).toFixed(3),
+      ),
+  });
+
+  if (!profile.valid) {
+    if (critical.has(road.name)) {
+      failures.push(
+        \`\${road.name} (\${road.id}): critical road requires profile fallback\`,
+      );
+    }
+
+    if (
+      typeof osmId !== "number" ||
+      !configuredFallbacks.has(osmId)
+    ) {
+      failures.push(
+        \`\${road.name} (\${road.id}): unapproved longitudinal profile fallback\`,
+      );
+    } else {
+      observedFallbacks.add(osmId);
+    }
+    continue;
+  }
+
   if (
-    !vectors.roads.some(
-      (road) =>
-        road.name === name,
-    )
+    typeof osmId === "number" &&
+    configuredFallbacks.has(osmId)
   ) {
     failures.push(
-      `${name}: no derived OSM ways`,
+      \`\${road.name} (\${road.id}): profile is now valid; remove stale fallback exception \${osmId}\`,
+    );
+  }
+
+  if (
+    profile.maxSupportHeight >
+    policy.maxSupportedFillHeight +
+      0.000001
+  ) {
+    failures.push(
+      \`\${road.name} (\${road.id}): support \${profile.maxSupportHeight.toFixed(3)} m exceeds policy\`,
+    );
+  }
+  if (
+    profile.maxCrossSlope >
+    policy.maxCrossSlope + 0.000001
+  ) {
+    failures.push(
+      \`\${road.name} (\${road.id}): cross slope exceeds policy\`,
+    );
+  }
+  if (
+    profile.maxLongitudinalSlope >
+    policy.maxLongitudinalSlope +
+      0.000001
+  ) {
+    failures.push(
+      \`\${road.name} (\${road.id}): longitudinal slope exceeds policy\`,
     );
   }
 }
 
-for (const [name, roads] of grouped) {
-
-  let samples = 0;
-  let supports = 0;
-  let maxSupport = 0;
-  let maxCrossSlope = 0;
-
-  for (const road of roads) {
-    const centers =
-      samplePolyline(
-        road.points,
-        policy.sampleSpacing,
-      );
-
-    for (
-      let index = 0;
-      index < centers.length;
-      index++
-    ) {
-      const center =
-        centers[index];
-      if (!center) {
-        continue;
-      }
-
-      const offset =
-        roadOffset(
-          centers,
-          index,
-          Math.max(
-            0.5,
-            road.width / 2,
-          ),
-          policy.maxMiterScale,
-        );
-      const leftX =
-        center[0] + offset[0];
-      const leftZ =
-        center[1] + offset[1];
-      const rightX =
-        center[0] - offset[0];
-      const rightZ =
-        center[1] - offset[1];
-      const leftTerrain =
-        terrainHeight(
-          data.terrain,
-          data.levels,
-          leftX,
-          leftZ,
-        );
-      const rightTerrain =
-        terrainHeight(
-          data.terrain,
-          data.levels,
-          rightX,
-          rightZ,
-        );
-      const crossSpan =
-        Math.max(
-          0.001,
-          Math.hypot(
-            leftX - rightX,
-            leftZ - rightZ,
-          ),
-        );
-      const section =
-        gradeRoadCrossSection({
-          leftTerrain,
-          rightTerrain,
-          longitudinalLift: 0,
-          crossSpan,
-          maxCrossSlope:
-            policy.maxCrossSlope,
-          maxSupportedFillHeight:
-            policy.maxSupportedFillHeight,
-          surfaceGap:
-            policy.surfaceGap,
-        });
-      const crossSlope =
-        Math.abs(
-          section.resultingDelta,
-        ) / crossSpan;
-      const support =
-        Math.max(
-          section.leftSupportHeight,
-          section.rightSupportHeight,
-        );
-
-      samples += 1;
-      if (
-        support >=
-        policy.supportWallThreshold
-      ) {
-        supports += 1;
-      }
-      maxSupport = Math.max(
-        maxSupport,
-        support,
-      );
-      maxCrossSlope = Math.max(
-        maxCrossSlope,
-        crossSlope,
-      );
-
-      if (
-        crossSlope >
-        policy.maxCrossSlope +
-          0.000001
-      ) {
-        failures.push(
-          `${name}: cross slope ${(
-            crossSlope * 100
-          ).toFixed(
-            2,
-          )}% exceeds ${(
-            policy.maxCrossSlope *
-            100
-          ).toFixed(
-            2,
-          )}% at ${center.join(
-            ",",
-          )}; required fill ${section.requiredFill.toFixed(
-            2,
-          )} m exceeds supported bench capacity`,
-        );
-      }
-
-      if (
-        section.leftY <
-          leftTerrain +
-            policy.surfaceGap -
-            0.000001 ||
-        section.rightY <
-          rightTerrain +
-            policy.surfaceGap -
-            0.000001
-      ) {
-        failures.push(
-          `${name}: road surface cut below official terrain at ${center.join(
-            ",",
-          )}`,
-        );
-      }
-    }
+for (const osmId of configuredFallbacks) {
+  if (!observedFallbacks.has(osmId)) {
+    failures.push(
+      \`Configured longitudinal fallback OSM \${osmId} was not observed as invalid\`,
+    );
   }
-
-  report.push({
-    name,
-    samples,
-    supports,
-    maxSupport: Number(
-      maxSupport.toFixed(3),
-    ),
-    maxCrossSlope: Number(
-      (
-        maxCrossSlope * 100
-      ).toFixed(3),
-    ),
-  });
 }
 
-const mountain =
-  report.find(
-    (entry) =>
-      entry.name ===
-      "Ladeira da Montanha",
+for (const name of critical) {
+  const matches = report.filter(
+    (entry) => entry.name === name,
   );
+  if (matches.length === 0) {
+    failures.push(
+      \`\${name}: no derived OSM ways\`,
+    );
+  }
+  if (
+    matches.some(
+      (entry) => !entry.valid,
+    )
+  ) {
+    failures.push(
+      \`\${name}: every critical way must use the constrained walkable profile\`,
+    );
+  }
+}
 
+const mountain = report.filter(
+  (entry) =>
+    entry.name ===
+    "Ladeira da Montanha",
+);
 if (
-  !mountain ||
-  mountain.supports === 0 ||
-  mountain.maxSupport < 1
+  mountain.length === 0 ||
+  !mountain.some(
+    (entry) =>
+      entry.regularized &&
+      entry.maxSupport >= 1,
+  )
 ) {
   failures.push(
-    "Ladeira da Montanha must exercise the retaining-bench path on official terrain.",
+    "Ladeira da Montanha must exercise constrained longitudinal grading and retaining support.",
   );
 }
 
@@ -250,25 +204,46 @@ if (failures.length > 0) {
     "Road terrain-fit test failed:",
   );
   for (const failure of failures) {
-    console.error(
-      "- " + failure,
-    );
+    console.error("- " + failure);
   }
   console.error(
-    JSON.stringify(
-      report,
-      null,
-      2,
-    ),
+    JSON.stringify(report, null, 2),
   );
   process.exitCode = 1;
 } else {
+  const validCount = report.filter(
+    (entry) => entry.valid,
+  ).length;
   console.log(
-    "Road terrain-fit test passed for all derived roads.",
+    "Road terrain-fit test passed for the rendered surface profile.",
   );
   console.log(
     JSON.stringify(
-      report,
+      {
+        roadCount: report.length,
+        constrainedProfiles:
+          validCount,
+        explicitFallbacks:
+          report.length -
+          validCount,
+        maxSupport: Math.max(
+          ...report
+            .filter(
+              (entry) =>
+                entry.valid,
+            )
+            .map(
+              (entry) =>
+                entry.maxSupport,
+            ),
+        ),
+        critical: report.filter(
+          (entry) =>
+            critical.has(
+              entry.name,
+            ),
+        ),
+      },
       null,
       2,
     ),

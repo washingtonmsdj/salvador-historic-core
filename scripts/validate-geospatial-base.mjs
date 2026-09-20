@@ -205,6 +205,47 @@ if (!roadSurfacePolicy) {
 
   if (
     !Number.isFinite(
+      roadSurfacePolicy.maxLongitudinalSlope,
+    ) ||
+    roadSurfacePolicy.maxLongitudinalSlope <= 0 ||
+    roadSurfacePolicy.maxLongitudinalSlope > 0.2
+  ) {
+    fail(
+      "road maxLongitudinalSlope must be > 0 and <= 20%",
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      roadSurfacePolicy.longitudinalProfileIterations,
+    ) ||
+    roadSurfacePolicy.longitudinalProfileIterations < 2 ||
+    roadSurfacePolicy.longitudinalProfileIterations > 16
+  ) {
+    fail(
+      "road longitudinalProfileIterations must be an integer between 2 and 16",
+    );
+  }
+
+  if (
+    !Array.isArray(
+      roadSurfacePolicy.longitudinalProfileFallbackOsmIds,
+    ) ||
+    roadSurfacePolicy.longitudinalProfileFallbackOsmIds.some(
+      (id) => !Number.isInteger(id) || id <= 0,
+    ) ||
+    new Set(
+      roadSurfacePolicy.longitudinalProfileFallbackOsmIds,
+    ).size !==
+      roadSurfacePolicy.longitudinalProfileFallbackOsmIds.length
+  ) {
+    fail(
+      "road longitudinalProfileFallbackOsmIds must contain unique positive OSM ids",
+    );
+  }
+
+  if (
+    !Number.isFinite(
       roadSurfacePolicy.supportWallThreshold,
     ) ||
     roadSurfacePolicy.supportWallThreshold < 0.05 ||

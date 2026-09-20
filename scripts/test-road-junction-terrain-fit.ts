@@ -66,6 +66,10 @@ for (const junction of junctions) {
           policy.maxSupportedFillHeight,
         surfaceGap:
           policy.surfaceGap,
+        maxLongitudinalSlope:
+          policy.maxLongitudinalSlope,
+        maxProfileIterations:
+          policy.longitudinalProfileIterations,
         junctionSurfaceOffset:
           policy.junctionSurfaceOffset,
         junctionMaxSegments:
