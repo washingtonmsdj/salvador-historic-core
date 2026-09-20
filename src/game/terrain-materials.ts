@@ -33,10 +33,6 @@ type TerrainTextureSet = {
   detail: DynamicTexture;
 };
 
-const PRIMARY_SIZE = 512;
-const DETAIL_SIZE = 256;
-const DETAIL_TILING = 12;
-
 function clamp01(
   value: number,
 ) {
@@ -246,24 +242,25 @@ function createPrimaryTextures(
   scene: Scene,
   name: string,
   style: TerrainTextureStyle,
+  primarySize: number,
 ) {
   const albedo =
     createDynamicTexture(
       scene,
       name + "-albedo",
-      PRIMARY_SIZE,
+      primarySize,
     );
   const normal =
     createDynamicTexture(
       scene,
       name + "-normal",
-      PRIMARY_SIZE,
+      primarySize,
     );
   const orm =
     createDynamicTexture(
       scene,
       name + "-orm",
-      PRIMARY_SIZE,
+      primarySize,
     );
 
   const albedoContext =
@@ -277,55 +274,55 @@ function createPrimaryTextures(
     albedoContext.getImageData(
       0,
       0,
-      PRIMARY_SIZE,
-      PRIMARY_SIZE,
+      primarySize,
+      primarySize,
     );
   const normalImage =
     normalContext.getImageData(
       0,
       0,
-      PRIMARY_SIZE,
-      PRIMARY_SIZE,
+      primarySize,
+      primarySize,
     );
   const ormImage =
     ormContext.getImageData(
       0,
       0,
-      PRIMARY_SIZE,
-      PRIMARY_SIZE,
+      primarySize,
+      primarySize,
     );
 
   const heights =
     new Float32Array(
-      PRIMARY_SIZE *
-        PRIMARY_SIZE,
+      primarySize *
+        primarySize,
     );
 
   for (
     let y = 0;
-    y < PRIMARY_SIZE;
+    y < primarySize;
     y++
   ) {
     for (
       let x = 0;
-      x < PRIMARY_SIZE;
+      x < primarySize;
       x++
     ) {
       const height =
         textureHeight(
           x,
           y,
-          PRIMARY_SIZE,
+          primarySize,
           style,
         );
       const offset =
-        (y * PRIMARY_SIZE + x) *
+        (y * primarySize + x) *
         4;
       const tintNoise =
         periodicNoise(
           x,
           y,
-          PRIMARY_SIZE,
+          primarySize,
           style.seed + 191,
           5,
         ) *
@@ -369,7 +366,7 @@ function createPrimaryTextures(
             periodicNoise(
               x,
               y,
-              PRIMARY_SIZE,
+              primarySize,
               style.seed + 211,
               13,
             ) *
@@ -403,7 +400,7 @@ function createPrimaryTextures(
       ] = 255;
 
       heights[
-        y * PRIMARY_SIZE + x
+        y * primarySize + x
       ] = height;
     }
   }
@@ -416,15 +413,15 @@ function createPrimaryTextures(
       Math.max(
         0,
         Math.min(
-          PRIMARY_SIZE - 1,
+          primarySize - 1,
           y,
         ),
       ) *
-        PRIMARY_SIZE +
+        primarySize +
         Math.max(
           0,
           Math.min(
-            PRIMARY_SIZE - 1,
+            primarySize - 1,
             x,
           ),
         )
@@ -432,12 +429,12 @@ function createPrimaryTextures(
 
   for (
     let y = 0;
-    y < PRIMARY_SIZE;
+    y < primarySize;
     y++
   ) {
     for (
       let x = 0;
-      x < PRIMARY_SIZE;
+      x < primarySize;
       x++
     ) {
       const dx =
@@ -477,7 +474,7 @@ function createPrimaryTextures(
           ),
         );
       const offset =
-        (y * PRIMARY_SIZE + x) *
+        (y * primarySize + x) *
         4;
 
       normalImage.data[
@@ -547,12 +544,14 @@ function createDetailTexture(
   scene: Scene,
   name: string,
   style: TerrainTextureStyle,
+  detailSize: number,
+  detailTiling: number,
 ) {
   const texture =
     createDynamicTexture(
       scene,
       name + "-detail",
-      DETAIL_SIZE,
+      detailSize,
     );
   const context =
     texture.getContext();
@@ -560,30 +559,30 @@ function createDetailTexture(
     context.getImageData(
       0,
       0,
-      DETAIL_SIZE,
-      DETAIL_SIZE,
+      detailSize,
+      detailSize,
     );
   const heights =
     new Float32Array(
-      DETAIL_SIZE *
-        DETAIL_SIZE,
+      detailSize *
+        detailSize,
     );
 
   for (
     let y = 0;
-    y < DETAIL_SIZE;
+    y < detailSize;
     y++
   ) {
     for (
       let x = 0;
-      x < DETAIL_SIZE;
+      x < detailSize;
       x++
     ) {
       const height =
         periodicNoise(
           x,
           y,
-          DETAIL_SIZE,
+          detailSize,
           style.seed + 301,
           9,
         ) *
@@ -591,14 +590,14 @@ function createDetailTexture(
         periodicNoise(
           x,
           y,
-          DETAIL_SIZE,
+          detailSize,
           style.seed + 337,
           23,
         ) *
           0.38;
 
       heights[
-        y * DETAIL_SIZE + x
+        y * detailSize + x
       ] = height;
     }
   }
@@ -611,15 +610,15 @@ function createDetailTexture(
       Math.max(
         0,
         Math.min(
-          DETAIL_SIZE - 1,
+          detailSize - 1,
           y,
         ),
       ) *
-        DETAIL_SIZE +
+        detailSize +
         Math.max(
           0,
           Math.min(
-            DETAIL_SIZE - 1,
+            detailSize - 1,
             x,
           ),
         )
@@ -627,12 +626,12 @@ function createDetailTexture(
 
   for (
     let y = 0;
-    y < DETAIL_SIZE;
+    y < detailSize;
     y++
   ) {
     for (
       let x = 0;
-      x < DETAIL_SIZE;
+      x < detailSize;
       x++
     ) {
       const height =
@@ -677,7 +676,7 @@ function createDetailTexture(
           ),
         );
       const offset =
-        (y * DETAIL_SIZE + x) *
+        (y * detailSize + x) *
         4;
       const albedo =
         clamp01(
@@ -731,9 +730,9 @@ function createDetailTexture(
   texture.update(false);
   texture.gammaSpace = false;
   texture.uScale =
-    DETAIL_TILING;
+    detailTiling;
   texture.vScale =
-    DETAIL_TILING;
+    detailTiling;
 
   return texture;
 }
@@ -742,12 +741,23 @@ function createTerrainTextures(
   scene: Scene,
   name: string,
   style: TerrainTextureStyle,
+  config: TerrainConfig,
 ): TerrainTextureSet {
+  const primarySize =
+    config.presentation
+      .textureResolution;
+  const detailSize =
+    config.presentation
+      .detailTextureResolution;
+  const detailTiling =
+    config.presentation
+      .detailTextureTiling;
   const primary =
     createPrimaryTextures(
       scene,
       name,
       style,
+      primarySize,
     );
 
   return {
@@ -757,6 +767,8 @@ function createTerrainTextures(
         scene,
         name,
         style,
+        detailSize,
+        detailTiling,
       ),
   };
 }
@@ -765,6 +777,7 @@ function createTerrainMaterial(
   scene: Scene,
   name: string,
   style: TerrainTextureStyle,
+  config: TerrainConfig,
   alpha = 1,
 ) {
   const existing =
@@ -786,6 +799,7 @@ function createTerrainMaterial(
       scene,
       name,
       style,
+      config,
     );
 
   material.albedoTexture =
@@ -834,7 +848,7 @@ function createTerrainMaterial(
 
 export function createTerrainMaterials(
   scene: Scene,
-  _config: TerrainConfig,
+  config: TerrainConfig,
 ) {
   const surface =
     createTerrainMaterial(
@@ -858,6 +872,7 @@ export function createTerrainMaterials(
         detailBump: 0.5,
         detailRoughness: 0.42,
       },
+      config,
     );
 
   const cliff =
@@ -882,6 +897,7 @@ export function createTerrainMaterials(
         detailBump: 0.76,
         detailRoughness: 0.54,
       },
+      config,
       0.98,
     );
 
@@ -907,6 +923,7 @@ export function createTerrainMaterials(
         detailBump: 0.58,
         detailRoughness: 0.36,
       },
+      config,
       0.96,
     );
 
