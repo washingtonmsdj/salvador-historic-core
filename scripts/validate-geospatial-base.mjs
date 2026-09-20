@@ -51,6 +51,25 @@ if (!terrainStructureMaskPolicy) {
   );
 }
 
+const terrainRenderMaskPolicy =
+  manifest.terrainRenderMaskPolicy;
+
+if (!terrainRenderMaskPolicy) {
+  fail(
+    "geospatial manifest must define terrainRenderMaskPolicy",
+  );
+} else if (
+  !Number.isFinite(
+    terrainRenderMaskPolicy.maxBoundaryEdge,
+  ) ||
+  terrainRenderMaskPolicy.maxBoundaryEdge < 0.02 ||
+  terrainRenderMaskPolicy.maxBoundaryEdge > 0.25
+) {
+  fail(
+    "terrain render-mask maxBoundaryEdge must be between 0.02 and 0.25 metres",
+  );
+}
+
 const publicSpaceSurfacePolicy =
   manifest.publicSpaceSurfacePolicy;
 
@@ -331,13 +350,26 @@ if (!roadSurfacePolicy) {
 
   if (
     !Number.isFinite(
-      roadSurfacePolicy.junctionTerrainMaskPadding,
+      roadSurfacePolicy.junctionTerrainMaskInset,
     ) ||
-    roadSurfacePolicy.junctionTerrainMaskPadding < 0 ||
-    roadSurfacePolicy.junctionTerrainMaskPadding > 0.5
+    roadSurfacePolicy.junctionTerrainMaskInset < 0 ||
+    roadSurfacePolicy.junctionTerrainMaskInset > 0.5
   ) {
     fail(
-      "road junctionTerrainMaskPadding must be between 0 and 0.5 metres",
+      "road junctionTerrainMaskInset must be between 0 and 0.5 metres",
+    );
+  }
+
+  if (
+    terrainRenderMaskPolicy &&
+    Number.isFinite(
+      terrainRenderMaskPolicy.maxBoundaryEdge,
+    ) &&
+    roadSurfacePolicy.junctionTerrainMaskInset <
+      terrainRenderMaskPolicy.maxBoundaryEdge
+  ) {
+    fail(
+      "road junctionTerrainMaskInset must be >= terrain render-mask maxBoundaryEdge so adaptive clipping cannot open a gap beyond the junction deck",
     );
   }
 
