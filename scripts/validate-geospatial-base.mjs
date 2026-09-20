@@ -461,6 +461,14 @@ if (!liveTerrainPreview) {
   }
 }
 
+if (
+  manifest.vectorDerivation?.excludeIndoorHighways !== true
+) {
+  fail(
+    "vector derivation must exclude indoor highway features from terrain roads",
+  );
+}
+
 const buildingPolicy = manifest.buildingBlockoutPolicy;
 
 if (!buildingPolicy) {
@@ -961,6 +969,12 @@ if (derivedVectors?.available === true) {
     z <= bounds.maxZ + 0.001;
 
   for (const road of roads) {
+    if (road.tags?.indoor === "yes") {
+      fail(
+        `${road.id} is indoor and must not be derived as a terrain road`,
+      );
+    }
+
     if (
       !Number.isFinite(road.width) ||
       road.width <= 0 ||
