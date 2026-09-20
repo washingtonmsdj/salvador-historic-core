@@ -26,18 +26,20 @@ async function summarize(path, kind) {
   }
 
   const payload = JSON.parse(await readFile(path, "utf8"));
+  const explicitlyUnavailable = payload.available === false;
   const featureCount =
     payload.metadata?.featureCount ??
+    payload.grid?.vertexCount ??
     payload.features?.length ??
     payload.contours?.length ??
     0;
 
   return {
     kind,
-    available: true,
+    available: !explicitlyUnavailable && featureCount > 0,
     featureCount,
-    generatedAt: payload.metadata?.generatedAt ?? null,
-    source: payload.metadata?.source ?? null,
+    generatedAt: payload.generatedAt ?? payload.metadata?.generatedAt ?? null,
+    source: payload.source ?? payload.metadata?.source ?? null,
   };
 }
 

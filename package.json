@@ -18,8 +18,10 @@
     "geospatial:import:osm": "node scripts/import-osm-site.mjs",
     "geospatial:import:conder": "node scripts/import-conder-contours.mjs",
     "geospatial:build": "node scripts/build-geospatial-base.mjs",
-    "geospatial:validate": "node scripts/validate-geospatial-base.mjs",
-    "geospatial:refresh": "node scripts/import-osm-site.mjs && node scripts/import-conder-contours.mjs && node scripts/build-geospatial-base.mjs && node scripts/validate-geospatial-base.mjs"
+    "geospatial:validate": "node scripts/test-contour-heightfield.mjs && node scripts/validate-geospatial-base.mjs",
+    "geospatial:refresh": "node scripts/import-osm-site.mjs && node scripts/import-conder-contours.mjs && node scripts/derive-terrain-from-contours.mjs && node scripts/build-geospatial-base.mjs && node scripts/validate-geospatial-base.mjs",
+    "geospatial:derive:terrain": "node scripts/derive-terrain-from-contours.mjs",
+    "geospatial:test:terrain": "node scripts/test-contour-heightfield.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"

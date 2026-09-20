@@ -1,6 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { loadGeospatialContext, root } from "./lib/geospatial-context.mjs";
+import {
+  loadGeospatialContext,
+  pathExists,
+  root,
+} from "./lib/geospatial-context.mjs";
 import {
   latLonToUtm24S,
   utm24SToLatLon,
@@ -8,7 +12,11 @@ import {
 
 const { manifest, origin, bounds } = await loadGeospatialContext();
 const runtimePath = resolve(root, manifest.pipeline.runtimeManifest);
+const terrainPath = resolve(root, manifest.pipeline.derivedTerrain);
 const runtime = JSON.parse(await readFile(runtimePath, "utf8"));
+const derivedTerrain = (await pathExists(terrainPath))
+  ? JSON.parse(await readFile(terrainPath, "utf8"))
+  : null;
 const errors = [];
 
 function fail(message) {
@@ -81,6 +89,104 @@ if (
   runtime.derived?.terrain?.available !== true
 ) {
   fail("terrain cannot be marked geospatial-derived without a derived terrain product");
+}
+if (derivedTerrain?.available === true) {
+  const grid = derivedTerrain.grid;
+  const terrainBounds = derivedTerrain.bounds;
+
+  if (derivedTerrain.crs !== manifest.localCoordinateSystem.horizontalCrs) {
+    fail("derived terrain CRS differs from geospatial manifest");
+  }
+
+  if (derivedTerrain.method !== manifest.terrainDerivation.method) {
+    fail("derived terrain method differs from geospatial manifest");
+  }
+
+  if (!grid || grid.columns < 2 || grid.rows < 2 || grid.spacing <= 0) {
+    fail("derived terrain grid metadata is invalid");
+  } else {
+    const expectedVertices = grid.columns * grid.rows;
+    if (grid.vertexCount !== expectedVertices) {
+      fail("derived terrain vertexCount does not match grid dimensions");
+    }
+
+    if (
+      !Array.isArray(derivedTerrain.heights) ||
+      derivedTerrain.heights.length !== expectedVertices
+    ) {
+      fail("derived terrain heights length does not match grid dimensions");
+    } else {
+      for (const height of derivedTerrain.heights) {
+        if (!Number.isFinite(height)) {
+          fail("derived terrain contains a non-finite height");
+          break;
+        }
+      }
+    }
+
+    const expectedWidth = bounds.maxX - bounds.minX;
+    const expectedDepth = bounds.maxZ - bounds.minZ;
+    const gridWidth = (grid.columns - 1) * grid.spacing;
+    const gridDepth = (grid.rows - 1) * grid.spacing;
+
+    if (Math.abs(gridWidth - expectedWidth) > 0.01) {
+      fail("derived terrain grid width differs from project perimeter");
+    }
+
+    if (Math.abs(gridDepth - expectedDepth) > 0.01) {
+      fail("derived terrain grid depth differs from project perimeter");
+    }
+  }
+
+  for (const key of ["minX", "maxX", "minZ", "maxZ"]) {
+    if (terrainBounds?.[key] !== bounds[key]) {
+      fail(`derived terrain bounds.${key} differs from project perimeter`);
+    }
+  }
+
+  if (
+    derivedTerrain.verticalDatum?.mode ===
+      "minimum-derived-elevation" &&
+    Math.abs(derivedTerrain.statistics?.localHeightMin ?? 0) > 0.01
+  ) {
+    fail("derived terrain local minimum must be zero for the configured datum");
+  }
+
+  if ((derivedTerrain.statistics?.fixedCellCount ?? 0) < 4) {
+    fail("derived terrain has too few fixed contour cells");
+  }
+}
+
+
+if (
+  runtime.terrain.active === "geospatial-derived" &&
+  derivedTerrain?.available !== true
+) {
+  fail("runtime terrain is geospatial-derived but terrain.json is unavailable");
+}
+if (
+  derivedTerrain?.available === true &&
+  runtime.terrain.active !== "geospatial-derived"
+) {
+  fail(
+    "derived terrain is available but runtime manifest has not activated it",
+  );
+}
+
+if (
+  runtime.terrain.active === "geospatial-derived" &&
+  runtime.terrain.fallbackActive !== false
+) {
+  fail("geospatial-derived terrain cannot remain marked as fallback");
+}
+
+
+if (
+  runtime.terrain.active === "geospatial-derived" &&
+  runtime.derived?.terrain?.featureCount !==
+    derivedTerrain?.grid?.vertexCount
+) {
+  fail("runtime terrain summary does not match derived terrain vertex count");
 }
 
 if (

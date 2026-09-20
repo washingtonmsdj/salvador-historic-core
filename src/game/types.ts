@@ -55,6 +55,30 @@ export interface TerrainPlateau {
   estimated: boolean;
 }
 
+export interface DerivedTerrainGrid {
+  available: boolean;
+  source: string | null;
+  crs: string;
+  units: string;
+  bounds: {
+    minX: number;
+    maxX: number;
+    minZ: number;
+    maxZ: number;
+  };
+  grid: null | {
+    spacing: number;
+    columns: number;
+    rows: number;
+    vertexCount: number;
+  };
+  verticalDatum: null | {
+    mode: string;
+    absoluteElevation: number;
+  };
+  heights: number[];
+}
+
 export interface TerrainConfig {
   tileSize: number;
   subdivisionsPerTile: number;

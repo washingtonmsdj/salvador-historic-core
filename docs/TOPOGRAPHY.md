@@ -2,11 +2,18 @@
 
 ## Estado atual
 
-O terreno usado em runtime é um **blockout topográfico provisório 2D**, não um DEM e não uma
-superfície levantada. Ele substitui a antiga rampa unidimensional e modela a escarpa ao longo dos
-eixos X/Z com perfis de controle interpolados.
+O runtime agora possui duas fontes possíveis de terreno:
 
-Os perfis estão em `src/data/site-data.json` e permanecem com `estimated: true`.
+1. **geospatial-derived** — grade gerada a partir de dados altimétricos normalizados;
+2. **procedural-fallback** — blockout antigo baseado em perfis manuais.
+
+A cena só ativa `geospatial-derived` quando `geospatial/derived/terrain.json` existe,
+está marcado como disponível, cobre exatamente o perímetro do projeto e o manifesto runtime
+`src/data/geospatial-base.json` também confirma a ativação.
+
+Enquanto o recorte CONDER ainda não tiver sido importado e derivado neste repositório, o Preview
+continua explicitamente em `procedural-fallback`. Os perfis de fallback permanecem em
+`src/data/site-data.json` com `estimated: true`.
 
 Invariantes usados pelo blockout atual:
 
@@ -34,24 +41,35 @@ A Prefeitura de Salvador também documenta sua base cartográfica municipal com 
 nuvem de pontos LiDAR, MDS e MDT. Quando um MDT municipal adequado ao recorte estiver disponível
 por endpoint/arquivo estável, ele deve ter precedência sobre o blockout.
 
-## Importador
+## Pipeline CONDER → heightfield
 
 O repositório inclui:
 
 ```bash
-npm run terrain:import:conder
+npm run geospatial:import:conder
+npm run geospatial:derive:terrain
+npm run geospatial:build
+npm run geospatial:validate
 ```
 
 O importador:
 
-1. lê os limites locais de `site-data.json`;
-2. converte o envelope para o EPSG:32724 usando a origem projetada do Elevador;
-3. consulta apenas as curvas que cruzam o perímetro do protótipo;
-4. converte as coordenadas para X/Z locais em metros;
-5. grava `src/data/terrain-contours.reference.json`.
+1. lê o perímetro geoespacial canônico;
+2. consulta apenas as curvas CONDER que cruzam esse envelope;
+3. preserva a resposta ArcGIS original em `geospatial/raw/conder/`;
+4. normaliza as curvas para X/Z locais em metros em
+   `geospatial/normalized/conder/contours.json`.
 
-O arquivo importado é referência bruta. A etapa seguinte é gerar uma superfície TIN/height field
-a partir das curvas e então remover os perfis provisórios.
+O derivador gera `geospatial/derived/terrain.json` numa grade de 2,5 m:
+
+- células atravessadas por curvas recebem a elevação oficial como restrição fixa;
+- os intervalos entre curvas são preenchidos por relaxação harmônica;
+- nenhuma cota de curva é movida pela interpolação;
+- o menor valor resolvido define o datum vertical local do produto derivado;
+- a superfície interpolada continua identificada como derivada, não como levantamento direto.
+
+O teste `npm run geospatial:test:terrain` usa duas curvas sintéticas de 0 m e 20 m e verifica
+que as duas cotas permanecem fixas e que o ponto médio converge para aproximadamente 10 m.
 
 ## Regra
 
@@ -94,6 +112,10 @@ terreno.
 
 ## Limite de fidelidade
 
-Textura, curvas de nível, camada rochosa, base estrutural e paredes do perímetro são elementos de
-apresentação. Eles não devem ser confundidos com geologia ou acabamento oficial. A elevação continua
-`estimated: true` até a substituição pelos dados altimétricos verificáveis.
+Textura, camada rochosa, base estrutural e paredes do perímetro são elementos de apresentação.
+Eles não devem ser confundidos com geologia ou acabamento oficial.
+
+Quando a grade CONDER derivada estiver ativa, as curvas de origem são verificáveis, mas as alturas
+entre elas são interpoladas. Por isso a malha derivada continua identificada como produto estimado
+entre curvas. Um MDT/LiDAR municipal estável continua sendo a fonte preferencial para substituir
+essa interpolação quando estiver disponível.

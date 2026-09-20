@@ -62,11 +62,21 @@ derivada apenas de curvas de nível.
 
 ## Build derivado
 
-Depois das importações:
+Depois da importação altimétrica:
 
 ```bash
+npm run geospatial:derive:terrain
 npm run geospatial:build
 npm run geospatial:validate
+```
+
+O derivador transforma as curvas normalizadas numa grade regular de 2,5 m usando as cotas das
+curvas como restrições fixas e relaxação harmônica apenas entre elas.
+
+Para atualizar toda a cadeia:
+
+```bash
+npm run geospatial:refresh
 ```
 
 O build gera `src/data/geospatial-base.json`, que informa ao runtime quais camadas foram
