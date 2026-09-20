@@ -32,6 +32,7 @@ interface OverpassElement {
 
 interface OverpassPayload {
   elements?: OverpassElement[];
+  remark?: string;
 }
 
 interface VectorDerivationConfig {
@@ -501,6 +502,30 @@ out body geom;
 `.trim();
 }
 
+function assertUsableOverpassPayload(
+  payload: OverpassPayload,
+  source: string,
+) {
+  if (!Array.isArray(payload.elements)) {
+    throw new Error(
+      `${source} response has no elements array.`,
+    );
+  }
+
+  const remark = payload.remark?.trim();
+  if (remark) {
+    throw new Error(
+      `${source} returned a remark: ${remark}`,
+    );
+  }
+
+  if (payload.elements.length === 0) {
+    throw new Error(
+      `${source} response contains no elements.`,
+    );
+  }
+}
+
 function cacheKey(bounds: GeographicBounds) {
   return [
     "salvador-osm-live-v2",
@@ -717,15 +742,10 @@ async function fetchProjectServerOsm() {
       const payload =
         (await response.json()) as
           OverpassPayload;
-      if (
-        !Array.isArray(
-          payload.elements,
-        )
-      ) {
-        throw new Error(
-          "App server returned JSON without elements.",
-        );
-      }
+      assertUsableOverpassPayload(
+        payload,
+        "App server",
+      );
 
       return {
         endpoint:
@@ -832,11 +852,10 @@ async function fetchOverpass(
     const payload =
       (await response.json()) as OverpassPayload;
 
-    if (!Array.isArray(payload.elements)) {
-      throw new Error(
-        "Overpass response has no elements array",
-      );
-    }
+    assertUsableOverpassPayload(
+      payload,
+      endpoint,
+    );
 
     return payload;
   } finally {

@@ -126,11 +126,25 @@ async function serveProjectOsm() {
       const body = await response.text();
       const parsed = JSON.parse(body) as {
         elements?: unknown[];
+        remark?: unknown;
       };
 
       if (!Array.isArray(parsed.elements)) {
         throw new Error(
           "Overpass response has no elements array.",
+        );
+      }
+      if (
+        typeof parsed.remark === "string" &&
+        parsed.remark.trim().length > 0
+      ) {
+        throw new Error(
+          `Overpass returned a remark: ${parsed.remark.trim()}`,
+        );
+      }
+      if (parsed.elements.length === 0) {
+        throw new Error(
+          "Overpass response contains no elements.",
         );
       }
 
