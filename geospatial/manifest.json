@@ -146,7 +146,7 @@
     "surfaceGap": 0.045,
     "maxMiterScale": 2.2,
     "maxCrossSlope": 0.06,
-    "notes": "Gameplay road mesh follows OSM centerlines and active terrain. Longitudinal smoothing may only raise local depressions by up to 0.12 m and never cuts below official terrain. Crossfall is capped at 6% by preserving the higher terrain edge and raising only the lower edge. Where this creates more than 0.18 m of support, a terrain-connected retaining skirt is rendered; automatic fill is limited to 12 m. Compatible road endpoints receive a junction deck fitted to their graded road-edge elevations, capped at 14% plane slope and lifted only enough to clear terrain, with perimeter support when needed. These are rendering/gameplay constraints, not surveyed civil-engineering elevations.",
+    "notes": "Gameplay road mesh follows OSM centerlines and active terrain. Longitudinal smoothing may only raise local depressions by up to 0.12 m and never cuts below official terrain. Crossfall is capped at 6% by preserving the higher terrain edge and raising only the lower edge. Where this creates more than 0.18 m of support, a terrain-connected retaining skirt is rendered; automatic road fill is limited to 12 m. Compatible road endpoints receive a junction deck fitted to their graded road-edge elevations, capped at 14% plane slope. Junction terrain is masked only beneath the deck, allowing at most 0.75 m local cut and 3 m local fill, with a perimeter retaining/cut wall. These are rendering/gameplay constraints, not surveyed civil-engineering elevations.",
     "junctionSnapDistance": 0.35,
     "junctionOverlap": 0.35,
     "junctionSurfaceOffset": 0.008,
@@ -157,7 +157,9 @@
     "supportWallTextureRepeatMeters": 3,
     "supportWallSink": 0.06,
     "junctionMaxSlope": 0.14,
-    "junctionMaxLift": 12
+    "junctionMaxCut": 0.75,
+    "junctionMaxFill": 3,
+    "junctionTerrainMaskPadding": 0.12
   },
   "publicSpaceSurfacePolicy": {
     "maxTriangleEdge": 4,
