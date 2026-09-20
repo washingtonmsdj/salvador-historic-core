@@ -64,5 +64,14 @@
     "fallbackTerrainSource": "procedural",
     "preferredVectorSource": "osm",
     "requireExplicitFallbackLabel": true
+  },
+  "terrainDerivation": {
+    "method": "contour-constrained-harmonic-grid",
+    "gridSpacing": 2.5,
+    "contourSampleSpacing": 1.25,
+    "maxIterations": 2500,
+    "tolerance": 0.001,
+    "verticalDatum": "minimum-derived-elevation",
+    "notes": "CONDER contour elevations are fixed constraints. Unknown grid cells are initialized from nearest contour cells and solved by harmonic relaxation."
   }
 }
