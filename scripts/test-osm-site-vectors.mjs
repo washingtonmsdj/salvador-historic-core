@@ -162,6 +162,13 @@ if (
   failures.push("residential default width was not marked estimated");
 }
 
+if (
+  residential?.osmId !== 1 ||
+  residential?.osmType !== "way"
+) {
+  failures.push("derived road did not preserve OSM identity");
+}
+
 const explicit = derived.roads.find(
   (road) => road.id === "way/2",
 );
