@@ -15,10 +15,12 @@ export interface RoadSurfaceProfilePolicy
   sampleSpacing: number;
   maxLongitudinalSlope: number;
   maxProfileIterations: number;
+  fallbackOsmIds: readonly number[];
 }
 
 export interface RoadSurfaceProfile {
   valid: boolean;
+  configuredFallback: boolean;
   converged: boolean;
   regularized: boolean;
   centers: [number, number][];
@@ -242,6 +244,7 @@ export function deriveRoadSurfaceProfile({
   ) {
     return {
       valid: false,
+      configuredFallback: false,
       converged: false,
       regularized: false,
       centers,
@@ -321,7 +324,13 @@ export function deriveRoadSurfaceProfile({
       );
     },
   );
+  const configuredFallback =
+    typeof feature.osmId === "number" &&
+    policy.fallbackOsmIds.includes(
+      feature.osmId,
+    );
   const valid =
+    !configuredFallback &&
     metrics.maxSupportHeight <=
       policy.maxSupportedFillHeight + EPSILON &&
     metrics.maxCrossSlope <=
@@ -331,6 +340,7 @@ export function deriveRoadSurfaceProfile({
 
   return {
     valid,
+    configuredFallback,
     converged,
     regularized,
     centers,
