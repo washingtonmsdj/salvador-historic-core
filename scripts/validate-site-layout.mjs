@@ -268,24 +268,23 @@ if (marketClearance) {
       fail(
         `Missing verified footprint for ${marketClearance.buildingId}`,
       );
-      continue;
-    }
+    } else {
+      for (let index = 0; index < road.points.length - 1; index++) {
+        const start = road.points[index];
+        const end = road.points[index + 1];
+        if (!start || !end) continue;
 
-    for (let index = 0; index < road.points.length - 1; index++) {
-      const start = road.points[index];
-      const end = road.points[index + 1];
-      if (!start || !end) continue;
-
-      const distance = segmentToPolygonDistance(
-        start,
-        end,
-        buildingFootprint,
-      );
-
-      if (distance < marketClearance.minimumCenterlineClearance) {
-        fail(
-          `${road.id} is only ${distance.toFixed(2)} m from ${building.id}`,
+        const distance = segmentToPolygonDistance(
+          start,
+          end,
+          buildingFootprint,
         );
+
+        if (distance < marketClearance.minimumCenterlineClearance) {
+          fail(
+            `${road.id} is only ${distance.toFixed(2)} m from ${building.id}`,
+          );
+        }
       }
     }
   }
@@ -338,8 +337,13 @@ if (!lowerTowerFootprint || !elevatorCutout?.polygon?.length) {
 }
 
 function orientedBoxCorners(building) {
-  if (building.footprint?.length >= 3) {
-    return building.footprint;
+  const canonicalFootprint =
+    resolveOsmFootprint(
+      building,
+    );
+
+  if (canonicalFootprint) {
+    return canonicalFootprint;
   }
 
   const halfWidth = building.width / 2;
@@ -485,8 +489,21 @@ if (frontage?.length === 2 && thome) {
       ? expectedRotation + Math.PI
       : expectedRotation;
 
-  if (!thome.footprint && angleDelta(thome.rotation[1], equivalentRotation) > 0.03) {
-    fail("Palácio Thomé de Souza is not parallel to verified plaza frontage");
+  const thomeCanonicalFootprint =
+    resolveOsmFootprint(
+      thome,
+    );
+
+  if (
+    !thomeCanonicalFootprint &&
+    angleDelta(
+      thome.rotation[1],
+      equivalentRotation,
+    ) > 0.03
+  ) {
+    fail(
+      "Palácio Thomé de Souza fallback box is not parallel to verified plaza frontage",
+    );
   }
 
   for (const corner of orientedBoxCorners(thome)) {
