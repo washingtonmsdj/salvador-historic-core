@@ -45,6 +45,16 @@ interface GeospatialBaseRuntime {
     north: number;
     east: number;
   };
+  geographicCorners: Record<
+    "southWest" | "southEast" | "northEast" | "northWest",
+    {
+      local: [number, number];
+      easting: number;
+      northing: number;
+      latitude: number;
+      longitude: number;
+    }
+  >;
   mapReference: {
     tileTemplate: string;
     zoom: number;
@@ -189,7 +199,11 @@ export function SalvadorScene() {
           { ShadowGenerator },
           { Vector3 },
           { Color3, Color4 },
-          { createTerrain, setRuntimeDerivedTerrain },
+          {
+            createTerrain,
+            setRuntimeDerivedTerrain,
+            terrainHeight,
+          },
           { createOsmTerrainReference },
           { createRoads, createSpaces },
           { createBuildings },
@@ -318,6 +332,42 @@ export function SalvadorScene() {
           ...curatedBuildings,
           ...(derivedBuildingResult?.buildings ?? []),
         ];
+        let activeDebugBuildings =
+          runtimeBuildings;
+
+        const coordinateDebugItems = () =>
+          Object.entries(
+            geo.geographicCorners,
+          ).map(([name, corner]) => {
+            const [x, z] = corner.local;
+            return {
+              id: `coordinate-${name}`,
+              name:
+                `${name} · GPS ${corner.latitude.toFixed(6)}, ${corner.longitude.toFixed(6)} · UTM ${corner.easting.toFixed(1)} / ${corner.northing.toFixed(1)} · X ${x.toFixed(0)} Z ${z.toFixed(0)}`,
+              type: "coordinate-corner",
+              position: [
+                x,
+                terrainHeight(
+                  data.terrain,
+                  data.levels,
+                  x,
+                  z,
+                ) + 2,
+                z,
+              ] as [number, number, number],
+              rotation: [0, 0, 0] as [
+                number,
+                number,
+                number,
+              ],
+              width: 0,
+              depth: 0,
+              height: 0,
+              source:
+                "EPSG:32724 perimeter corner transformed to WGS84",
+              estimated: false,
+            } satisfies MeasuredObject;
+          });
         let buildingMeshes = createBuildings(
           scene,
           runtimeBuildings,
@@ -405,11 +455,14 @@ export function SalvadorScene() {
             shadows.addShadowCaster(mesh);
           }
 
+          activeDebugBuildings =
+            nextBuildings;
           updateDebugItems?.([
-            ...nextBuildings,
+            ...activeDebugBuildings,
             ...data.elevator,
             ...data.landmarks,
             ...data.barriers,
+            ...coordinateDebugItems(),
           ]);
 
           setLiveBuildingStats({
@@ -427,10 +480,11 @@ export function SalvadorScene() {
         configurePlayer(scene, cameras.street);
 
         const debug = createDebug(scene, [
-          ...runtimeBuildings,
+          ...activeDebugBuildings,
           ...data.elevator,
           ...data.landmarks,
           ...data.barriers,
+          ...coordinateDebugItems(),
         ]);
         debug.setEnabled(false);
         updateDebugItems = debug.setItems;
@@ -623,6 +677,13 @@ export function SalvadorScene() {
             rebuildLiveBuildingBlockouts(
               liveScene,
             );
+            updateDebugItems?.([
+              ...activeDebugBuildings,
+              ...data.elevator,
+              ...data.landmarks,
+              ...data.barriers,
+              ...coordinateDebugItems(),
+            ]);
 
             setLiveTerrainStats({
               contours: live.contourCount,
