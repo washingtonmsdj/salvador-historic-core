@@ -32,6 +32,63 @@ function fail(message) {
   errors.push(message);
 }
 
+const publicSpaceSurfacePolicy =
+  manifest.publicSpaceSurfacePolicy;
+
+if (!publicSpaceSurfacePolicy) {
+  fail(
+    "geospatial manifest must define publicSpaceSurfacePolicy",
+  );
+} else {
+  if (
+    !Number.isFinite(
+      publicSpaceSurfacePolicy.maxTriangleEdge,
+    ) ||
+    publicSpaceSurfacePolicy.maxTriangleEdge <= 0 ||
+    publicSpaceSurfacePolicy.maxTriangleEdge > 10
+  ) {
+    fail(
+      "public-space maxTriangleEdge must be > 0 and <= 10 metres",
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      publicSpaceSurfacePolicy.maxSubdivisions,
+    ) ||
+    publicSpaceSurfacePolicy.maxSubdivisions < 1 ||
+    publicSpaceSurfacePolicy.maxSubdivisions > 64
+  ) {
+    fail(
+      "public-space maxSubdivisions must be an integer between 1 and 64",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      publicSpaceSurfacePolicy.surfaceGap,
+    ) ||
+    publicSpaceSurfacePolicy.surfaceGap < 0.01 ||
+    publicSpaceSurfacePolicy.surfaceGap > 0.15
+  ) {
+    fail(
+      "public-space surfaceGap must be between 0.01 and 0.15 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      publicSpaceSurfacePolicy.textureRepeatMeters,
+    ) ||
+    publicSpaceSurfacePolicy.textureRepeatMeters < 1 ||
+    publicSpaceSurfacePolicy.textureRepeatMeters > 20
+  ) {
+    fail(
+      "public-space textureRepeatMeters must be between 1 and 20 metres",
+    );
+  }
+}
+
 const roadSurfacePolicy =
   manifest.roadSurfacePolicy;
 
