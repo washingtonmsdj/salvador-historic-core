@@ -41,14 +41,36 @@ function geographicToLocal(latitude, longitude) {
   return projectedToLocal(projected, easting, northing);
 }
 
-const [south, west] = localToGeographic(
-  bounds.minX,
-  bounds.minZ,
+const cornerCoordinates = [
+  localToGeographic(
+    bounds.minX,
+    bounds.minZ,
+  ),
+  localToGeographic(
+    bounds.maxX,
+    bounds.minZ,
+  ),
+  localToGeographic(
+    bounds.maxX,
+    bounds.maxZ,
+  ),
+  localToGeographic(
+    bounds.minX,
+    bounds.maxZ,
+  ),
+];
+
+const latitudes = cornerCoordinates.map(
+  ([latitude]) => latitude,
 );
-const [north, east] = localToGeographic(
-  bounds.maxX,
-  bounds.maxZ,
+const longitudes = cornerCoordinates.map(
+  ([, longitude]) => longitude,
 );
+const south = Math.min(...latitudes);
+const west = Math.min(...longitudes);
+const north = Math.max(...latitudes);
+const east = Math.max(...longitudes);
+
 const bbox = [south, west, north, east]
   .map((value) => value.toFixed(7))
   .join(",");
