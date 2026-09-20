@@ -401,6 +401,82 @@ if (
   fail("terrain cannot be marked geospatial-derived without a derived terrain product");
 }
 if (derivedTerrain?.available === true) {
+  const terrainQualityPolicy =
+    manifest.terrainQualityPolicy;
+
+  if (!terrainQualityPolicy) {
+    fail(
+      "geospatial manifest must define terrainQualityPolicy when derived terrain is available",
+    );
+  } else {
+    const statistics =
+      derivedTerrain.statistics ?? {};
+
+    if (
+      !Number.isFinite(
+        derivedTerrain.grid?.spacing,
+      ) ||
+      derivedTerrain.grid.spacing >
+        terrainQualityPolicy.maxPersistentGridSpacing
+    ) {
+      fail(
+        `derived terrain grid spacing must be <= ${terrainQualityPolicy.maxPersistentGridSpacing} m`,
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        statistics.contourCount,
+      ) ||
+      statistics.contourCount <
+        terrainQualityPolicy.minContourCount
+    ) {
+      fail(
+        `derived terrain must contain at least ${terrainQualityPolicy.minContourCount} contour paths`,
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        statistics.fixedCellCoverage,
+      ) ||
+      statistics.fixedCellCoverage <
+        terrainQualityPolicy.minFixedCellCoverage
+    ) {
+      fail(
+        `derived terrain fixed-cell coverage must be >= ${terrainQualityPolicy.minFixedCellCoverage}`,
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        statistics.finalMaxDelta,
+      ) ||
+      statistics.finalMaxDelta >
+        terrainQualityPolicy.maxSolverDelta
+    ) {
+      fail(
+        `derived terrain solver delta must be <= ${terrainQualityPolicy.maxSolverDelta} m`,
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        statistics.localHeightMax,
+      ) ||
+      !Number.isFinite(
+        statistics.localHeightMin,
+      ) ||
+      statistics.localHeightMax -
+          statistics.localHeightMin <
+        terrainQualityPolicy.minLocalRelief
+    ) {
+      fail(
+        `derived terrain local relief must be >= ${terrainQualityPolicy.minLocalRelief} m`,
+      );
+    }
+  }
+
   const grid = derivedTerrain.grid;
   const terrainBounds = derivedTerrain.bounds;
   const renderSpacing =
