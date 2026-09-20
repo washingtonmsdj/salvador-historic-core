@@ -10,9 +10,10 @@ export function createBuildings(scene: Scene, buildings: MeasuredObject[]) {
     context: material(scene, "building"),
     "rua-chile": material(scene, "building"),
     market: material(scene, "market"),
+    foundation: material(scene, "wall"),
   };
 
-  return buildings.map((item) => {
+  return buildings.flatMap((item) => {
     const mesh =
       item.footprint && item.footprint.length >= 3
         ? createExtrudedFootprint(
@@ -41,6 +42,49 @@ export function createBuildings(scene: Scene, buildings: MeasuredObject[]) {
     mesh.checkCollisions = true;
     mesh.receiveShadows = true;
     mesh.metadata = item;
-    return mesh;
+
+    const meshes = [mesh];
+    const buildingBase =
+      item.position[1] -
+      item.height / 2;
+
+    if (
+      item.footprint &&
+      item.footprint.length >= 3 &&
+      typeof item.foundationBottomY === "number" &&
+      Number.isFinite(item.foundationBottomY) &&
+      item.foundationBottomY <
+        buildingBase - 0.05
+    ) {
+      const foundation =
+        createExtrudedFootprint(
+          scene,
+          item.id + "-foundation",
+          item.footprint,
+          item.foundationBottomY,
+          buildingBase,
+        );
+      foundation.material =
+        mats.foundation;
+      foundation.checkCollisions =
+        true;
+      foundation.receiveShadows =
+        true;
+      foundation.metadata = {
+        category:
+          "building-foundation",
+        buildingId:
+          item.id,
+        foundationBottomY:
+          item.foundationBottomY,
+        foundationTopY:
+          buildingBase,
+      };
+      meshes.unshift(
+        foundation,
+      );
+    }
+
+    return meshes;
   });
 }

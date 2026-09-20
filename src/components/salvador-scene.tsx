@@ -458,6 +458,7 @@ export function SalvadorScene() {
     excessiveRelief: 0,
     protected: 0,
     roadConflict: 0,
+    foundations: 0,
   });
 
   useEffect(() => {
@@ -658,6 +659,8 @@ export function SalvadorScene() {
               derivedBuildingResult.skipped.overlapsReserved,
             roadConflict:
               derivedBuildingResult.skipped.overlapsRoadSurface,
+            foundations:
+              derivedBuildingResult.steppedFoundations,
           });
         }
         const replacedFallbackIds = new Set(
@@ -871,6 +874,8 @@ export function SalvadorScene() {
               result.skipped.overlapsReserved,
             roadConflict:
               result.skipped.overlapsRoadSurface,
+            foundations:
+              result.steppedFoundations,
           });
         };
 
@@ -1423,6 +1428,9 @@ export function SalvadorScene() {
             )}
             {liveBuildingStats.roadConflict > 0 && (
               <> · {liveBuildingStats.roadConflict} sobre via</>
+            )}
+            {liveBuildingStats.foundations > 0 && (
+              <> · {liveBuildingStats.foundations} com fundação adaptativa</>
             )}
           </div>
         </div>
