@@ -54,6 +54,11 @@ interface GeospatialBaseRuntime {
 
 interface DerivedSiteVectors {
   available: boolean;
+  metadata?: {
+    roadCount: number;
+    spaceCount: number;
+    buildingFootprintCount: number;
+  };
   roads: LinearFeature[];
   spaces: LinearFeature[];
   buildingFootprints: DerivedBuildingFootprint[];
@@ -374,6 +379,11 @@ export function SalvadorScene() {
               }`}
             />
             Base geo: {geo.terrain.active} · {geo.vectors.active}
+          </div>
+          <div className="mt-1 text-white/45">
+            GIS materializado: {derivedVectors.metadata?.roadCount ?? 0} ruas ·{" "}
+            {derivedVectors.metadata?.spaceCount ?? 0} espaços ·{" "}
+            {derivedVectors.metadata?.buildingFootprintCount ?? 0} edifícios
           </div>
         </div>
       </header>
