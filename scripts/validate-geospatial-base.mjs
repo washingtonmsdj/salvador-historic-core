@@ -704,6 +704,17 @@ if (!buildingPolicy) {
   }
 
   if (
+    !Number.isFinite(buildingPolicy.maxSteppedFoundationRelief) ||
+    buildingPolicy.maxSteppedFoundationRelief <=
+      buildingPolicy.maxAutoFoundationRelief ||
+    buildingPolicy.maxSteppedFoundationRelief > 5
+  ) {
+    fail(
+      "building maxSteppedFoundationRelief must be greater than maxAutoFoundationRelief and <= 5 metres",
+    );
+  }
+
+  if (
     !Number.isFinite(buildingPolicy.minAutoRoadClearance) ||
     buildingPolicy.minAutoRoadClearance < 0 ||
     buildingPolicy.minAutoRoadClearance > 1
