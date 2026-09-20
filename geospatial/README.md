@@ -329,3 +329,16 @@ provedor foi usado.
 
 O import persistente segue o mesmo princípio de integridade: respostas parciais são rejeitadas e
 nenhum produto normalizado é promovido se menos de duas curvas utilizáveis sobreviverem.
+
+
+## Identidade OSM no overlay
+
+Vias e áreas derivadas preservam `osmType`, `osmId` e tags de origem até o runtime.
+
+Quando uma resposta live é mesclada com a base versionada, uma feature geoespacial existente só é
+substituída automaticamente se a mesma identidade OSM estiver presente no overlay. O nome deixa de
+ser a chave primária para features OSM, porque uma rua pode ser composta por vários `way` distintos
+com o mesmo nome.
+
+A comparação por nome continua apenas para fallbacks manuais sem identidade OSM. Isso permite que
+um vetor real substitua um placeholder legado sem apagar outros trechos reais homônimos.
