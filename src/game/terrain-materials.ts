@@ -21,7 +21,6 @@ function createSurfaceTexture(
   name: string,
   base: Rgb,
   variation: number,
-  scale: number,
   seed: number,
   striated = false,
 ) {
@@ -65,10 +64,10 @@ function createSurfaceTexture(
   }
 
   texture.update(false);
-  texture.wrapU = Texture.WRAP_ADDRESSMODE;
-  texture.wrapV = Texture.WRAP_ADDRESSMODE;
-  texture.uScale = scale;
-  texture.vScale = scale;
+  texture.wrapU =
+    Texture.WRAP_ADDRESSMODE;
+  texture.wrapV =
+    Texture.WRAP_ADDRESSMODE;
   return texture;
 }
 
@@ -77,7 +76,6 @@ function createTerrainMaterial(
   name: string,
   base: Rgb,
   variation: number,
-  scale: number,
   seed: number,
   striated = false,
   alpha = 1,
@@ -100,7 +98,6 @@ function createTerrainMaterial(
     `${name}-diffuse`,
     base,
     variation,
-    scale,
     seed,
     striated,
   );
@@ -113,24 +110,23 @@ function createTerrainMaterial(
   return material;
 }
 
-export function createTerrainMaterials(scene: Scene, config: TerrainConfig) {
-  const { textureScale } = config.presentation;
-
+export function createTerrainMaterials(
+  scene: Scene,
+  _config: TerrainConfig,
+) {
   const surface = createTerrainMaterial(
     scene,
     "terrain-surface",
-    [126, 136, 105],
-    30,
-    textureScale * 0.85,
+    [116, 121, 96],
+    28,
     17,
   );
 
   const cliff = createTerrainMaterial(
     scene,
     "terrain-cliff-accent",
-    [124, 104, 79],
-    42,
-    textureScale,
+    [119, 96, 72],
+    40,
     29,
     true,
     0.88,
@@ -139,9 +135,8 @@ export function createTerrainMaterials(scene: Scene, config: TerrainConfig) {
   const wall = createTerrainMaterial(
     scene,
     "terrain-perimeter-wall",
-    [92, 81, 65],
-    34,
-    textureScale * 0.72,
+    [88, 78, 65],
+    32,
     61,
     true,
     0.58,
