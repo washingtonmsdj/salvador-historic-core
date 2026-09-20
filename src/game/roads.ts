@@ -36,8 +36,14 @@ const MAX_CROSS_SLOPE =
   roadSurfacePolicy.maxCrossSlope;
 const MAX_GRADE_SMOOTHING_RAISE =
   roadSurfacePolicy.maxGradeSmoothingRaise;
-const MAX_CROSS_SLOPE_CORRECTION_RELIEF =
-  roadSurfacePolicy.maxCrossSlopeCorrectionRelief;
+const MAX_SUPPORTED_FILL_HEIGHT =
+  roadSurfacePolicy.maxSupportedFillHeight;
+const SUPPORT_WALL_THRESHOLD =
+  roadSurfacePolicy.supportWallThreshold;
+const SUPPORT_WALL_TEXTURE_REPEAT_METERS =
+  roadSurfacePolicy.supportWallTextureRepeatMeters;
+const SUPPORT_WALL_SINK =
+  roadSurfacePolicy.supportWallSink;
 const JUNCTION_SNAP_DISTANCE =
   roadSurfacePolicy.junctionSnapDistance;
 const JUNCTION_OVERLAP =
@@ -284,6 +290,22 @@ function createRoadRibbon(
   const indices: number[] = [];
   const normals: number[] = [];
   const uvs: number[] = [];
+  const leftEdges: Array<{
+    x: number;
+    z: number;
+    roadY: number;
+    terrainY: number;
+    support: number;
+    distance: number;
+  }> = [];
+  const rightEdges: Array<{
+    x: number;
+    z: number;
+    roadY: number;
+    terrainY: number;
+    support: number;
+    distance: number;
+  }> = [];
   const centerHeights =
     smoothCenterHeights(
       centers,
@@ -361,8 +383,8 @@ function createRoadRibbon(
         crossSpan,
         maxCrossSlope:
           MAX_CROSS_SLOPE,
-        maxCorrectionRelief:
-          MAX_CROSS_SLOPE_CORRECTION_RELIEF,
+        maxSupportedFillHeight:
+          MAX_SUPPORTED_FILL_HEIGHT,
         surfaceGap: SURFACE_GAP,
       });
     const leftY =
@@ -380,6 +402,27 @@ function createRoadRibbon(
         );
       }
     }
+
+    leftEdges.push({
+      x: leftX,
+      z: leftZ,
+      roadY: leftY,
+      terrainY:
+        leftTerrain - SUPPORT_WALL_SINK,
+      support:
+        crossSection.leftSupportHeight,
+      distance: travelled,
+    });
+    rightEdges.push({
+      x: rightX,
+      z: rightZ,
+      roadY: rightY,
+      terrainY:
+        rightTerrain - SUPPORT_WALL_SINK,
+      support:
+        crossSection.rightSupportHeight,
+      distance: travelled,
+    });
 
     positions.push(
       leftX,
@@ -458,11 +501,172 @@ function createRoadRibbon(
         MAX_CROSS_SLOPE,
       maxGradeSmoothingRaise:
         MAX_GRADE_SMOOTHING_RAISE,
-      maxCrossSlopeCorrectionRelief:
-        MAX_CROSS_SLOPE_CORRECTION_RELIEF,
+      maxSupportedFillHeight:
+        MAX_SUPPORTED_FILL_HEIGHT,
+      supportWallThreshold:
+        SUPPORT_WALL_THRESHOLD,
     },
   };
-  return mesh;
+
+  const createSupportMesh = (
+    side: "left" | "right",
+    edges: typeof leftEdges,
+  ) => {
+    const supportPositions: number[] = [];
+    const supportIndices: number[] = [];
+    const supportNormals: number[] = [];
+    const supportUvs: number[] = [];
+
+    for (
+      let index = 0;
+      index < edges.length - 1;
+      index++
+    ) {
+      const a = edges[index];
+      const b = edges[index + 1];
+      if (!a || !b) continue;
+
+      if (
+        a.support < SUPPORT_WALL_THRESHOLD &&
+        b.support < SUPPORT_WALL_THRESHOLD
+      ) {
+        continue;
+      }
+
+      const base =
+        supportPositions.length / 3;
+      supportPositions.push(
+        a.x,
+        a.roadY,
+        a.z,
+        a.x,
+        a.terrainY,
+        a.z,
+        b.x,
+        b.roadY,
+        b.z,
+        b.x,
+        b.terrainY,
+        b.z,
+      );
+
+      if (side === "left") {
+        supportIndices.push(
+          base,
+          base + 1,
+          base + 2,
+          base + 2,
+          base + 1,
+          base + 3,
+        );
+      } else {
+        supportIndices.push(
+          base,
+          base + 2,
+          base + 1,
+          base + 2,
+          base + 3,
+          base + 1,
+        );
+      }
+
+      const u0 =
+        a.distance /
+        SUPPORT_WALL_TEXTURE_REPEAT_METERS;
+      const u1 =
+        b.distance /
+        SUPPORT_WALL_TEXTURE_REPEAT_METERS;
+      supportUvs.push(
+        u0,
+        0,
+        u0,
+        Math.max(
+          1,
+          a.support /
+            SUPPORT_WALL_TEXTURE_REPEAT_METERS,
+        ),
+        u1,
+        0,
+        u1,
+        Math.max(
+          1,
+          b.support /
+            SUPPORT_WALL_TEXTURE_REPEAT_METERS,
+        ),
+      );
+    }
+
+    if (
+      supportPositions.length === 0 ||
+      supportIndices.length === 0
+    ) {
+      return null;
+    }
+
+    VertexData.ComputeNormals(
+      supportPositions,
+      supportIndices,
+      supportNormals,
+    );
+
+    const supportMesh = new Mesh(
+      `${feature.id}-support-${side}`,
+      scene,
+    );
+    const supportData =
+      new VertexData();
+    supportData.positions =
+      supportPositions;
+    supportData.indices =
+      supportIndices;
+    supportData.normals =
+      supportNormals;
+    supportData.uvs =
+      supportUvs;
+    supportData.applyToMesh(
+      supportMesh,
+    );
+
+    supportMesh.material =
+      surfaceMaterialForKind(
+        scene,
+        "stone",
+      );
+    supportMesh.receiveShadows =
+      true;
+    supportMesh.checkCollisions =
+      true;
+    supportMesh.metadata = {
+      category:
+        "road-retaining-support",
+      roadId: feature.id,
+      side,
+      walkableSurface: false,
+    };
+
+    return supportMesh;
+  };
+
+  const supports = [
+    createSupportMesh(
+      "left",
+      leftEdges,
+    ),
+    createSupportMesh(
+      "right",
+      rightEdges,
+    ),
+  ].filter(
+    (
+      support,
+    ): support is Mesh =>
+      support !== null,
+  );
+
+  return [
+    mesh,
+    ...supports,
+  ];
 }
 
 function createRoadJunctionMesh(
@@ -945,14 +1149,14 @@ export function createRoads(
 ) {
   const ribbons = roads.flatMap(
     (road) => {
-      const mesh =
+      const meshes =
         createRoadRibbon(
           scene,
           road,
           terrain,
           levels,
         );
-      return mesh ? [mesh] : [];
+      return meshes ?? [];
     },
   );
 
