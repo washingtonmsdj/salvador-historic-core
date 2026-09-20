@@ -273,15 +273,11 @@ if (!thomeSite?.polygon?.length || !thomeBuilding?.footprint?.length) {
   const palace = thomeBuilding.footprint;
 
   for (const corner of palace) {
-    const insideSite =
-      pointInPolygon(corner, site) ||
-      site.some(
-        (siteCorner) =>
-          Math.hypot(
-            corner[0] - siteCorner[0],
-            corner[1] - siteCorner[1],
-          ) < 0.02,
-      );
+    const onBoundary = site.some((start, index) => {
+      const end = site[(index + 1) % site.length];
+      return end && pointToSegmentDistance(corner, start, end) < 0.03;
+    });
+    const insideSite = pointInPolygon(corner, site) || onBoundary;
 
     if (!insideSite) {
       fail("Palácio Thomé footprint extends outside the IPHAN TPTS envelope");
