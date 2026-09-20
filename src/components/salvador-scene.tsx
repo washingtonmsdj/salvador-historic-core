@@ -4,6 +4,7 @@ import derivedVectorsData from "../../geospatial/derived/site-vectors.json";
 import manifestData from "../../geospatial/manifest.json";
 import geospatialBase from "../data/geospatial-base.json";
 import siteData from "../data/site-data.json";
+import { chooseWalkableSpawn } from "../game/walkable-spawn";
 import type {
   DerivedBuildingFootprint,
   LinearFeature,
@@ -213,6 +214,13 @@ const runtimeSpaces =
         derivedVectors.available
       ? mergeLinearFeatures(data.spaces, derivedVectors.spaces)
       : data.spaces;
+const streetSpawn =
+  chooseWalkableSpawn(
+    runtimeSpaces,
+    runtimeRoads,
+    "Praça Tomé de Souza",
+  );
+
 const derivedBuildingsEligible =
   derivedVectorsUsable &&
   geo.terrain.active === "geospatial-derived" &&
@@ -714,7 +722,11 @@ export function SalvadorScene() {
           });
         };
 
-        const cameras = createCameras(scene, canvas);
+        const cameras = createCameras(
+          scene,
+          canvas,
+          streetSpawn,
+        );
         const playerController =
           configurePlayer(
             scene,
