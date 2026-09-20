@@ -422,6 +422,111 @@ export function SalvadorScene() {
         let activeBuildingFootprints:
           DerivedBuildingFootprint[] = [];
 
+        const groundedCuratedBuildings =
+          persistentTerrainActive
+            ? data.buildings.map(
+                (building) => {
+                  const footprint =
+                    building.footprint;
+                  if (
+                    !building.estimated ||
+                    !footprint ||
+                    footprint.length < 3
+                  ) {
+                    return building;
+                  }
+
+                  let supportBase =
+                    Number.POSITIVE_INFINITY;
+                  const sampleSpacing = 2.5;
+
+                  for (
+                    let index = 0;
+                    index < footprint.length;
+                    index++
+                  ) {
+                    const start =
+                      footprint[index];
+                    const end =
+                      footprint[
+                        (index + 1) %
+                          footprint.length
+                      ];
+                    if (!start || !end) {
+                      continue;
+                    }
+
+                    const length =
+                      Math.hypot(
+                        end[0] - start[0],
+                        end[1] - start[1],
+                      );
+                    const steps =
+                      Math.max(
+                        1,
+                        Math.ceil(
+                          length /
+                            sampleSpacing,
+                        ),
+                      );
+
+                    for (
+                      let step = 0;
+                      step <= steps;
+                      step++
+                    ) {
+                      const t =
+                        step / steps;
+                      const x =
+                        start[0] +
+                        (end[0] -
+                          start[0]) *
+                          t;
+                      const z =
+                        start[1] +
+                        (end[1] -
+                          start[1]) *
+                          t;
+                      supportBase =
+                        Math.min(
+                          supportBase,
+                          terrainHeight(
+                            data.terrain,
+                            data.levels,
+                            x,
+                            z,
+                          ),
+                        );
+                    }
+                  }
+
+                  if (
+                    !Number.isFinite(
+                      supportBase,
+                    )
+                  ) {
+                    return building;
+                  }
+
+                  return {
+                    ...building,
+                    position: [
+                      building.position[0],
+                      supportBase +
+                        building.height / 2,
+                      building.position[2],
+                    ] as [
+                      number,
+                      number,
+                      number,
+                    ],
+                    source:
+                      `${building.source}; runtime vertical base grounded to minimum official terrain elevation sampled along the verified footprint boundary`,
+                  };
+                },
+              )
+            : data.buildings;
+
         let spaceMeshes = createSpaces(
           scene,
           runtimeSpaces,
@@ -439,21 +544,21 @@ export function SalvadorScene() {
               derivedVectors.buildingFootprints,
               data.terrain,
               data.levels,
-              [...data.buildings, ...runtimeElevatorParts].flatMap(
+              [...groundedCuratedBuildings, ...runtimeElevatorParts].flatMap(
                 (item) => (item.footprint ? [item.footprint] : []),
               ),
-              data.buildings,
+              groundedCuratedBuildings,
             )
           : null;
         const replacedFallbackIds = new Set(
           derivedBuildingResult?.replacedFallbackIds ?? [],
         );
         const curatedBuildings = derivedBuildingResult
-          ? data.buildings.filter(
+          ? groundedCuratedBuildings.filter(
               (building) =>
                 !replacedFallbackIds.has(building.id),
             )
-          : data.buildings;
+          : groundedCuratedBuildings;
         const runtimeBuildings = [
           ...curatedBuildings,
           ...(derivedBuildingResult?.buildings ?? []),
@@ -536,7 +641,7 @@ export function SalvadorScene() {
           ((items: MeasuredObject[]) => void) |
           null = null;
         const reservedFootprints = [
-          ...data.buildings,
+          ...groundedCuratedBuildings,
           ...runtimeElevatorParts,
         ].flatMap((item) =>
           item.footprint ? [item.footprint] : [],
@@ -558,13 +663,13 @@ export function SalvadorScene() {
               data.terrain,
               data.levels,
               reservedFootprints,
-              data.buildings,
+              groundedCuratedBuildings,
             );
           const replacedIds = new Set(
             result.replacedFallbackIds,
           );
           const nextBuildings = [
-            ...data.buildings.filter(
+            ...groundedCuratedBuildings.filter(
               (building) =>
                 !replacedIds.has(building.id),
             ),
