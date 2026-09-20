@@ -32,6 +32,8 @@
 - [x] Remover placeholders urbanos sem identidade/alinhamento verificável
 - [x] Preparar importador OSM do recorte com fallback de endpoint e conversão para metros locais
 - [x] Carregar Ladeira da Montanha apenas de fonte OSM live/API bbox e auditar presença no Preview
+- [x] Servir OSM pelo próprio app para evitar bloqueios CORS do Preview
+- [x] Remover ribbons rodoviários e blocos Rua Chile inventados do fallback
 - [ ] Rodar importador OSM persistente e versionar o traçado completo da Ladeira da Montanha
 - [x] Nivelar o envelope TPTS 46 x 50 m como patamar coerente com a Praça no blockout
 - [ ] Validar orientação, escala e alinhamento visual dos marcos principais contra referências verificadas
