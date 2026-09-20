@@ -97,13 +97,15 @@
     },
     "buildingLevelHeight": 3,
     "excludeIndoorHighways": true,
+    "preserveIndoorCorridors": true,
+    "indoorCorridorWidth": 3,
     "criticalRoadNames": [
       "Rua Chile",
       "Ladeira da Montanha",
       "Rua da Conceição da Praia",
       "Avenida Lafayete Coutinho"
     ],
-    "notes": "Road centerlines and polygons are clipped to the project perimeter. Indoor highway features remain preserved in normalized OSM but are excluded from terrain-road derivation. Road width provenance follows explicit OSM width first, then integer OSM lanes × 3 m as an estimated carriageway width, then the highway-class fallback. Explicit OSM width/height tags are preserved; all derived widths remain marked estimated. Complete coverage requires every critical road name to be present."
+    "notes": "Road centerlines and polygons are clipped to the project perimeter. Indoor highway features remain excluded from terrain-road derivation. Indoor highway=corridor features are preserved in a separate elevatedCorridors collection so structures such as the Elevador Lacerda upper bridge remain available without being draped onto terrain. Road width provenance follows explicit OSM width first, then integer OSM lanes × 3 m as an estimated carriageway width, then the highway-class fallback. Explicit OSM width/height tags are preserved; all derived widths remain marked estimated. Complete coverage requires every critical road name to be present."
   },
   "buildingBlockoutPolicy": {
     "maxAutoFoundationRelief": 0.75,
@@ -125,6 +127,11 @@
       "rua-chile"
     ],
     "notes": "Automatic building volumes require a real OSM footprint plus explicit height or building:levels-derived height. Footprints crossing more than 0.75 m of terrain relief are skipped for manual foundation/model handling. A footprint that overlaps the rendered road/junction surface expanded by 0.15 m is preserved as source data but is not promoted to a collidable 3D blockout."
+  },
+  "elevatedCorridorPolicy": {
+    "deckThickness": 0.35,
+    "surfaceGap": 0.18,
+    "notes": "Indoor OSM corridors are rendered as elevated walkable decks. Their horizontal path comes from OSM; the deck datum is anchored to the highest terrain endpoint outside protected structure footprints so the bridge is not draped down the escarpment."
   },
   "rasterReference": {
     "provider": "OpenStreetMap Standard",
