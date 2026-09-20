@@ -250,11 +250,17 @@ if (
   fail("runtime terrain summary does not match derived terrain vertex count");
 }
 
+const vectorRuntimeActive =
+  runtime.vectors.active === "geospatial-derived" ||
+  runtime.vectors.active === "geospatial-hybrid";
+
 if (
-  runtime.vectors.active === "geospatial-derived" &&
+  vectorRuntimeActive &&
   runtime.derived?.vectors?.available !== true
 ) {
-  fail("vectors cannot be marked geospatial-derived without a derived vector product");
+  fail(
+    "active geospatial vectors require an available derived vector product",
+  );
 }
 if (derivedVectors?.available === true) {
   if (derivedVectors.crs !== manifest.localCoordinateSystem.horizontalCrs) {
@@ -366,7 +372,7 @@ if (derivedVectors?.available === true) {
 
 if (
   derivedVectors?.available === true &&
-  runtime.vectors.active !== "geospatial-derived"
+  !vectorRuntimeActive
 ) {
   fail(
     "derived vectors are available but runtime manifest has not activated them",
@@ -374,21 +380,44 @@ if (
 }
 
 if (
-  runtime.vectors.active === "geospatial-derived" &&
+  vectorRuntimeActive &&
   derivedVectors?.available !== true
 ) {
-  fail("runtime vectors are geospatial-derived but site-vectors.json is unavailable");
+  fail(
+    "runtime geospatial vectors are active but site-vectors.json is unavailable",
+  );
 }
 
 if (
   runtime.vectors.active === "geospatial-derived" &&
   runtime.vectors.fallbackActive !== false
 ) {
-  fail("geospatial-derived vectors cannot remain marked as fallback");
+  fail("complete geospatial-derived vectors cannot remain marked as fallback");
+}
+
+if (
+  runtime.vectors.active === "geospatial-hybrid" &&
+  runtime.vectors.fallbackActive !== true
+) {
+  fail("geospatial-hybrid vectors must remain explicitly marked as fallback");
 }
 
 if (
   runtime.vectors.active === "geospatial-derived" &&
+  derivedVectors?.metadata?.coverage !== "complete"
+) {
+  fail("complete geospatial-derived vectors require coverage=complete");
+}
+
+if (
+  runtime.vectors.active === "geospatial-hybrid" &&
+  derivedVectors?.metadata?.coverage === "complete"
+) {
+  fail("geospatial-hybrid must not be used for complete vector coverage");
+}
+
+if (
+  vectorRuntimeActive &&
   runtime.derived?.vectors?.featureCount !==
     derivedVectors?.metadata?.featureCount
 ) {
