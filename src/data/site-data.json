@@ -396,38 +396,21 @@
       "name": "Prefeitura / Palácio Thomé de Souza",
       "type": "civic",
       "position": [
-        105.985,
+        110.0418518660737,
         69.5,
-        -11.039
+        -13.43113771603365
       ],
       "rotation": [
         0,
-        0,
+        0.7033537794581057,
         0
       ],
-      "width": 16,
-      "depth": 50,
+      "width": 15.21,
+      "depth": 44.17,
       "height": 9,
-      "source": "IPHAN Anexo XXIII: TPTS approximately 46 m wide x 50 m deep; current Palácio Tomé de Souza occupies a central longitudinal strip approximately 16 m wide from Praça Tomé de Souza to Ladeira da Misericórdia. Footprint derived from the verified southwest plaza edge and those dimensions; vertical height remains estimated for blockout.",
+      "source": "IPHAN Anexo XXIII documents the approximately 16 m central longitudinal Palácio Thomé de Souza strip within the 46 × 50 m TPTS site. Unnamed OpenStreetMap way 1317127245 is the canonical horizontal footprint because it lies fully inside that documented site and measures approximately 15.2 × 44.2 m; vertical height remains estimated.",
       "estimated": true,
-      "footprint": [
-        [
-          83.666,
-          -24.855
-        ],
-        [
-          95.834,
-          -35.245
-        ],
-        [
-          128.304,
-          2.777
-        ],
-        [
-          116.136,
-          13.168
-        ]
-      ]
+      "footprintOsmId": 1317127245
     },
     {
       "id": "palacio-rio-branco",
