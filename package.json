@@ -28,7 +28,8 @@
     "geospatial:refresh:vectors": "node scripts/import-osm-site.mjs && node scripts/derive-site-vectors.mjs && node scripts/build-geospatial-base.mjs && node scripts/test-osm-site-vectors.mjs && node scripts/validate-geospatial-base.mjs",
     "geospatial:refresh:terrain": "node scripts/import-conder-contours.mjs && node scripts/derive-terrain-from-contours.mjs && node scripts/build-geospatial-base.mjs && node scripts/test-contour-heightfield.mjs && node scripts/validate-geospatial-base.mjs",
     "lint:ci": "eslint . --rule 'prettier/prettier: off'",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "road:test": "bun scripts/test-road-surface.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
