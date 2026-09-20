@@ -1,0 +1,76 @@
+name: Geospatial Refresh Probe
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    if: github.head_ref == 'feat/terrain-road-walkability'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Refresh OSM vectors
+        id: osm
+        continue-on-error: true
+        run: |
+          bun run geospatial:import:osm
+          bun run geospatial:derive:vectors
+
+      - name: Refresh CONDER terrain
+        id: conder
+        continue-on-error: true
+        run: |
+          bun run geospatial:import:conder
+          bun run geospatial:derive:terrain
+
+      - name: Rebuild runtime geospatial manifest
+        if: always()
+        continue-on-error: true
+        run: bun run geospatial:build
+
+      - name: Validate generated geospatial products
+        if: always()
+        continue-on-error: true
+        run: bun run geospatial:validate
+
+      - name: Upload generated GIS snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salvador-gis-refresh
+          if-no-files-found: warn
+          retention-days: 1
+          path: |
+            geospatial/raw/osm/overpass.json
+            geospatial/normalized/osm/site.json
+            geospatial/derived/site-vectors.json
+            geospatial/raw/conder/contours.arcgis.json
+            geospatial/normalized/conder/contours.json
+            geospatial/derived/terrain.json
+            src/data/geospatial-base.json
+
+      - name: Require both official refreshes
+        if: always()
+        run: |
+          test "${{ steps.osm.outcome }}" = "success"
+          test "${{ steps.conder.outcome }}" = "success"
