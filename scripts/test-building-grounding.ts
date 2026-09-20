@@ -41,7 +41,7 @@ for (
   index++
 ) {
   const before =
-    sourced[index];
+    data.buildings[index];
   const hydrated =
     sourced[index];
   if (!before || !hydrated) {
@@ -120,7 +120,7 @@ for (
   index++
 ) {
   const before =
-    data.buildings[index];
+    sourced[index];
   const after = aligned[index];
 
   if (!before || !after) {
