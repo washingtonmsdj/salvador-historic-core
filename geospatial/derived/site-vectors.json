@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "available": false,
+  "generatedAt": null,
+  "source": null,
+  "crs": "EPSG:32724",
+  "units": "meters",
+  "bounds": {
+    "minX": -150,
+    "maxX": 150,
+    "minZ": -230,
+    "maxZ": 230
+  },
+  "metadata": {
+    "featureCount": 0,
+    "roadCount": 0,
+    "spaceCount": 0,
+    "buildingFootprintCount": 0
+  },
+  "roads": [],
+  "spaces": [],
+  "buildingFootprints": []
+}
