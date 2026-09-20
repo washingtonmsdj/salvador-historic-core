@@ -34,7 +34,8 @@
       "perimeterSampleSpacing": 5,
       "textureScale": 5,
       "rockNormalYMax": 0.84,
-      "upperElevationMin": 32
+      "contourInterval": 10,
+      "cliffOverlayOffset": 0.06
     },
     "source": "Provisional 2D escarpment control profiles prepared for blockout. CONDER Cartografia Sistemática 1992 REL_Curva_Nivel_L is the official contour reference to import next; profiles must not be treated as surveyed contours.",
     "estimated": true

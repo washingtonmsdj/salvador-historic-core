@@ -60,7 +60,8 @@ export interface TerrainConfig {
     perimeterSampleSpacing: number;
     textureScale: number;
     rockNormalYMax: number;
-    upperElevationMin: number;
+    contourInterval: number;
+    cliffOverlayOffset: number;
   };
   source: string;
   estimated: boolean;

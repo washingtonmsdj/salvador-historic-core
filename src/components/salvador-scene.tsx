@@ -57,7 +57,7 @@ export function SalvadorScene() {
           { DirectionalLight },
           { ShadowGenerator },
           { Vector3 },
-          { Color4 },
+          { Color3, Color4 },
           { createTerrain },
           { createRoads, createSpaces },
           { createBuildings },
@@ -104,7 +104,8 @@ export function SalvadorScene() {
           new Vector3(0.2, 1, 0.1),
           scene,
         );
-        ambient.intensity = 1.08;
+        ambient.intensity = 1.12;
+        ambient.groundColor = new Color3(0.22, 0.2, 0.17);
 
         const sun = new DirectionalLight(
           "sun-light",
@@ -112,7 +113,7 @@ export function SalvadorScene() {
           scene,
         );
         sun.position = new Vector3(120, 180, -80);
-        sun.intensity = 0.82;
+        sun.intensity = 0.74;
 
         const terrainMeshes = createTerrain(scene, data.terrain, data.levels);
         createSpaces(scene, data.spaces);
@@ -127,6 +128,7 @@ export function SalvadorScene() {
         shadows.blurKernel = 24;
         shadows.bias = 0.0005;
         shadows.normalBias = 0.025;
+        shadows.setDarkness(0.3);
 
         for (const mesh of [
           ...buildingMeshes,

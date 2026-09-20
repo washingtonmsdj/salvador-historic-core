@@ -74,20 +74,26 @@ cobertura dos perfis e se os objetos/footprints permanecem dentro do perímetro.
 
 ## Materiais do blockout
 
-A superfície usa três materiais procedurais distintos:
+O topo inteiro do terreno é sempre renderizado como uma superfície contínua. Isso evita buracos
+ou áreas invisíveis caso a classificação visual de relevo falhe.
 
-- Cidade Baixa: mineral/urbano neutro;
-- escarpa: rocha/terra com estratificação e relevo visual;
-- Cidade Alta: solo/vegetação seca de blockout.
+A leitura da topografia é composta por:
+
+- material procedural claro e contínuo em todo o topo;
+- camada rochosa apenas sobre trechos íngremes da escarpa;
+- curvas de nível visuais em intervalos configurados no `site-data.json`;
+- contorno superior do perímetro;
+- paredes laterais estratificadas e base estrutural.
 
 As texturas são geradas deterministicamente no navegador, sem dependências externas ou assets
 de terceiros. Elas alteram apenas a leitura visual, não a geometria nem as cotas do terreno.
 
-As paredes laterais do perímetro recebem material estratificado próprio para que a maquete tenha
-espessura e estrutura legíveis em vista aérea.
+A camada rochosa é somente um acabamento visual deslocado poucos centímetros da superfície e não
+participa das colisões. A malha contínua inferior permanece como a única superfície física do
+terreno.
 
 ## Limite de fidelidade
 
-Textura, material, base estrutural e paredes do perímetro são elementos de apresentação. Eles não
-devem ser confundidos com geologia ou acabamento oficial. A elevação continua
+Textura, curvas de nível, camada rochosa, base estrutural e paredes do perímetro são elementos de
+apresentação. Eles não devem ser confundidos com geologia ou acabamento oficial. A elevação continua
 `estimated: true` até a substituição pelos dados altimétricos verificáveis.
