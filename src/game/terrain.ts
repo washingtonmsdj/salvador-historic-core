@@ -86,9 +86,15 @@ function applyTerrainCutouts(
     }
 
     const distance = distanceToPolygon(point, cutout.polygon);
-    if (cutout.feather <= 0 || distance >= cutout.feather) continue;
+    if (distance <= cutout.clearance) {
+      height = Math.min(height, cutout.elevation);
+      continue;
+    }
 
-    const blend = smoothstep(distance / cutout.feather);
+    const featherDistance = distance - cutout.clearance;
+    if (cutout.feather <= 0 || featherDistance >= cutout.feather) continue;
+
+    const blend = smoothstep(featherDistance / cutout.feather);
     const featheredHeight =
       cutout.elevation + (height - cutout.elevation) * blend;
     height = Math.min(height, featheredHeight);
