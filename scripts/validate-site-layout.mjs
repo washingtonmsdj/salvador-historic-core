@@ -234,6 +234,10 @@ if (!lowerTower?.footprint?.length || !elevatorCutout?.polygon?.length) {
 }
 
 function orientedBoxCorners(building) {
+  if (building.footprint?.length >= 3) {
+    return building.footprint;
+  }
+
   const halfWidth = building.width / 2;
   const halfDepth = building.depth / 2;
   const angle = building.rotation[1];
@@ -253,6 +257,68 @@ function orientedBoxCorners(building) {
   ]);
 }
 
+function polygonSideLength(a, b) {
+  return Math.hypot(b[0] - a[0], b[1] - a[1]);
+}
+
+const thomeSite = layout?.palacioThomeSite;
+const thomeBuilding = data.buildings.find(
+  (item) => item.id === "palacio-thome-souza",
+);
+
+if (!thomeSite?.polygon?.length || !thomeBuilding?.footprint?.length) {
+  fail("Palácio Thomé site and building footprints are required");
+} else {
+  const site = thomeSite.polygon;
+  const palace = thomeBuilding.footprint;
+
+  for (const corner of palace) {
+    const insideSite =
+      pointInPolygon(corner, site) ||
+      site.some(
+        (siteCorner) =>
+          Math.hypot(
+            corner[0] - siteCorner[0],
+            corner[1] - siteCorner[1],
+          ) < 0.02,
+      );
+
+    if (!insideSite) {
+      fail("Palácio Thomé footprint extends outside the IPHAN TPTS envelope");
+      break;
+    }
+  }
+
+  const palaceFrontWidth = polygonSideLength(palace[0], palace[1]);
+  const palaceDepth = polygonSideLength(palace[1], palace[2]);
+  const siteFrontWidth = polygonSideLength(site[0], site[1]);
+  const siteDepth = polygonSideLength(site[1], site[2]);
+
+  if (Math.abs(palaceFrontWidth - thomeSite.palaceStripWidth) > 0.15) {
+    fail(
+      `Palácio Thomé strip width is ${palaceFrontWidth.toFixed(2)} m; expected ~${thomeSite.palaceStripWidth} m`,
+    );
+  }
+
+  if (Math.abs(palaceDepth - thomeSite.depth) > 0.15) {
+    fail(
+      `Palácio Thomé depth is ${palaceDepth.toFixed(2)} m; expected ~${thomeSite.depth} m`,
+    );
+  }
+
+  if (Math.abs(siteFrontWidth - thomeSite.width) > 0.15) {
+    fail(
+      `TPTS width is ${siteFrontWidth.toFixed(2)} m; expected ~${thomeSite.width} m`,
+    );
+  }
+
+  if (Math.abs(siteDepth - thomeSite.depth) > 0.15) {
+    fail(
+      `TPTS depth is ${siteDepth.toFixed(2)} m; expected ~${thomeSite.depth} m`,
+    );
+  }
+}
+
 const frontage = layout?.plazaNortheastFrontage?.edge;
 const thome = data.buildings.find(
   (item) => item.id === "palacio-thome-souza",
@@ -267,7 +333,7 @@ if (frontage?.length === 2 && thome) {
       ? expectedRotation + Math.PI
       : expectedRotation;
 
-  if (angleDelta(thome.rotation[1], equivalentRotation) > 0.03) {
+  if (!thome.footprint && angleDelta(thome.rotation[1], equivalentRotation) > 0.03) {
     fail("Palácio Thomé de Souza is not parallel to verified plaza frontage");
   }
 
