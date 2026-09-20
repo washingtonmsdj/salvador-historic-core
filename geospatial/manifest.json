@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "units": "meters",
+  "localCoordinateSystem": {
+    "horizontalCrs": "EPSG:32724",
+    "axes": {
+      "x": "easting relative to Elevador Lacerda origin",
+      "z": "northing relative to Elevador Lacerda origin",
+      "y": "elevation relative to local vertical datum"
+    }
+  },
+  "origin": {
+    "id": "elevador-lacerda-osm-centroid",
+    "latitude": -12.9740882,
+    "longitude": -38.5133597,
+    "easting": 552777.9809,
+    "northing": 8565679.442
+  },
+  "perimeter": {
+    "minX": -150,
+    "maxX": 150,
+    "minZ": -230,
+    "maxZ": 230
+  },
+  "sources": {
+    "osm": {
+      "kind": "vector",
+      "authority": "OpenStreetMap contributors",
+      "status": "import-required",
+      "command": "npm run geospatial:import:osm",
+      "output": "geospatial/raw/osm/site.json"
+    },
+    "conderContours": {
+      "kind": "elevation-contours",
+      "authority": "CONDER",
+      "status": "import-required",
+      "service": "https://mapas.conder.ba.gov.br/arcgis/rest/services/CARTOGRAFIA_SISTEMATICA/CARTOGRAFIA_SISTEMATICA_1992_24/MapServer/14",
+      "layer": "REL_Curva_Nivel_L",
+      "elevationField": "ELEVATION",
+      "crs": "EPSG:32724",
+      "command": "npm run geospatial:import:conder",
+      "output": "geospatial/raw/conder/contours.json"
+    },
+    "salvadorMunicipalCartography": {
+      "kind": "dem-lidar-orthophoto",
+      "authority": "Prefeitura Municipal de Salvador / SEFAZ",
+      "status": "discovery",
+      "portal": "https://sig.salvador.ba.gov.br/",
+      "notes": "Prefer municipal MDT/LiDAR for final terrain when a stable public download or service endpoint for the project tile is identified."
+    }
+  },
+  "pipeline": {
+    "raw": "geospatial/raw",
+    "normalized": "geospatial/normalized",
+    "derived": "geospatial/derived",
+    "runtimeManifest": "src/data/geospatial-base.json"
+  },
+  "runtime": {
+    "preferredTerrainSource": "official-dem-or-contours",
+    "fallbackTerrainSource": "procedural",
+    "preferredVectorSource": "osm",
+    "requireExplicitFallbackLabel": true
+  }
+}
