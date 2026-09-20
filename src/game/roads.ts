@@ -19,6 +19,7 @@ function elevationAt(
   z: number,
   terrain: TerrainConfig,
   levels: SceneLevels,
+  roadMaterial: ReturnType<typeof material>,
 ) {
   const surface =
     mode === "upper"
@@ -60,7 +61,7 @@ function createSegment(
     z,
   );
   mesh.rotation.y = Math.atan2(dx, dz);
-  mesh.material = material(scene, "road");
+  mesh.material = roadMaterial;
   mesh.receiveShadows = true;
   mesh.checkCollisions = true;
   mesh.metadata = feature;
@@ -73,6 +74,8 @@ export function createRoads(
   terrain: TerrainConfig,
   levels: SceneLevels,
 ) {
+  const roadMaterial = material(scene, "road");
+
   return roads.flatMap((road) =>
     road.points.slice(0, -1).flatMap((point, index) => {
       const nextPoint = road.points[index + 1];
@@ -87,6 +90,7 @@ export function createRoads(
           index,
           terrain,
           levels,
+          roadMaterial,
         ),
       ];
     }),
@@ -94,6 +98,8 @@ export function createRoads(
 }
 
 export function createSpaces(scene: Scene, spaces: LinearFeature[]) {
+  const squareMaterial = material(scene, "square");
+
   return spaces.map((space) => {
     const xs = space.points.map(([x]) => x);
     const zs = space.points.map(([, z]) => z);
@@ -110,7 +116,7 @@ export function createSpaces(scene: Scene, spaces: LinearFeature[]) {
       (space.elevation ?? 0) + SPACE_THICKNESS / 2 + SURFACE_GAP,
       (Math.min(...zs) + Math.max(...zs)) / 2,
     );
-    mesh.material = material(scene, "square");
+    mesh.material = squareMaterial;
     mesh.receiveShadows = true;
     mesh.checkCollisions = true;
     mesh.metadata = space;
