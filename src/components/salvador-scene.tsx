@@ -552,15 +552,40 @@ export function SalvadorScene() {
         );
 
         scene = new Scene(engine);
-        scene.clearColor = new Color4(0.11, 0.14, 0.16, 1);
+        const terrainPresentation =
+          data.terrain.presentation;
+        const fogColor =
+          new Color3(
+            ...terrainPresentation
+              .atmosphereFogColor,
+          );
+        scene.clearColor =
+          new Color4(
+            fogColor.r,
+            fogColor.g,
+            fogColor.b,
+            1,
+          );
+        scene.fogMode =
+          Scene.FOGMODE_LINEAR;
+        scene.fogStart =
+          terrainPresentation
+            .atmosphereFogStart;
+        scene.fogEnd =
+          terrainPresentation
+            .atmosphereFogEnd;
+        scene.fogColor =
+          fogColor;
         scene.imageProcessingConfiguration.toneMappingEnabled =
           true;
         scene.imageProcessingConfiguration.toneMappingType =
           ImageProcessingConfiguration.TONEMAPPING_ACES;
         scene.imageProcessingConfiguration.exposure =
-          1.08;
+          terrainPresentation
+            .toneMappingExposure;
         scene.imageProcessingConfiguration.contrast =
-          1.12;
+          terrainPresentation
+            .toneMappingContrast;
 
         const ambient = new HemisphericLight(
           "ambient-light",
