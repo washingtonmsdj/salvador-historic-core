@@ -225,6 +225,20 @@ export function clipPolygonToBounds(points, bounds) {
   return sanitizePoints(polygon);
 }
 
+function parseOsmLaneCount(value) {
+  if (
+    typeof value !== "string" &&
+    typeof value !== "number"
+  ) {
+    return null;
+  }
+
+  const parsed = Number(String(value).trim());
+  return Number.isInteger(parsed) && parsed > 0
+    ? parsed
+    : null;
+}
+
 function roadWidth(tags, config) {
   const explicit = parseOsmMeasurement(tags.width);
   if (explicit) {
@@ -232,6 +246,22 @@ function roadWidth(tags, config) {
       width: explicit,
       estimated: false,
       source: "OSM width tag",
+    };
+  }
+
+  const lanes = parseOsmLaneCount(tags.lanes);
+  if (
+    config.useLaneCountForEstimatedWidth !== false &&
+    lanes &&
+    Number.isFinite(config.laneWidthMeters) &&
+    config.laneWidthMeters > 0
+  ) {
+    return {
+      width: Number(
+        (lanes * config.laneWidthMeters).toFixed(2),
+      ),
+      estimated: true,
+      source: `OSM lanes=${lanes} × ${config.laneWidthMeters} m estimated lane width`,
     };
   }
 
