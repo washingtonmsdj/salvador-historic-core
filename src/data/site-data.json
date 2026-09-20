@@ -25,7 +25,7 @@
       { "z": 45, "toeX": 12, "cliffX": 30, "shoulderX": 48 },
       { "z": 90, "toeX": 18, "cliffX": 38, "shoulderX": 58 },
       { "z": 150, "toeX": 22, "cliffX": 42, "shoulderX": 62 },
-      { "z": 220, "toeX": 26, "cliffX": 46, "shoulderX": 66 }
+      { "z": 230, "toeX": 26, "cliffX": 46, "shoulderX": 66 }
     ],
     "lowerGrade": { "risePerMeterX": 0.004, "maxRise": 1.2 },
     "upperGrade": { "risePerMeterX": 0.002, "risePerMeterZ": -0.001, "maxVariation": 1.5 },
