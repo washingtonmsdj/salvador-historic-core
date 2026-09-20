@@ -60,7 +60,7 @@
   ],
   "roads": [
     { "id": "rua-chile", "name": "Rua Chile", "type": "road", "elevationMode": "upper", "width": 8, "source": "OpenStreetMap way 258560240; north segment interpolated to Praça Tomé de Souza", "estimated": true, "points": [[-40,-218],[-10,-180],[20,-142],[48,-105],[65,-83]] },
-    { "id": "ladeira-montanha", "name": "Ladeira da Montanha", "type": "road", "elevationMode": "terrain", "width": 9, "source": "Documented real road beside/through escarpment; alignment blockout pending full OSM import", "estimated": true, "points": [[-70,-155],[-58,-110],[-45,-62],[-31,-12],[-42,42],[-58,86]] },
+    { "id": "ladeira-montanha", "name": "Ladeira da Montanha", "type": "road", "elevationMode": "terrain", "width": 9, "source": "Documented real connection between Cidade Alta and Cidade Baixa; provisional local alignment adjusted to follow the blockout escarpment pending full OSM import", "estimated": true, "points": [[-25,-155],[-18,-125],[-12,-100],[-8,-75],[-6,-55],[-7,-35],[-12,-15],[-24,20],[-38,55],[-50,86]] },
     { "id": "avenida-estados-unidos", "name": "Via inferior junto ao Elevador", "type": "road", "elevationMode": "lower", "width": 11, "source": "Existing lower-city road network; exact segment name/alignment pending reference", "estimated": true, "points": [[-76,-130],[-55,-68],[-39,-12],[-42,55],[-54,125],[-58,220]] }
   ],
   "barriers": [
