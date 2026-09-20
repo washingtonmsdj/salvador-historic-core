@@ -27,6 +27,121 @@ function fail(message) {
   errors.push(message);
 }
 
+const roadSurfacePolicy =
+  manifest.roadSurfacePolicy;
+
+if (!roadSurfacePolicy) {
+  fail(
+    "geospatial manifest must define roadSurfacePolicy",
+  );
+} else {
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.sampleSpacing,
+    ) ||
+    roadSurfacePolicy.sampleSpacing <= 0 ||
+    roadSurfacePolicy.sampleSpacing > 5
+  ) {
+    fail(
+      "road sampleSpacing must be > 0 and <= 5 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.surfaceGap,
+    ) ||
+    roadSurfacePolicy.surfaceGap < 0.01 ||
+    roadSurfacePolicy.surfaceGap > 0.15
+  ) {
+    fail(
+      "road surfaceGap must be between 0.01 and 0.15 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.maxCrossSlope,
+    ) ||
+    roadSurfacePolicy.maxCrossSlope <= 0 ||
+    roadSurfacePolicy.maxCrossSlope > 0.12
+  ) {
+    fail(
+      "road maxCrossSlope must be > 0 and <= 12%",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.maxGradeSmoothingDeviation,
+    ) ||
+    roadSurfacePolicy.maxGradeSmoothingDeviation < 0 ||
+    roadSurfacePolicy.maxGradeSmoothingDeviation > 0.25
+  ) {
+    fail(
+      "road maxGradeSmoothingDeviation must be between 0 and 0.25 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.maxMiterScale,
+    ) ||
+    roadSurfacePolicy.maxMiterScale < 1 ||
+    roadSurfacePolicy.maxMiterScale > 4
+  ) {
+    fail(
+      "road maxMiterScale must be between 1 and 4",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.textureRepeatMeters,
+    ) ||
+    roadSurfacePolicy.textureRepeatMeters < 1 ||
+    roadSurfacePolicy.textureRepeatMeters > 20
+  ) {
+    fail(
+      "road textureRepeatMeters must be between 1 and 20 metres",
+    );
+  }
+}
+
+const liveTerrainPreview =
+  manifest.liveTerrainPreview;
+
+if (!liveTerrainPreview) {
+  fail(
+    "geospatial manifest must define liveTerrainPreview",
+  );
+} else {
+  if (
+    !Number.isFinite(
+      liveTerrainPreview.gridSpacing,
+    ) ||
+    liveTerrainPreview.gridSpacing < 2.5 ||
+    liveTerrainPreview.gridSpacing > 8
+  ) {
+    fail(
+      "live terrain gridSpacing must be between 2.5 and 8 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      liveTerrainPreview.contourSampleSpacing,
+    ) ||
+    liveTerrainPreview.contourSampleSpacing <= 0 ||
+    liveTerrainPreview.contourSampleSpacing >
+      liveTerrainPreview.gridSpacing
+  ) {
+    fail(
+      "live terrain contourSampleSpacing must be > 0 and <= gridSpacing",
+    );
+  }
+}
+
 const buildingPolicy = manifest.buildingBlockoutPolicy;
 
 if (!buildingPolicy) {
