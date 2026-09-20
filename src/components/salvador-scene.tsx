@@ -36,6 +36,8 @@ interface GeospatialBaseRuntime {
   origin: {
     latitude: number;
     longitude: number;
+    easting: number;
+    northing: number;
   };
   geographicBounds: {
     south: number;
@@ -142,6 +144,14 @@ export function SalvadorScene() {
   const [mapReferenceEnabled, setMapReferenceEnabled] = useState(true);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [liveOsmState, setLiveOsmState] = useState<
+    "loading" | "active" | "cached" | "unavailable"
+  >("loading");
+  const [liveOsmCounts, setLiveOsmCounts] = useState({
+    roads: 0,
+    spaces: 0,
+    buildings: 0,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -167,6 +177,8 @@ export function SalvadorScene() {
           { createOsmTerrainReference },
           { createRoads, createSpaces },
           { createBuildings },
+          { createBuildingFootprintGuides },
+          { loadLiveOsmVectors },
           { deriveRuntimeBuildingBlockouts },
           { createElevatorBlockout, createConnectionPoints },
           { createBarriers },
@@ -185,6 +197,8 @@ export function SalvadorScene() {
           import("../game/osm-terrain-reference"),
           import("../game/roads"),
           import("../game/buildings"),
+          import("../game/building-footprint-guides"),
+          import("../game/live-osm"),
           import("../game/derived-buildings"),
           import("../game/elevator"),
           import("../game/barriers"),
@@ -239,13 +253,13 @@ export function SalvadorScene() {
         );
         mapReference.setEnabled(true);
 
-        createSpaces(
+        let spaceMeshes = createSpaces(
           scene,
           runtimeSpaces,
           data.terrain,
           data.levels,
         );
-        createRoads(
+        let roadMeshes = createRoads(
           scene,
           runtimeRoads,
           data.terrain,
@@ -328,6 +342,70 @@ export function SalvadorScene() {
 
         window.addEventListener("resize", handleResize);
         setLoadState("ready");
+
+        void loadLiveOsmVectors({
+          geographicBounds: geo.geographicBounds,
+          localBounds: data.terrain.bounds,
+          origin: {
+            easting: geo.origin.easting,
+            northing: geo.origin.northing,
+          },
+        })
+          .then((live) => {
+            if (disposed || !scene) return;
+
+            if (live.roads.length > 0) {
+              for (const mesh of roadMeshes) {
+                mesh.dispose();
+              }
+              roadMeshes = createRoads(
+                scene,
+                live.roads,
+                data.terrain,
+                data.levels,
+              );
+            }
+
+            if (live.spaces.length > 0) {
+              for (const mesh of spaceMeshes) {
+                mesh.dispose();
+              }
+              spaceMeshes = createSpaces(
+                scene,
+                live.spaces,
+                data.terrain,
+                data.levels,
+              );
+            }
+
+            createBuildingFootprintGuides(
+              scene,
+              live.buildingFootprints,
+              data.terrain,
+              data.levels,
+            );
+
+            setLiveOsmCounts({
+              roads: live.roads.length,
+              spaces: live.spaces.length,
+              buildings:
+                live.buildingFootprints.length,
+            });
+            setLiveOsmState(
+              live.source === "session-cache"
+                ? "cached"
+                : "active",
+            );
+          })
+          .catch((error) => {
+            console.warn(
+              "Live OSM vectors unavailable; keeping versioned seed.",
+              error,
+            );
+            if (!disposed) {
+              setLiveOsmState("unavailable");
+            }
+          });
       } catch (error) {
         console.error("Failed to initialize Salvador 3D scene", error);
         if (!disposed) {
@@ -444,6 +522,16 @@ export function SalvadorScene() {
             GIS materializado: {derivedVectors.metadata?.roadCount ?? 0} ruas ·{" "}
             {derivedVectors.metadata?.spaceCount ?? 0} espaços ·{" "}
             {derivedVectors.metadata?.buildingFootprintCount ?? 0} edifícios
+          </div>
+          <div className="mt-1 text-white/45">
+            OSM live: {liveOsmState}
+            {liveOsmState !== "unavailable" && (
+              <>
+                {" "}· {liveOsmCounts.roads} ruas ·{" "}
+                {liveOsmCounts.spaces} áreas ·{" "}
+                {liveOsmCounts.buildings} footprints
+              </>
+            )}
           </div>
         </div>
       </header>
