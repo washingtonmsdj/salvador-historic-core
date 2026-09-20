@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import derivedVectorsData from "../../geospatial/derived/site-vectors.json";
+import manifestData from "../../geospatial/manifest.json";
 import geospatialBase from "../data/geospatial-base.json";
 import siteData from "../data/site-data.json";
 import type {
@@ -146,10 +147,8 @@ const osmEmbedUrl =
   `&marker=${geo.origin.latitude}%2C${geo.origin.longitude}`;
 
 const criticalRoadNames = [
-  "Rua Chile",
-  "Ladeira da Montanha",
-  "Rua da Conceição da Praia",
-  "Avenida Lafayete Coutinho",
+  ...manifestData.vectorDerivation
+    .criticalRoadNames,
 ];
 
 export function SalvadorScene() {
@@ -539,13 +538,17 @@ export function SalvadorScene() {
             if (disposed || !liveScene) return;
 
             if (live.roads.length > 0) {
-              activeRoadFeatures = live.roads;
+              activeRoadFeatures =
+                mergeLinearFeatures(
+                  runtimeRoads,
+                  live.roads,
+                );
               for (const mesh of roadMeshes) {
                 mesh.dispose();
               }
               roadMeshes = createRoads(
                 liveScene,
-                live.roads,
+                activeRoadFeatures,
                 data.terrain,
                 data.levels,
               );
@@ -592,7 +595,7 @@ export function SalvadorScene() {
                 live.buildingFootprints.length,
             });
             const roadNames = new Set(
-              live.roads.map((road) =>
+              activeRoadFeatures.map((road) =>
                 normalizeFeatureName(
                   road.name,
                 ),
