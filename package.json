@@ -18,14 +18,14 @@
     "geospatial:import:osm": "node scripts/import-osm-site.mjs",
     "geospatial:import:conder": "node scripts/import-conder-contours.mjs",
     "geospatial:build": "node scripts/build-geospatial-base.mjs",
-    "geospatial:validate": "node scripts/test-overpass-integrity.mjs && node scripts/test-contour-heightfield.mjs && node scripts/test-osm-site-vectors.mjs && node scripts/validate-geospatial-base.mjs",
-    "geospatial:refresh": "node scripts/import-osm-site.mjs && node scripts/derive-site-vectors.mjs && node scripts/import-conder-contours.mjs && node scripts/derive-terrain-from-contours.mjs && node scripts/build-geospatial-base.mjs && node scripts/test-overpass-integrity.mjs && node scripts/test-contour-heightfield.mjs && node scripts/test-osm-site-vectors.mjs && node scripts/validate-geospatial-base.mjs",
+    "geospatial:validate": "node scripts/test-overpass-integrity.mjs && node scripts/test-osm-api-xml.mjs && node scripts/test-contour-heightfield.mjs && node scripts/test-osm-site-vectors.mjs && node scripts/validate-geospatial-base.mjs",
+    "geospatial:refresh": "node scripts/import-osm-site.mjs && node scripts/derive-site-vectors.mjs && node scripts/import-conder-contours.mjs && node scripts/derive-terrain-from-contours.mjs && node scripts/build-geospatial-base.mjs && node scripts/test-overpass-integrity.mjs && node scripts/test-osm-api-xml.mjs && node scripts/test-contour-heightfield.mjs && node scripts/test-osm-site-vectors.mjs && node scripts/validate-geospatial-base.mjs",
     "geospatial:derive:terrain": "node scripts/derive-terrain-from-contours.mjs",
     "geospatial:test:terrain": "node scripts/test-contour-heightfield.mjs",
     "geospatial:derive:vectors": "node scripts/derive-site-vectors.mjs",
     "geospatial:test:vectors": "node scripts/test-osm-site-vectors.mjs",
     "geospatial:test:overpass": "node scripts/test-overpass-integrity.mjs",
-    "geospatial:refresh:vectors": "node scripts/import-osm-site.mjs && node scripts/derive-site-vectors.mjs && node scripts/build-geospatial-base.mjs && node scripts/test-osm-site-vectors.mjs && node scripts/validate-geospatial-base.mjs",
+    "geospatial:refresh:vectors": "node scripts/import-osm-site.mjs && node scripts/derive-site-vectors.mjs && node scripts/build-geospatial-base.mjs && node scripts/test-overpass-integrity.mjs && node scripts/test-osm-api-xml.mjs && node scripts/test-osm-site-vectors.mjs && node scripts/validate-geospatial-base.mjs",
     "geospatial:refresh:terrain": "node scripts/import-conder-contours.mjs && node scripts/derive-terrain-from-contours.mjs && node scripts/build-geospatial-base.mjs && node scripts/test-contour-heightfield.mjs && node scripts/validate-geospatial-base.mjs",
     "lint:ci": "eslint . --rule 'prettier/prettier: off'",
     "format:check": "prettier --check .",
@@ -34,7 +34,8 @@
     "player:spawn-test": "bun scripts/test-walkable-spawn.ts",
     "terrain:mask-test": "bun scripts/test-terrain-mask.ts",
     "building:grounding-test": "bun scripts/test-building-grounding.ts",
-    "road:grading-test": "bun scripts/test-road-grading.ts"
+    "road:grading-test": "bun scripts/test-road-grading.ts",
+    "geospatial:test:osm-api": "node scripts/test-osm-api-xml.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
