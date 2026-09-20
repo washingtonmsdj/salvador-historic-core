@@ -98,6 +98,21 @@ const derived = deriveOsmSiteVectors({
       },
     },
     {
+      id: "way/6",
+      osmType: "way",
+      osmId: 6,
+      geometryType: "polyline",
+      points: [
+        [2, 10],
+        [18, 10],
+      ],
+      tags: {
+        highway: "corridor",
+        indoor: "yes",
+        layer: "1",
+      },
+    },
+    {
       id: "way/3",
       osmType: "way",
       osmId: 3,
@@ -153,7 +168,18 @@ const derived = deriveOsmSiteVectors({
 });
 
 if (derived.roads.length !== 2) {
-  failures.push(`expected 2 roads, got ${derived.roads.length}`);
+  failures.push(`expected 2 terrain roads, got ${derived.roads.length}`);
+}
+
+if (
+  derived.roads.some(
+    (road) =>
+      road.tags?.indoor === "yes",
+  )
+) {
+  failures.push(
+    "indoor highway features must not become terrain roads",
+  );
 }
 
 if (
