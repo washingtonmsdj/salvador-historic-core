@@ -164,6 +164,22 @@ if (
 ) {
   fail("runtime terrain is geospatial-derived but terrain.json is unavailable");
 }
+if (
+  derivedTerrain?.available === true &&
+  runtime.terrain.active !== "geospatial-derived"
+) {
+  fail(
+    "derived terrain is available but runtime manifest has not activated it",
+  );
+}
+
+if (
+  runtime.terrain.active === "geospatial-derived" &&
+  runtime.terrain.fallbackActive !== false
+) {
+  fail("geospatial-derived terrain cannot remain marked as fallback");
+}
+
 
 if (
   runtime.terrain.active === "geospatial-derived" &&
