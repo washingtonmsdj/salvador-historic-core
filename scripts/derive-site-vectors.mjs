@@ -57,6 +57,8 @@ await writeFile(
 console.log(
   [
     `Derived ${output.metadata.roadCount} roads,`,
+    `${output.metadata.terrainLineCount} terrain lines,`,
+    `${output.metadata.terrainAreaCount} terrain areas,`,
     `${output.metadata.spaceCount} spaces and`,
     `${output.metadata.buildingFootprintCount} building footprints.`,
   ].join(" "),
