@@ -22,6 +22,7 @@ import type {
 
 interface BuildingPolicy {
   maxAutoFoundationRelief: number;
+  maxSteppedFoundationRelief: number;
   minAutoRoadClearance: number;
   excludedOsmIds: number[];
   excludedNames: string[];
@@ -425,6 +426,7 @@ export function deriveRuntimeBuildingBlockouts(
     overlapsReserved: 0,
     overlapsRoadSurface: 0,
   };
+  let steppedFoundations = 0;
 
   for (const item of footprints) {
     if (isExcluded(item)) {
@@ -483,16 +485,25 @@ export function deriveRuntimeBuildingBlockouts(
 
     if (
       relief >
-      policy.maxAutoFoundationRelief
+      policy.maxSteppedFoundationRelief
     ) {
       skipped.excessiveRelief += 1;
       continue;
     }
 
-    const ground =
-      stats.meanGround;
+    const useSteppedFoundation =
+      relief >
+      policy.maxAutoFoundationRelief;
+    const buildingBase =
+      useSteppedFoundation
+        ? stats.maxGround
+        : stats.meanGround;
     const dimensions = boundsOf(item.footprint);
     const height = item.height;
+
+    if (useSteppedFoundation) {
+      steppedFoundations += 1;
+    }
 
     buildings.push({
       id: `osm-building-${item.osmType}-${item.osmId}`,
@@ -500,7 +511,7 @@ export function deriveRuntimeBuildingBlockouts(
       type: "osm-derived",
       position: [
         centroid[0],
-        ground + height / 2,
+        buildingBase + height / 2,
         centroid[1],
       ],
       rotation: [0, 0, 0],
@@ -508,10 +519,16 @@ export function deriveRuntimeBuildingBlockouts(
       depth: dimensions.depth,
       height,
       footprint: item.footprint,
+      foundationBottomY:
+        useSteppedFoundation
+          ? stats.minGround
+          : undefined,
       source: [
         item.source,
         item.heightSource,
-        "foundation elevation sampled from active geospatial terrain",
+        useSteppedFoundation
+          ? `building height starts at highest sampled terrain; stepped foundation spans ${relief.toFixed(2)} m to the lowest sampled terrain`
+          : "foundation elevation sampled from active geospatial terrain",
       ].join("; "),
       estimated: true,
     });
@@ -559,6 +576,7 @@ export function deriveRuntimeBuildingBlockouts(
   return {
     buildings,
     skipped,
+    steppedFoundations,
     policy,
     replacedFallbackIds,
   };
