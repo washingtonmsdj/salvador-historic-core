@@ -35,7 +35,7 @@ type TerrainTextureSet = {
 
 const PRIMARY_SIZE = 512;
 const DETAIL_SIZE = 256;
-const DETAIL_TILING = 6;
+const DETAIL_TILING = 12;
 
 function clamp01(
   value: number,
@@ -72,80 +72,143 @@ function deterministicNoise(
   return value - Math.floor(value);
 }
 
-function octaveNoise(
+function periodicNoise(
   x: number,
   y: number,
+  size: number,
   seed: number,
+  frequency: number,
 ) {
-  const macro =
+  const phaseX =
     deterministicNoise(
-      x / 48,
-      y / 48,
       seed,
-    );
-  const coarse =
+      frequency,
+      seed + 19,
+    ) *
+    Math.PI *
+    2;
+  const phaseY =
     deterministicNoise(
-      x / 18,
-      y / 18,
-      seed + 13,
-    );
-  const medium =
-    deterministicNoise(
-      x / 7,
-      y / 7,
-      seed + 29,
-    );
-  const fine =
-    deterministicNoise(
-      x / 2.2,
-      y / 2.2,
-      seed + 47,
+      frequency,
+      seed,
+      seed + 43,
+    ) *
+    Math.PI *
+    2;
+  const angleX =
+    x /
+      size *
+      Math.PI *
+      2 *
+      frequency +
+    phaseX;
+  const angleY =
+    y /
+      size *
+      Math.PI *
+      2 *
+      frequency +
+    phaseY;
+  const diagonal =
+    Math.sin(
+      angleX +
+        angleY * 0.73 +
+        phaseY,
     );
 
   return (
-    macro * 0.34 +
-    coarse * 0.31 +
-    medium * 0.23 +
-    fine * 0.12
+    Math.sin(angleX) *
+      0.34 +
+    Math.cos(angleY) *
+      0.34 +
+    diagonal *
+      0.32
+  );
+}
+
+function octaveNoise(
+  x: number,
+  y: number,
+  size: number,
+  seed: number,
+) {
+  return (
+    periodicNoise(
+      x,
+      y,
+      size,
+      seed,
+      1,
+    ) *
+      0.38 +
+    periodicNoise(
+      x,
+      y,
+      size,
+      seed + 13,
+      3,
+    ) *
+      0.28 +
+    periodicNoise(
+      x,
+      y,
+      size,
+      seed + 29,
+      7,
+    ) *
+      0.2 +
+    periodicNoise(
+      x,
+      y,
+      size,
+      seed + 47,
+      17,
+    ) *
+      0.14
   );
 }
 
 function textureHeight(
   x: number,
   y: number,
+  size: number,
   style: TerrainTextureStyle,
 ) {
   const base =
     octaveNoise(
       x,
       y,
+      size,
       style.seed,
-    ) -
-    0.5;
+    ) *
+    0.62;
   const directional =
     style.striated
       ? Math.sin(
-          y * 0.16 +
-            x * 0.025 +
+          y /
+            size *
+            Math.PI *
+            2 *
+            11 +
             octaveNoise(
-              x * 0.55,
-              y * 0.22,
+              x,
+              y,
+              size,
               style.seed + 71,
             ) *
-              4.2,
+              3.4,
         ) *
-        0.22
+        0.23
       : 0;
   const micro =
-    (
-      deterministicNoise(
-        x * 1.8,
-        y * 1.8,
-        style.seed + 101,
-      ) -
-      0.5
+    periodicNoise(
+      x,
+      y,
+      size,
+      style.seed + 101,
+      31,
     ) *
-    0.16;
+    0.15;
 
   return (
     base +
@@ -252,22 +315,22 @@ function createPrimaryTextures(
         textureHeight(
           x,
           y,
+          PRIMARY_SIZE,
           style,
         );
       const offset =
         (y * PRIMARY_SIZE + x) *
         4;
       const tintNoise =
-        (
-          deterministicNoise(
-            x / 31,
-            y / 31,
-            style.seed + 191,
-          ) -
-          0.5
+        periodicNoise(
+          x,
+          y,
+          PRIMARY_SIZE,
+          style.seed + 191,
+          5,
         ) *
         style.variation *
-        0.55;
+        0.34;
       const delta =
         height *
           style.variation +
@@ -303,15 +366,15 @@ function createPrimaryTextures(
       const roughness =
         clamp01(
           style.roughness +
-            (
-              deterministicNoise(
-                x / 5,
-                y / 5,
-                style.seed + 211,
-              ) -
-              0.5
+            periodicNoise(
+              x,
+              y,
+              PRIMARY_SIZE,
+              style.seed + 211,
+              13,
             ) *
-              style.roughnessVariation +
+              style.roughnessVariation *
+              0.5 +
             cavity * 0.055,
         );
       const ambientOcclusion =
@@ -517,22 +580,20 @@ function createDetailTexture(
       x++
     ) {
       const height =
-        (
-          deterministicNoise(
-            x / 2,
-            y / 2,
-            style.seed + 301,
-          ) -
-          0.5
+        periodicNoise(
+          x,
+          y,
+          DETAIL_SIZE,
+          style.seed + 301,
+          9,
         ) *
           0.62 +
-        (
-          deterministicNoise(
-            x,
-            y,
-            style.seed + 337,
-          ) -
-          0.5
+        periodicNoise(
+          x,
+          y,
+          DETAIL_SIZE,
+          style.seed + 337,
+          23,
         ) *
           0.38;
 
