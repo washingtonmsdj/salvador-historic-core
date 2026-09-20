@@ -943,10 +943,7 @@ function deriveVectors(
           osmId,
           osmType: "way",
           tags,
-          elevationMode:
-            tags["name"] === "Rua Chile"
-              ? "upper"
-              : "terrain",
+          elevationMode: "terrain",
         });
       });
     }
@@ -977,10 +974,7 @@ function deriveVectors(
         osmId,
         osmType: "way",
         tags,
-        elevationMode:
-          tags["name"] === "Praça Tomé de Souza"
-            ? "upper"
-            : "terrain",
+        elevationMode: "terrain",
       });
     }
 

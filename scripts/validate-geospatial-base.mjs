@@ -453,6 +453,12 @@ if (derivedVectors?.available === true) {
     ) {
       fail(`${road.id} must preserve OSM identity`);
     }
+
+    if (road.elevationMode !== "terrain") {
+      fail(
+        `${road.id} must follow the active terrain; fixed upper/lower road elevation is not allowed for derived OSM geometry`,
+      );
+    }
   }
 
   for (const space of spaces) {
@@ -471,6 +477,12 @@ if (derivedVectors?.available === true) {
       space.osmType.length === 0
     ) {
       fail(`${space.id} must preserve OSM identity`);
+    }
+
+    if (space.elevationMode !== "terrain") {
+      fail(
+        `${space.id} must follow the active terrain; fixed upper/lower elevation is not allowed for derived OSM areas`,
+      );
     }
   }
 
