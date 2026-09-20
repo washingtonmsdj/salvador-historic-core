@@ -1,0 +1,202 @@
+import {
+  clipPolygonToBounds,
+  clipPolylineToBounds,
+  deriveOsmSiteVectors,
+  parseOsmMeasurement,
+} from "./lib/osm-site-vectors.mjs";
+
+const bounds = {
+  minX: 0,
+  maxX: 20,
+  minZ: 0,
+  maxZ: 20,
+};
+
+const config = {
+  defaultRoadWidth: 5,
+  roadWidths: {
+    residential: 5.5,
+    service: 4,
+  },
+  buildingLevelHeight: 3,
+};
+
+const failures = [];
+
+const clippedLine = clipPolylineToBounds(
+  [
+    [-10, 10],
+    [30, 10],
+  ],
+  bounds,
+);
+
+if (
+  clippedLine.length !== 1 ||
+  clippedLine[0]?.[0]?.[0] !== 0 ||
+  clippedLine[0]?.[1]?.[0] !== 20
+) {
+  failures.push("polyline clipping did not preserve the in-bounds segment");
+}
+
+const clippedPolygon = clipPolygonToBounds(
+  [
+    [-5, -5],
+    [25, -5],
+    [25, 25],
+    [-5, 25],
+  ],
+  bounds,
+);
+
+if (clippedPolygon.length !== 4) {
+  failures.push(
+    `expected clipped rectangle with 4 points, got ${clippedPolygon.length}`,
+  );
+}
+
+if (parseOsmMeasurement("6.5 m") !== 6.5) {
+  failures.push("OSM measurement parser failed for metre suffix");
+}
+
+const derived = deriveOsmSiteVectors({
+  bounds,
+  config,
+  source: "synthetic OSM",
+  features: [
+    {
+      id: "way/1",
+      osmType: "way",
+      osmId: 1,
+      geometryType: "polyline",
+      points: [
+        [-10, 10],
+        [30, 10],
+      ],
+      tags: {
+        highway: "residential",
+        name: "Rua Teste",
+      },
+    },
+    {
+      id: "way/2",
+      osmType: "way",
+      osmId: 2,
+      geometryType: "polyline",
+      points: [
+        [0, 5],
+        [20, 5],
+      ],
+      tags: {
+        highway: "service",
+        width: "6.5",
+      },
+    },
+    {
+      id: "way/3",
+      osmType: "way",
+      osmId: 3,
+      geometryType: "polygon",
+      points: [
+        [2, 2],
+        [8, 2],
+        [8, 8],
+        [2, 8],
+        [2, 2],
+      ],
+      tags: {
+        place: "square",
+        name: "Praça Teste",
+      },
+    },
+    {
+      id: "way/4",
+      osmType: "way",
+      osmId: 4,
+      geometryType: "polygon",
+      points: [
+        [10, 10],
+        [15, 10],
+        [15, 15],
+        [10, 15],
+        [10, 10],
+      ],
+      tags: {
+        building: "yes",
+        "building:levels": "3",
+        name: "Edifício Teste",
+      },
+    },
+  ],
+});
+
+if (derived.roads.length !== 2) {
+  failures.push(`expected 2 roads, got ${derived.roads.length}`);
+}
+
+const residential = derived.roads.find(
+  (road) => road.id === "way/1",
+);
+if (
+  residential?.width !== 5.5 ||
+  residential?.estimated !== true
+) {
+  failures.push("residential default width was not marked estimated");
+}
+
+const explicit = derived.roads.find(
+  (road) => road.id === "way/2",
+);
+if (
+  explicit?.width !== 6.5 ||
+  explicit?.estimated !== false
+) {
+  failures.push("explicit OSM road width was not preserved");
+}
+
+if (derived.spaces.length !== 1) {
+  failures.push(`expected 1 space, got ${derived.spaces.length}`);
+}
+
+const building = derived.buildingFootprints[0];
+if (
+  building?.height !== 9 ||
+  building?.heightEstimated !== true
+) {
+  failures.push("building:levels height derivation is incorrect");
+}
+
+for (const collection of [
+  derived.roads,
+  derived.spaces,
+]) {
+  for (const feature of collection) {
+    for (const [x, z] of feature.points) {
+      if (
+        x < bounds.minX ||
+        x > bounds.maxX ||
+        z < bounds.minZ ||
+        z > bounds.maxZ
+      ) {
+        failures.push(`${feature.id} contains a point outside bounds`);
+      }
+    }
+  }
+}
+
+if (failures.length > 0) {
+  console.error("OSM vector derivation test failed:");
+  for (const failure of failures) {
+    console.error(`- ${failure}`);
+  }
+  process.exitCode = 1;
+} else {
+  console.log(
+    [
+      "OSM vector derivation test passed.",
+      `roads=${derived.roads.length},`,
+      `spaces=${derived.spaces.length},`,
+      `buildings=${derived.buildingFootprints.length}.`,
+    ].join(" "),
+  );
+}

@@ -53,7 +53,10 @@
 - [ ] Executar a derivação com o recorte CONDER real ou substituir pelo MDT municipal quando disponível
 - [x] Preparar o runtime para preferir a superfície geoespacial derivada validada
 - [ ] Ativar geospatial-derived após importar/validar o recorte real
-- [ ] Promover ruas, praças e footprints verificados para a base derivada do jogo
+- [x] Implementar derivação OSM de ruas, praças e footprints recortados ao perímetro
+- [x] Preparar runtime para preferir ruas e espaços OSM derivados e validados
+- [ ] Executar a importação OSM real e ativar site-vectors.json
+- [ ] Promover footprints de edifícios para volumes somente com altura/modelo explícito
 - [ ] Integrar ortofoto apenas como camada de conferência/debug, sem acoplar gameplay a tiles externos
 - [ ] Remover o terreno procedural da experiência normal quando a base real estiver validada
 

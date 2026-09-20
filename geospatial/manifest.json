@@ -73,5 +73,25 @@
     "tolerance": 0.001,
     "verticalDatum": "minimum-derived-elevation",
     "notes": "CONDER contour elevations are fixed constraints. Unknown grid cells are initialized from nearest contour cells and solved by harmonic relaxation."
+  },
+  "vectorDerivation": {
+    "defaultRoadWidth": 5,
+    "roadWidths": {
+      "motorway": 10,
+      "trunk": 9,
+      "primary": 8,
+      "secondary": 7,
+      "tertiary": 6.5,
+      "residential": 5.5,
+      "unclassified": 5,
+      "service": 4,
+      "living_street": 4,
+      "pedestrian": 4,
+      "footway": 2,
+      "path": 2,
+      "steps": 2
+    },
+    "buildingLevelHeight": 3,
+    "notes": "Road centerlines and polygons are clipped to the project perimeter. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated."
   }
 }
