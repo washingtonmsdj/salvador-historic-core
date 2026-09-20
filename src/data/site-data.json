@@ -677,12 +677,12 @@
       ]
     },
     {
-      "id": "avenida-estados-unidos",
+      "id": "via-inferior-elevador",
       "name": "Via inferior junto ao Elevador",
       "type": "road",
       "elevationMode": "lower",
       "width": 11,
-      "source": "Existing lower-city road network; exact segment name/alignment pending reference",
+      "source": "Provisional lower-city gameplay corridor constrained to avoid verified Elevador and Mercado Modelo footprints; exact OSM road alignment pending import",
       "estimated": true,
       "points": [
         [
@@ -698,15 +698,23 @@
           -12
         ],
         [
-          -42,
-          55
+          -36,
+          45
         ],
         [
-          -54,
-          125
+          -28,
+          80
         ],
         [
-          -58,
+          -22,
+          120
+        ],
+        [
+          -18,
+          165
+        ],
+        [
+          -20,
           220
         ]
       ]
@@ -818,6 +826,13 @@
       "rotationY": -0.8503,
       "source": "OpenStreetMap way 258560240 projected to local metres",
       "estimated": false
+    },
+    "lowerRoadMarketClearance": {
+      "roadId": "via-inferior-elevador",
+      "buildingId": "mercado-modelo",
+      "minimumCenterlineClearance": 10,
+      "source": "Gameplay/blockout clearance around verified Mercado Modelo footprint",
+      "estimated": true
     }
   }
 }
