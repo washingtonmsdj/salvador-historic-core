@@ -342,3 +342,17 @@ com o mesmo nome.
 
 A comparação por nome continua apenas para fallbacks manuais sem identidade OSM. Isso permite que
 um vetor real substitua um placeholder legado sem apagar outros trechos reais homônimos.
+
+
+## Cota vertical dos vetores OSM
+
+Geometria OSM não recebe mais cota vertical especial baseada no nome da rua ou praça.
+
+Ruas e áreas derivadas usam `elevationMode: "terrain"` e amostram o terreno ativo. No caso das
+ruas, cada borda da faixa é amostrada separadamente pelo renderer, de modo que a seção transversal
+acompanhe a superfície em vez de usar apenas a altura do eixo central.
+
+Isso remove exceções anteriores como “Rua Chile = Cidade Alta” e “Praça Tomé de Souza = Cidade
+Alta”. Enquanto o terreno oficial não estiver disponível, a posição vertical continua limitada
+pela qualidade do fallback procedural; quando CONDER/terrain geoespacial está ativo, a mesma
+geometria viária acompanha automaticamente esse heightfield sem coordenadas verticais inventadas.
