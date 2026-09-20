@@ -124,7 +124,7 @@ function createTileMesh(
         origin.latitude,
         origin.longitude,
       );
-      const y = terrainHeight(terrain, levels, x, z) + 0.2;
+      const y = terrainHeight(terrain, levels, x, z) + 0.03;
 
       positions.push(x, y, z);
       normals.push(0, 1, 0);
@@ -169,9 +169,9 @@ function createTileMesh(
   material.diffuseTexture = texture;
   material.emissiveColor = Color3.White().scale(0.72);
   material.specularColor = Color3.Black();
-  material.alpha = 0.9;
+  material.disableLighting = true;
+  material.alpha = 0.82;
   material.backFaceCulling = false;
-  material.zOffset = -2;
 
   mesh.material = material;
   mesh.isPickable = false;
