@@ -56,7 +56,10 @@ interface ConderSourceConfig {
 }
 
 export interface LiveConderTerrain {
-  source: "conder-live" | "session-cache";
+  source:
+    | "conder-server"
+    | "conder-live"
+    | "session-cache";
   endpoint: string;
   terrain: DerivedContourTerrain;
   contourCount: number;
@@ -416,12 +419,42 @@ export async function loadLiveConderTerrain({
     return cached;
   }
 
-  const endpoint = queryUrl(
+  const directEndpoint = queryUrl(
     origin,
     bounds,
   );
-  const payload =
-    await fetchConder(endpoint);
+  const serverEndpoint =
+    "/api/geospatial/conder";
+  let endpoint = serverEndpoint;
+  let source: LiveConderTerrain["source"] =
+    "conder-server";
+  let payload: ArcGisResponse;
+
+  try {
+    payload =
+      await fetchConder(serverEndpoint);
+  } catch (serverError) {
+    endpoint = directEndpoint;
+    source = "conder-live";
+
+    try {
+      payload =
+        await fetchConder(directEndpoint);
+    } catch (directError) {
+      const serverMessage =
+        serverError instanceof Error
+          ? serverError.message
+          : String(serverError);
+      const directMessage =
+        directError instanceof Error
+          ? directError.message
+          : String(directError);
+      throw new Error(
+        `CONDER unavailable. App server: ${serverMessage} | Direct: ${directMessage}`,
+      );
+    }
+  }
+
   const contours = normalizeContours(
     payload,
     origin,
@@ -457,7 +490,7 @@ export async function loadLiveConderTerrain({
     });
 
   const result: LiveConderTerrain = {
-    source: "conder-live",
+    source,
     endpoint,
     terrain,
     contourCount: contours.length,
