@@ -227,3 +227,62 @@ export function roadOffset(
       scale,
   ] as Point2;
 }
+
+
+export function roadFootprintPolygon(
+  points: Point2[],
+  width: number,
+  sampleSpacing: number,
+  maxMiterScale: number,
+  clearance = 0,
+): Point2[] {
+  const centers =
+    samplePolyline(
+      points,
+      sampleSpacing,
+    );
+
+  if (centers.length < 2) {
+    return [];
+  }
+
+  const halfWidth =
+    Math.max(0.5, width / 2) +
+    Math.max(0, clearance);
+  const left: Point2[] = [];
+  const right: Point2[] = [];
+
+  for (
+    let index = 0;
+    index < centers.length;
+    index++
+  ) {
+    const center =
+      centers[index];
+    if (!center) {
+      continue;
+    }
+
+    const offset =
+      roadOffset(
+        centers,
+        index,
+        halfWidth,
+        maxMiterScale,
+      );
+
+    left.push([
+      center[0] + offset[0],
+      center[1] + offset[1],
+    ]);
+    right.push([
+      center[0] - offset[0],
+      center[1] - offset[1],
+    ]);
+  }
+
+  return [
+    ...left,
+    ...right.reverse(),
+  ];
+}
