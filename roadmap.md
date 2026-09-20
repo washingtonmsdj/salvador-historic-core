@@ -49,6 +49,7 @@
 - [x] Expor no runtime quando terreno/vetores ainda estão em fallback
 - [x] Ativar seed OSM versionada parcial para Rua Chile, Praça Tomé e Elevador
 - [x] Carregar OSM ao vivo no Preview com fallback para a seed versionada
+- [x] Promover footprints OSM live com altura para blockouts sobre terrain geoespacial
 - [ ] Executar importação OSM completa do recorte e revisar features
 - [x] Visualizar curvas CONDER ao vivo como heightfield temporário no Preview
 - [ ] Executar importação CONDER do recorte

@@ -161,6 +161,12 @@ export function SalvadorScene() {
     rows: 0,
     maxHeight: 0,
   });
+  const [liveBuildingStats, setLiveBuildingStats] = useState({
+    promoted: 0,
+    noHeight: 0,
+    excessiveRelief: 0,
+    protected: 0,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -312,7 +318,7 @@ export function SalvadorScene() {
           ...curatedBuildings,
           ...(derivedBuildingResult?.buildings ?? []),
         ];
-        const buildingMeshes = createBuildings(
+        let buildingMeshes = createBuildings(
           scene,
           runtimeBuildings,
         );
@@ -342,6 +348,81 @@ export function SalvadorScene() {
           mesh.receiveShadows = true;
         }
 
+        let runtimeTerrainReady =
+          derivedBuildingsEligible;
+        let updateDebugItems:
+          ((items: MeasuredObject[]) => void) |
+          null = null;
+        const reservedFootprints = [
+          ...data.buildings,
+          ...data.elevator,
+        ].flatMap((item) =>
+          item.footprint ? [item.footprint] : [],
+        );
+
+        const rebuildLiveBuildingBlockouts = (
+          targetScene: Scene,
+        ) => {
+          if (
+            !runtimeTerrainReady ||
+            activeBuildingFootprints.length === 0
+          ) {
+            return;
+          }
+
+          const result =
+            deriveRuntimeBuildingBlockouts(
+              activeBuildingFootprints,
+              data.terrain,
+              data.levels,
+              reservedFootprints,
+              data.buildings,
+            );
+          const replacedIds = new Set(
+            result.replacedFallbackIds,
+          );
+          const nextBuildings = [
+            ...data.buildings.filter(
+              (building) =>
+                !replacedIds.has(building.id),
+            ),
+            ...result.buildings,
+          ];
+
+          for (const mesh of buildingMeshes) {
+            shadows.removeShadowCaster(
+              mesh,
+              true,
+            );
+            mesh.dispose();
+          }
+
+          buildingMeshes = createBuildings(
+            targetScene,
+            nextBuildings,
+          );
+          for (const mesh of buildingMeshes) {
+            shadows.addShadowCaster(mesh);
+          }
+
+          updateDebugItems?.([
+            ...nextBuildings,
+            ...data.elevator,
+            ...data.landmarks,
+            ...data.barriers,
+          ]);
+
+          setLiveBuildingStats({
+            promoted: result.buildings.length,
+            noHeight: result.skipped.noHeight,
+            excessiveRelief:
+              result.skipped.excessiveRelief,
+            protected:
+              result.skipped.excluded +
+              result.skipped.overlapsReserved,
+          });
+        };
+
         const cameras = createCameras(scene, canvas);
         configurePlayer(scene, cameras.street);
 
@@ -352,6 +433,7 @@ export function SalvadorScene() {
           ...data.barriers,
         ]);
         debug.setEnabled(false);
+        updateDebugItems = debug.setItems;
 
         controlsRef.current = {
           activateCamera: cameras.activate,
@@ -427,6 +509,10 @@ export function SalvadorScene() {
                 data.terrain,
                 data.levels,
               );
+
+            rebuildLiveBuildingBlockouts(
+              liveScene,
+            );
 
             setLiveOsmCounts({
               roads: live.roads.length,
@@ -532,6 +618,11 @@ export function SalvadorScene() {
                 data.terrain,
                 data.levels,
               );
+
+            runtimeTerrainReady = true;
+            rebuildLiveBuildingBlockouts(
+              liveScene,
+            );
 
             setLiveTerrainStats({
               contours: live.contourCount,
@@ -712,6 +803,18 @@ export function SalvadorScene() {
                 {liveTerrainStats.columns}×{liveTerrainStats.rows} ·{" "}
                 ΔY {liveTerrainStats.maxHeight.toFixed(1)} m
               </>
+            )}
+          </div>
+          <div className="mt-1 text-white/45">
+            Blockouts OSM live: {liveBuildingStats.promoted}
+            {liveBuildingStats.noHeight > 0 && (
+              <> · {liveBuildingStats.noHeight} sem altura</>
+            )}
+            {liveBuildingStats.excessiveRelief > 0 && (
+              <> · {liveBuildingStats.excessiveRelief} em encosta</>
+            )}
+            {liveBuildingStats.protected > 0 && (
+              <> · {liveBuildingStats.protected} protegidos</>
             )}
           </div>
         </div>

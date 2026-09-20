@@ -204,3 +204,24 @@ Regras do modo live:
 
 O modo live é uma ferramenta de validação visual. A malha persistida continua exigindo a importação
 oficial, derivação de 2,5 m, validação e versionamento pelo pipeline `geospatial:refresh:terrain`.
+
+
+## Blockouts OSM ao vivo
+
+Quando o Preview dispõe simultaneamente de terrain geoespacial ativo e footprints OSM ao vivo,
+ele pode promover automaticamente apenas edifícios que atendem à política conservadora definida
+em `buildingBlockoutPolicy`.
+
+Um footprint só vira volume quando:
+
+- possui polígono OSM válido;
+- possui `height` explícito ou altura derivável de `building:levels`;
+- não pertence à lista de marcos protegidos;
+- não sobrepõe footprints curados de marcos já modelados;
+- a variação de relevo sob a fundação fica dentro do limite configurado.
+
+Os blocos provisórios da Rua Chile só são removidos se um footprint promovido realmente os
+sobrepuser. Edifícios sem altura ou sobre encosta excessiva permanecem apenas como guia de footprint.
+
+Essa promoção é temporária da sessão. Ela não grava novas dimensões em `site-data.json` nem
+promove dados live para `geospatial/derived/`.
