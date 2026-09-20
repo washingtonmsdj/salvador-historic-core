@@ -145,6 +145,13 @@ const osmEmbedUrl =
   `?bbox=${encodeURIComponent(osmBbox)}&layer=mapnik` +
   `&marker=${geo.origin.latitude}%2C${geo.origin.longitude}`;
 
+const criticalRoadNames = [
+  "Rua Chile",
+  "Ladeira da Montanha",
+  "Rua da Conceição da Praia",
+  "Avenida Lafayete Coutinho",
+];
+
 export function SalvadorScene() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const controlsRef = useRef<SceneControls | null>(null);
@@ -164,6 +171,14 @@ export function SalvadorScene() {
   });
   const [liveOsmProvider, setLiveOsmProvider] =
     useState("—");
+  const [
+    criticalRoadCoverage,
+    setCriticalRoadCoverage,
+  ] = useState({
+    found: 0,
+    total: criticalRoadNames.length,
+    missing: [...criticalRoadNames],
+  });
   const [liveTerrainState, setLiveTerrainState] = useState<
     "loading" | "active" | "cached" | "unavailable"
   >("loading");
@@ -576,6 +591,31 @@ export function SalvadorScene() {
               buildings:
                 live.buildingFootprints.length,
             });
+            const roadNames = new Set(
+              live.roads.map((road) =>
+                normalizeFeatureName(
+                  road.name,
+                ),
+              ),
+            );
+            const missingRoads =
+              criticalRoadNames.filter(
+                (name) =>
+                  !roadNames.has(
+                    normalizeFeatureName(
+                      name,
+                    ),
+                  ),
+              );
+            setCriticalRoadCoverage({
+              found:
+                criticalRoadNames.length -
+                missingRoads.length,
+              total:
+                criticalRoadNames.length,
+              missing: missingRoads,
+            });
+
             setLiveOsmProvider(
               live.endpoint.includes(
                 "api.openstreetmap.org",
@@ -857,6 +897,18 @@ export function SalvadorScene() {
                 {liveOsmCounts.buildings} footprints
               </>
             )}
+          </div>
+          <div className="mt-1 text-white/45">
+            Vias-chave:{" "}
+            {criticalRoadCoverage.found}/
+            {criticalRoadCoverage.total}
+            {criticalRoadCoverage.missing.length > 0 &&
+              liveOsmState !== "loading" && (
+                <>
+                  {" "}· faltando:{" "}
+                  {criticalRoadCoverage.missing.join(", ")}
+                </>
+              )}
           </div>
           <div className="mt-1 text-white/45">
             CONDER ao vivo:{" "}
