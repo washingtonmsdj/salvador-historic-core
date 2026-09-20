@@ -1,3 +1,4 @@
+import { Ray } from "@babylonjs/core/Culling/ray";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 import type { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
@@ -12,6 +13,9 @@ const PLAYER_RADIUS = 0.42;
 const PLAYER_HALF_HEIGHT =
   PLAYER_EYE_HEIGHT / 2;
 const RECOVERY_DEPTH = 1.5;
+const SURFACE_SYNC_CLEARANCE = 0.03;
+const SURFACE_RAY_HEIGHT = 120;
+const SURFACE_RAY_LENGTH = 260;
 
 export function playerGroundHeight(
   terrain: TerrainConfig,
@@ -27,20 +31,74 @@ export function playerGroundHeight(
   );
 }
 
-export function syncPlayerToTerrain(
+function walkableSurfaceHeight(
+  scene: Scene,
+  terrain: TerrainConfig,
+  levels: SceneLevels,
+  x: number,
+  z: number,
+) {
+  const fallback =
+    playerGroundHeight(
+      terrain,
+      levels,
+      x,
+      z,
+    );
+  const originY =
+    Math.max(
+      SURFACE_RAY_HEIGHT,
+      fallback +
+        SURFACE_RAY_HEIGHT,
+    );
+  const ray = new Ray(
+    new Vector3(
+      x,
+      originY,
+      z,
+    ),
+    new Vector3(0, -1, 0),
+    SURFACE_RAY_LENGTH,
+  );
+  const hit =
+    scene.pickWithRay(
+      ray,
+      (mesh) =>
+        mesh.checkCollisions &&
+        mesh.metadata?.walkableSurface ===
+          true,
+      false,
+    );
+
+  if (
+    hit?.hit &&
+    hit.pickedPoint
+  ) {
+    return hit.pickedPoint.y;
+  }
+
+  return fallback;
+}
+
+export function syncPlayerToWalkableSurface(
+  scene: Scene,
   camera: UniversalCamera,
   terrain: TerrainConfig,
   levels: SceneLevels,
 ) {
-  const ground = playerGroundHeight(
-    terrain,
-    levels,
-    camera.position.x,
-    camera.position.z,
-  );
+  const surface =
+    walkableSurfaceHeight(
+      scene,
+      terrain,
+      levels,
+      camera.position.x,
+      camera.position.z,
+    );
 
   camera.position.y =
-    ground + PLAYER_EYE_HEIGHT;
+    surface +
+    PLAYER_EYE_HEIGHT +
+    SURFACE_SYNC_CLEARANCE;
 }
 
 export function configurePlayer(
@@ -70,7 +128,8 @@ export function configurePlayer(
       0,
     );
 
-  syncPlayerToTerrain(
+  syncPlayerToWalkableSurface(
+    scene,
     camera,
     terrain,
     levels,
@@ -105,16 +164,20 @@ export function configurePlayer(
           camera.position.y <
           ground - RECOVERY_DEPTH
         ) {
-          camera.position.y =
-            ground +
-            PLAYER_EYE_HEIGHT;
+          syncPlayerToWalkableSurface(
+            scene,
+            camera,
+            terrain,
+            levels,
+          );
         }
       },
     );
 
   return {
     syncToTerrain: () =>
-      syncPlayerToTerrain(
+      syncPlayerToWalkableSurface(
+        scene,
         camera,
         terrain,
         levels,
