@@ -99,7 +99,7 @@ for (const road of vectors.roads) {
   if (!profile.valid) {
     if (critical.has(road.name)) {
       failures.push(
-        \`\${road.name} (\${road.id}): critical road requires profile fallback\`,
+        `${road.name} (${road.id}): critical road requires profile fallback`,
       );
     }
 
@@ -108,7 +108,7 @@ for (const road of vectors.roads) {
       !configuredFallbacks.has(osmId)
     ) {
       failures.push(
-        \`\${road.name} (\${road.id}): unapproved longitudinal profile fallback\`,
+        `${road.name} (${road.id}): unapproved longitudinal profile fallback`,
       );
     } else {
       observedFallbacks.add(osmId);
@@ -121,7 +121,7 @@ for (const road of vectors.roads) {
     configuredFallbacks.has(osmId)
   ) {
     failures.push(
-      \`\${road.name} (\${road.id}): profile is now valid; remove stale fallback exception \${osmId}\`,
+      `${road.name} (${road.id}): profile is now valid; remove stale fallback exception ${osmId}`,
     );
   }
 
@@ -131,7 +131,7 @@ for (const road of vectors.roads) {
       0.000001
   ) {
     failures.push(
-      \`\${road.name} (\${road.id}): support \${profile.maxSupportHeight.toFixed(3)} m exceeds policy\`,
+      `${road.name} (${road.id}): support ${profile.maxSupportHeight.toFixed(3)} m exceeds policy`,
     );
   }
   if (
@@ -139,7 +139,7 @@ for (const road of vectors.roads) {
     policy.maxCrossSlope + 0.000001
   ) {
     failures.push(
-      \`\${road.name} (\${road.id}): cross slope exceeds policy\`,
+      `${road.name} (${road.id}): cross slope exceeds policy`,
     );
   }
   if (
@@ -148,7 +148,7 @@ for (const road of vectors.roads) {
       0.000001
   ) {
     failures.push(
-      \`\${road.name} (\${road.id}): longitudinal slope exceeds policy\`,
+      `${road.name} (${road.id}): longitudinal slope exceeds policy`,
     );
   }
 }
@@ -156,7 +156,7 @@ for (const road of vectors.roads) {
 for (const osmId of configuredFallbacks) {
   if (!observedFallbacks.has(osmId)) {
     failures.push(
-      \`Configured longitudinal fallback OSM \${osmId} was not observed as invalid\`,
+      `Configured longitudinal fallback OSM ${osmId} was not observed as invalid`,
     );
   }
 }
@@ -167,7 +167,7 @@ for (const name of critical) {
   );
   if (matches.length === 0) {
     failures.push(
-      \`\${name}: no derived OSM ways\`,
+      `${name}: no derived OSM ways`,
     );
   }
   if (
@@ -176,7 +176,7 @@ for (const name of critical) {
     )
   ) {
     failures.push(
-      \`\${name}: every critical way must use the constrained walkable profile\`,
+      `${name}: every critical way must use the constrained walkable profile`,
     );
   }
 }
