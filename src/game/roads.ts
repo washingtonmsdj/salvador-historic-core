@@ -444,9 +444,7 @@ function createRoadRibbon(
         u0,
         Math.max(
           1,
-          Math.abs(
-            a.verticalOffset,
-          ) /
+          a.support /
             SUPPORT_WALL_TEXTURE_REPEAT_METERS,
         ),
         u1,
@@ -454,9 +452,7 @@ function createRoadRibbon(
         u1,
         Math.max(
           1,
-          Math.abs(
-            b.verticalOffset,
-          ) /
+          b.support /
             SUPPORT_WALL_TEXTURE_REPEAT_METERS,
         ),
       );
@@ -1002,7 +998,9 @@ function createRoadJunctionMesh(
       u0,
       Math.max(
         1,
-        a.support /
+        Math.abs(
+          a.verticalOffset,
+        ) /
           SUPPORT_WALL_TEXTURE_REPEAT_METERS,
       ),
       u1,
@@ -1010,7 +1008,9 @@ function createRoadJunctionMesh(
       u1,
       Math.max(
         1,
-        b.support /
+        Math.abs(
+          b.verticalOffset,
+        ) /
           SUPPORT_WALL_TEXTURE_REPEAT_METERS,
       ),
     );
