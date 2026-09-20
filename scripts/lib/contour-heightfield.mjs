@@ -310,8 +310,11 @@ export function deriveContourHeightfield({
       maxIterations,
       tolerance,
       relaxationOmega: omega,
-      description:
-        "Contour cells are fixed to source elevations. Unknown cells are initialized by nearest constrained cell and solved with harmonic relaxation.",
+      description: [
+        "Contour cells are fixed to source elevations.",
+        "Unknown cells are initialized by nearest constrained cell",
+        "and solved with harmonic relaxation.",
+      ].join(" "),
     },
     heights: localHeights,
   };
