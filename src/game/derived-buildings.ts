@@ -206,7 +206,7 @@ export function alignEstimatedBuildingsToTerrain(
   buildings: MeasuredObject[],
   terrain: TerrainConfig,
   levels: SceneLevels,
-) {
+): MeasuredObject[] {
   return buildings.map(
     (building) => {
       if (
@@ -253,7 +253,7 @@ export function alignEstimatedBuildingsToTerrain(
           stats.minGround +
             building.height / 2,
           building.position[2],
-        ],
+        ] as MeasuredObject["position"],
         source: [
           building.source,
           "vertical placement aligned to active geospatial terrain",
