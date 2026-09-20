@@ -36,6 +36,16 @@ export interface TerrainProfile {
   upperOffset?: number;
 }
 
+export interface TerrainCutout {
+  id: string;
+  polygon: Point2[];
+  elevation: number;
+  clearance: number;
+  feather: number;
+  source: string;
+  estimated: boolean;
+}
+
 export interface TerrainConfig {
   tileSize: number;
   subdivisionsPerTile: number;
@@ -46,6 +56,7 @@ export interface TerrainConfig {
     maxZ: number;
   };
   profiles: TerrainProfile[];
+  cutouts?: TerrainCutout[];
   lowerGrade: {
     risePerMeterX: number;
     maxRise: number;

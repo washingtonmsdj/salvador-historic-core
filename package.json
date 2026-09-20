@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "terrain:import:conder": "node scripts/import-conder-contours.mjs",
-    "terrain:validate": "node scripts/validate-terrain-data.mjs"
+    "terrain:validate": "node scripts/validate-terrain-data.mjs",
+    "layout:validate": "node scripts/validate-site-layout.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
