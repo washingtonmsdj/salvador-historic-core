@@ -24,10 +24,8 @@ import {
   samplePolyline,
 } from "./road-path";
 import {
-  fitBoundedSurfacePlane,
-  surfacePlaneHeight,
-  type PlaneObservation,
-} from "./surface-plane";
+  deriveRoadJunctionSurface,
+} from "./road-junction-surface";
 import { terrainHeight } from "./terrain";
 import type { LinearFeature, Point2, SceneLevels, TerrainConfig } from "./types";
 
@@ -501,63 +499,20 @@ function createRoadRibbon(
   ];
 }
 
-function roadEndpointObservations(
-  feature: LinearFeature,
-  junctionCenter: Point2,
+function createRoadJunctionMesh(
+  scene: Scene,
+  junction: RoadJunction,
   terrain: TerrainConfig,
   levels: SceneLevels,
-): PlaneObservation[] {
-  if (feature.points.length < 2) {
-    return [];
-  }
-
-  const first =
-    feature.points[0];
-  const last =
-    feature.points[
-      feature.points.length - 1
-    ];
-  if (!first || !last) {
-    return [];
-  }
-
-  const firstDistance =
-    Math.hypot(
-      first[0] -
-        junctionCenter[0],
-      first[1] -
-        junctionCenter[1],
-    );
-  const lastDistance =
-    Math.hypot(
-      last[0] -
-        junctionCenter[0],
-      last[1] -
-        junctionCenter[1],
-    );
-  const endpointIndex =
-    firstDistance <=
-    lastDistance
-      ? 0
-      : feature.points.length -
-        1;
-  const center =
-    feature.points[
-      endpointIndex
-    ];
-  if (!center) {
-    return [];
-  }
-
-  const section =
-    sampleRoadCrossSection({
-      feature,
-      centers: feature.points,
-      index: endpointIndex,
+) {
+  const surface =
+    deriveRoadJunctionSurface(
+      junction,
       terrain,
       levels,
-      longitudinalLift: 0,
-      policy: {
+      {
+        roadSampleSpacing:
+          ROAD_SAMPLE_SPACING,
         maxMiterScale:
           MAX_MITER_SCALE,
         maxCrossSlope:
@@ -566,242 +521,67 @@ function roadEndpointObservations(
           MAX_SUPPORTED_FILL_HEIGHT,
         surfaceGap:
           SURFACE_GAP,
-      },
-    });
-
-  if (!section) {
-    return [];
-  }
-
-  return [
-    {
-      x: section.left.x,
-      z: section.left.z,
-      y:
-        section.left.surfaceY,
-    },
-    {
-      x: section.right.x,
-      z: section.right.z,
-      y:
-        section.right.surfaceY,
-    },
-  ];
-}
-
-function createRoadJunctionMesh(
-  scene: Scene,
-  junction: RoadJunction,
-  terrain: TerrainConfig,
-  levels: SceneLevels,
-) {
-  const positions: number[] = [];
-  const indices: number[] = [];
-  const normals: number[] = [];
-  const uvs: number[] = [];
-  const [centerX, centerZ] =
-    junction.center;
-  const radius = junction.radius;
-  const segments = Math.max(
-    12,
-    Math.min(
-      JUNCTION_MAX_SEGMENTS,
-      Math.ceil(
-        (Math.PI * 2 * radius) /
-          ROAD_SAMPLE_SPACING,
-      ),
-    ),
-  );
-
-  const roadObservations =
-    junction.connectedFeatures.flatMap(
-      (feature) =>
-        roadEndpointObservations(
-          feature,
-          junction.center,
-          terrain,
-          levels,
-        ),
-    );
-  const fittedPlane =
-    fitBoundedSurfacePlane(
-      roadObservations,
-      JUNCTION_MAX_SLOPE,
-    );
-
-  if (!fittedPlane) {
-    return [];
-  }
-
-  const terrainSamples:
-    PlaneObservation[] = [
-      {
-        x: centerX,
-        z: centerZ,
-        y:
-          terrainHeight(
-            terrain,
-            levels,
-            centerX,
-            centerZ,
-          ) +
-          SURFACE_GAP +
+        junctionSurfaceOffset:
           JUNCTION_SURFACE_OFFSET,
+        junctionMaxSegments:
+          JUNCTION_MAX_SEGMENTS,
+        junctionMaxSlope:
+          JUNCTION_MAX_SLOPE,
+        junctionMaxCut:
+          JUNCTION_MAX_CUT,
+        junctionMaxFill:
+          JUNCTION_MAX_FILL,
       },
-    ];
-
-  for (
-    let segment = 0;
-    segment < segments;
-    segment++
-  ) {
-    const angle =
-      (segment / segments) *
-      Math.PI *
-      2;
-    const x =
-      centerX +
-      Math.cos(angle) * radius;
-    const z =
-      centerZ +
-      Math.sin(angle) * radius;
-
-    terrainSamples.push({
-      x,
-      z,
-      y:
-        terrainHeight(
-          terrain,
-          levels,
-          x,
-          z,
-        ) +
-        SURFACE_GAP +
-        JUNCTION_SURFACE_OFFSET,
-    });
-  }
-
-  const plane = fittedPlane;
-  let maxCut = 0;
-  let maxFill = 0;
-
-  for (const sample of terrainSamples) {
-    const delta =
-      surfacePlaneHeight(
-        plane,
-        sample.x,
-        sample.z,
-      ) -
-      sample.y;
-    maxFill = Math.max(
-      maxFill,
-      delta,
     );
-    maxCut = Math.max(
-      maxCut,
-      -delta,
-    );
-  }
 
   if (
-    maxCut >
-      JUNCTION_MAX_CUT ||
-    maxFill >
-      JUNCTION_MAX_FILL
+    !surface ||
+    !surface.valid
   ) {
     return [];
   }
 
-  const centerY =
-    surfacePlaneHeight(
-      plane,
-      centerX,
-      centerZ,
-    );
-  positions.push(
-    centerX,
-    centerY,
-    centerZ,
-  );
-  uvs.push(
-    centerX /
+  const positions: number[] = [
+    junction.center[0],
+    surface.centerY,
+    junction.center[1],
+  ];
+  const indices: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [
+    junction.center[0] /
       TEXTURE_REPEAT_METERS,
-    centerZ /
+    junction.center[1] /
       TEXTURE_REPEAT_METERS,
-  );
-
-  const perimeter: Array<{
-    x: number;
-    z: number;
-    topY: number;
-    terrainY: number;
-    verticalOffset: number;
-  }> = [];
+  ];
 
   for (
-    let segment = 0;
-    segment < segments;
-    segment++
+    const point of
+      surface.perimeter
   ) {
-    const angle =
-      (segment / segments) *
-      Math.PI *
-      2;
-    const x =
-      centerX +
-      Math.cos(angle) * radius;
-    const z =
-      centerZ +
-      Math.sin(angle) * radius;
-    const terrainY =
-      terrainHeight(
-        terrain,
-        levels,
-        x,
-        z,
-      );
-    const topY =
-      surfacePlaneHeight(
-        plane,
-        x,
-        z,
-      );
-
     positions.push(
-      x,
-      topY,
-      z,
+      point.x,
+      point.topY,
+      point.z,
     );
     uvs.push(
-      x /
+      point.x /
         TEXTURE_REPEAT_METERS,
-      z /
+      point.z /
         TEXTURE_REPEAT_METERS,
     );
-    perimeter.push({
-      x,
-      z,
-      topY,
-      terrainY:
-        terrainY -
-        SUPPORT_WALL_SINK,
-      verticalOffset:
-        topY -
-        (terrainY +
-          SURFACE_GAP),
-    });
   }
 
   for (
     let segment = 0;
-    segment < segments;
+    segment < surface.segments;
     segment++
   ) {
     const current =
       segment + 1;
     const next =
       ((segment + 1) %
-        segments) +
+        surface.segments) +
       1;
     indices.push(
       0,
@@ -834,35 +614,21 @@ function createRoadJunctionMesh(
   );
   mesh.receiveShadows = true;
   mesh.checkCollisions = true;
-
-  const maxRoadEdgeDelta =
-    roadObservations.reduce(
-      (maximum, observation) =>
-        Math.max(
-          maximum,
-          Math.abs(
-            surfacePlaneHeight(
-              plane,
-              observation.x,
-              observation.z,
-            ) -
-              observation.y,
-          ),
-        ),
-      0,
-    );
-
   mesh.metadata = {
     category: "road-junction",
     walkableSurface: true,
     connectedFeatureIds:
       junction.connectedFeatureIds,
     center: junction.center,
-    radius,
-    planeSlope: plane.slope,
-    maxCut,
-    maxFill,
-    maxRoadEdgeDelta,
+    radius: junction.radius,
+    planeSlope:
+      surface.plane.slope,
+    maxCut:
+      surface.maxCut,
+    maxFill:
+      surface.maxFill,
+    maxRoadEdgeDelta:
+      surface.maxRoadEdgeDelta,
   };
 
   const supportPositions:
@@ -876,15 +642,19 @@ function createRoadJunctionMesh(
 
   for (
     let segment = 0;
-    segment < perimeter.length;
+    segment <
+    surface.perimeter.length;
     segment++
   ) {
     const a =
-      perimeter[segment];
+      surface.perimeter[
+        segment
+      ];
     const b =
-      perimeter[
+      surface.perimeter[
         (segment + 1) %
-          perimeter.length
+          surface.perimeter
+            .length
       ];
     if (!a || !b) {
       continue;
@@ -910,13 +680,15 @@ function createRoadJunctionMesh(
       a.topY,
       a.z,
       a.x,
-      a.terrainY,
+      a.terrainY -
+        SUPPORT_WALL_SINK,
       a.z,
       b.x,
       b.topY,
       b.z,
       b.x,
-      b.terrainY,
+      b.terrainY -
+        SUPPORT_WALL_SINK,
       b.z,
     );
     supportIndices.push(
@@ -930,10 +702,10 @@ function createRoadJunctionMesh(
 
     const u0 =
       segment /
-      perimeter.length;
+      surface.perimeter.length;
     const u1 =
       (segment + 1) /
-      perimeter.length;
+      surface.perimeter.length;
     supportUvs.push(
       u0,
       0,
