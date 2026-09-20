@@ -78,6 +78,9 @@ jobs:
       - name: Validate terrain presentation fidelity
         run: bun run terrain:presentation-test
 
+      - name: Validate terrain cliff projection
+        run: bun run terrain:projection-test
+
       - name: Validate building grounding
         run: bun run building:grounding-test
 
