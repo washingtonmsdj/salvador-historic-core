@@ -258,6 +258,74 @@ function pointInTriangle(
   );
 }
 
+export function polygonsOverlap(
+  a: Point2[],
+  b: Point2[],
+) {
+  if (
+    a.length < 3 ||
+    b.length < 3
+  ) {
+    return false;
+  }
+
+  if (
+    a.some((point) =>
+      pointInPolygon(point, b),
+    ) ||
+    b.some((point) =>
+      pointInPolygon(point, a),
+    )
+  ) {
+    return true;
+  }
+
+  for (
+    let aIndex = 0;
+    aIndex < a.length;
+    aIndex++
+  ) {
+    const aStart =
+      a[aIndex];
+    const aEnd =
+      a[
+        (aIndex + 1) %
+          a.length
+      ];
+    if (!aStart || !aEnd) {
+      continue;
+    }
+
+    for (
+      let bIndex = 0;
+      bIndex < b.length;
+      bIndex++
+    ) {
+      const bStart =
+        b[bIndex];
+      const bEnd =
+        b[
+          (bIndex + 1) %
+            b.length
+        ];
+      if (
+        bStart &&
+        bEnd &&
+        segmentsIntersect(
+          aStart,
+          aEnd,
+          bStart,
+          bEnd,
+        )
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 export function triangleIntersectsPolygon(
   triangle: readonly [
     Point2,
