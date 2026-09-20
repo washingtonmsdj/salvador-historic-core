@@ -40,6 +40,7 @@ export interface TerrainCutout {
   id: string;
   polygon: Point2[];
   elevation: number;
+  clearance: number;
   feather: number;
   source: string;
   estimated: boolean;
