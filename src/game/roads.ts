@@ -19,6 +19,9 @@ import {
   smoothRoadCenterHeight,
 } from "./road-grading";
 import {
+  sampleRoadCrossSection,
+} from "./road-cross-section";
+import {
   roadOffset,
   samplePolyline,
 } from "./road-path";
@@ -183,22 +186,6 @@ function createRoadRibbon(
     const center = centers[index];
     if (!center) continue;
 
-    const halfWidth =
-      Math.max(0.5, feature.width / 2);
-    const offset = roadOffset(
-      centers,
-      index,
-      halfWidth,
-      MAX_MITER_SCALE,
-    );
-    const leftX =
-      center[0] + offset[0];
-    const leftZ =
-      center[1] + offset[1];
-    const rightX =
-      center[0] - offset[0];
-    const rightZ =
-      center[1] - offset[1];
     const rawCenterY =
       terrainHeight(
         terrain,
@@ -214,45 +201,46 @@ function createRoadRibbon(
         0,
         centerY - rawCenterY,
       );
-    const leftTerrain =
-      elevationAt(
-        leftX,
-        leftZ,
-        terrain,
-        levels,
-        feature.elevationMode,
-      ) - SURFACE_GAP;
-    const rightTerrain =
-      elevationAt(
-        rightX,
-        rightZ,
-        terrain,
-        levels,
-        feature.elevationMode,
-      ) - SURFACE_GAP;
-    const crossSpan = Math.max(
-      0.001,
-      Math.hypot(
-        leftX - rightX,
-        leftZ - rightZ,
-      ),
-    );
     const crossSection =
-      gradeRoadCrossSection({
-        leftTerrain,
-        rightTerrain,
+      sampleRoadCrossSection({
+        feature,
+        centers,
+        index,
+        terrain,
+        levels,
         longitudinalLift,
-        crossSpan,
-        maxCrossSlope:
-          MAX_CROSS_SLOPE,
-        maxSupportedFillHeight:
-          MAX_SUPPORTED_FILL_HEIGHT,
-        surfaceGap: SURFACE_GAP,
+        policy: {
+          maxMiterScale:
+            MAX_MITER_SCALE,
+          maxCrossSlope:
+            MAX_CROSS_SLOPE,
+          maxSupportedFillHeight:
+            MAX_SUPPORTED_FILL_HEIGHT,
+          surfaceGap:
+            SURFACE_GAP,
+        },
       });
+
+    if (!crossSection) {
+      continue;
+    }
+
+    const leftX =
+      crossSection.left.x;
+    const leftZ =
+      crossSection.left.z;
+    const rightX =
+      crossSection.right.x;
+    const rightZ =
+      crossSection.right.z;
+    const leftTerrain =
+      crossSection.left.terrainY;
+    const rightTerrain =
+      crossSection.right.terrainY;
     const leftY =
-      crossSection.leftY;
+      crossSection.left.surfaceY;
     const rightY =
-      crossSection.rightY;
+      crossSection.right.surfaceY;
 
     if (index > 0) {
       const before =
@@ -272,7 +260,7 @@ function createRoadRibbon(
       terrainY:
         leftTerrain - SUPPORT_WALL_SINK,
       support:
-        crossSection.leftSupportHeight,
+        crossSection.left.supportHeight,
       distance: travelled,
     });
     rightEdges.push({
@@ -282,7 +270,7 @@ function createRoadRibbon(
       terrainY:
         rightTerrain - SUPPORT_WALL_SINK,
       support:
-        crossSection.rightSupportHeight,
+        crossSection.right.supportHeight,
       distance: travelled,
     });
 
