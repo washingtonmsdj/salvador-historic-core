@@ -385,6 +385,167 @@ export function terrainHeight(
   return proceduralTerrainHeight(config, levels, x, z);
 }
 
+function worldNoise(
+  x: number,
+  z: number,
+  scale: number,
+) {
+  const safeScale =
+    Math.max(1, scale);
+  const nx = x / safeScale;
+  const nz = z / safeScale;
+
+  return (
+    Math.sin(
+      nx * 1.73 +
+        nz * 0.91,
+    ) *
+      0.42 +
+    Math.cos(
+      nx * 0.63 -
+        nz * 1.41,
+    ) *
+      0.33 +
+    Math.sin(
+      nx * 0.27 +
+        nz * 2.17 +
+        1.9,
+    ) *
+      0.25
+  );
+}
+
+function terrainMacroColor(
+  config: TerrainConfig,
+  levels: SceneLevels,
+  x: number,
+  y: number,
+  z: number,
+  normalY: number,
+) {
+  const presentation =
+    config.presentation;
+  const macro =
+    worldNoise(
+      x,
+      z,
+      presentation
+        .macroVariationScale,
+    );
+  const elevationSpan =
+    Math.max(
+      1,
+      levels.upperCity.elevation -
+        levels.lowerCity.elevation,
+    );
+  const elevation =
+    clamp(
+      (y -
+        levels.lowerCity.elevation) /
+        elevationSpan,
+      0,
+      1,
+    );
+  const sampleRadius = 5;
+  const neighborhoodMean =
+    (
+      terrainHeight(
+        config,
+        levels,
+        x - sampleRadius,
+        z,
+      ) +
+      terrainHeight(
+        config,
+        levels,
+        x + sampleRadius,
+        z,
+      ) +
+      terrainHeight(
+        config,
+        levels,
+        x,
+        z - sampleRadius,
+      ) +
+      terrainHeight(
+        config,
+        levels,
+        x,
+        z + sampleRadius,
+      )
+    ) /
+    4;
+  const concavity =
+    clamp(
+      (
+        neighborhoodMean -
+        y
+      ) /
+        3,
+      -1,
+      1,
+    );
+  const slope =
+    1 -
+    clamp(
+      normalY,
+      0,
+      1,
+    );
+
+  const value =
+    1 +
+    macro *
+      presentation
+        .macroVariationStrength -
+    elevation *
+      presentation
+        .elevationTintStrength *
+      0.28 -
+    Math.max(
+      0,
+      concavity,
+    ) *
+      presentation
+        .concavityTintStrength -
+    slope *
+      presentation
+        .macroVariationStrength *
+      0.12;
+  const warm =
+    macro *
+      presentation
+        .macroVariationStrength *
+      0.18;
+  const green =
+    Math.max(
+      0,
+      concavity,
+    ) *
+      presentation
+        .concavityTintStrength *
+      0.18;
+
+  return [
+    clamp(
+      value + warm,
+      0.72,
+      1.16,
+    ),
+    clamp(
+      value + green,
+      0.72,
+      1.16,
+    ),
+    clamp(
+      value - warm * 0.45,
+      0.72,
+      1.16,
+    ),
+    1,
+  ] as const;
+}
+
 function terrainNormal(
   config: TerrainConfig,
   levels: SceneLevels,
@@ -975,6 +1136,7 @@ export function createTerrain(
       const positions: number[] = [];
       const normals: number[] = [];
       const uvs: number[] = [];
+      const colors: number[] = [];
       const indices: number[] = [];
       const cliffIndices: number[] = [];
       const textureMeters = Math.max(
@@ -994,11 +1156,41 @@ export function createTerrain(
         for (let ix = 0; ix <= steps; ix++) {
           const x = tx + (ix / steps) * tileWidth;
           const z = tz + (iz / steps) * tileDepth;
-          positions.push(x, terrainHeight(config, levels, x, z), z);
-          normals.push(...terrainNormal(config, levels, x, z));
+          const y =
+            terrainHeight(
+              config,
+              levels,
+              x,
+              z,
+            );
+          const normal =
+            terrainNormal(
+              config,
+              levels,
+              x,
+              z,
+            );
+          positions.push(
+            x,
+            y,
+            z,
+          );
+          normals.push(
+            ...normal,
+          );
           uvs.push(
             x / textureMeters,
             z / textureMeters,
+          );
+          colors.push(
+            ...terrainMacroColor(
+              config,
+              levels,
+              x,
+              y,
+              z,
+              normal[1],
+            ),
           );
         }
       }
@@ -1020,17 +1212,41 @@ export function createTerrain(
       ) => {
         const firstVertex = positions.length / 3;
         for (const [x, z] of triangle) {
+          const y =
+            terrainHeight(
+              config,
+              levels,
+              x,
+              z,
+            );
+          const normal =
+            terrainNormal(
+              config,
+              levels,
+              x,
+              z,
+            );
           positions.push(
             x,
-            terrainHeight(config, levels, x, z),
+            y,
             z,
           );
           normals.push(
-            ...terrainNormal(config, levels, x, z),
+            ...normal,
           );
           uvs.push(
             x / textureMeters,
             z / textureMeters,
+          );
+          colors.push(
+            ...terrainMacroColor(
+              config,
+              levels,
+              x,
+              y,
+              z,
+              normal[1],
+            ),
           );
         }
         const refined = [
@@ -1137,6 +1353,7 @@ export function createTerrain(
         materials.surface,
         metadata,
         true,
+        colors,
       );
       meshes.push(surface);
 
