@@ -134,6 +134,10 @@ export interface TerrainConfig {
     textureResolution: number;
     detailTextureResolution: number;
     detailTextureTiling: number;
+    macroVariationScale: number;
+    macroVariationStrength: number;
+    elevationTintStrength: number;
+    concavityTintStrength: number;
     rockNormalYMax: number;
     rockBlendNormalYBand: number;
     contourInterval: number;
