@@ -11,10 +11,15 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "terrain:import:conder": "node scripts/import-conder-contours.mjs",
+    "terrain:import:conder": "npm run geospatial:import:conder",
     "terrain:validate": "node scripts/validate-terrain-data.mjs",
     "layout:validate": "node scripts/validate-site-layout.mjs",
-    "site:import:osm": "node scripts/import-osm-site.mjs"
+    "site:import:osm": "npm run geospatial:import:osm",
+    "geospatial:import:osm": "node scripts/import-osm-site.mjs",
+    "geospatial:import:conder": "node scripts/import-conder-contours.mjs",
+    "geospatial:build": "node scripts/build-geospatial-base.mjs",
+    "geospatial:validate": "node scripts/validate-geospatial-base.mjs",
+    "geospatial:refresh": "npm run geospatial:import:osm && npm run geospatial:import:conder && npm run geospatial:build && npm run geospatial:validate"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -74,7 +79,8 @@
     "tw-animate-css": "^1.3.4",
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "proj4": "^2.22.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
