@@ -37,11 +37,23 @@ Usado para:
 - edifícios;
 - referências urbanas.
 
-Importação:
+Importação e derivação:
 
 ```bash
 npm run geospatial:import:osm
+npm run geospatial:derive:vectors
 ```
+
+O produto `geospatial/derived/site-vectors.json` contém:
+
+- centerlines de vias recortadas ao perímetro;
+- praças/espaços explicitamente mapeados;
+- footprints de edifícios;
+- provenance e tags OSM.
+
+Ruas e espaços podem ser usados diretamente no runtime depois da validação. Footprints de
+edifícios não são transformados automaticamente em volumes quando não existe altura/modelo
+confiável.
 
 ### CONDER
 
@@ -72,6 +84,13 @@ npm run geospatial:validate
 
 O derivador transforma as curvas normalizadas numa grade regular de 2,5 m usando as cotas das
 curvas como restrições fixas e relaxação harmônica apenas entre elas.
+
+Para atualizar por fonte:
+
+```bash
+npm run geospatial:refresh:vectors
+npm run geospatial:refresh:terrain
+```
 
 Para atualizar toda a cadeia:
 
