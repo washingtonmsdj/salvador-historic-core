@@ -16,10 +16,14 @@
 ## Próxima etapa de fidelidade
 
 - [ ] Substituir blockouts estimados por footprints verificados de OSM/GeoJSON
+  - [x] Mercado Modelo — footprint OSM way 59392558
+  - [x] Palácio Rio Branco — footprint OSM way 402383814
+  - [ ] Palácio Thomé de Souza e frentes restantes da Praça/Rua Chile
 - [ ] Importar as curvas CONDER do recorte e gerar superfície TIN/height field verificável
 - [ ] Avaliar MDT/LiDAR municipal como fonte altimétrica preferencial quando houver endpoint/arquivo estável
 - [ ] Substituir os blockouts retangulares de edificações por footprints poligonais verificados
-- [ ] Validar orientação, escala e alinhamento visual dos marcos principais
+- [x] Corrigir enquadramento, contraste e elementos provisórios que tornavam a cena ilegível
+- [ ] Validar orientação, escala e alinhamento visual dos marcos principais contra referências verificadas
 - [ ] Adicionar testes de integridade dos dados e build em CI
 - [ ] Validar desktop, celular, desempenho e acessibilidade dos controles
 - [ ] Preparar substituição progressiva dos blockouts por modelos GLB
