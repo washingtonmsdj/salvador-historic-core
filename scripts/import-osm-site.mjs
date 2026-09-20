@@ -13,7 +13,7 @@ const OVERPASS_ENDPOINTS = [
 ];
 
 const { manifest, origin, bounds, projected } = await loadGeospatialContext();
-const outputPath = resolve(root, manifest.sources.osm.output);
+const rawOutputPath = resolve(root, manifest.sources.osm.rawOutput);\nconst normalizedOutputPath = resolve(root, manifest.sources.osm.normalizedOutput);
 
 const WGS84 = "EPSG:4326";
 const UTM24S = "+proj=utm +zone=24 +south +datum=WGS84 +units=m +no_defs";
@@ -152,6 +152,10 @@ function normalizeElement(element) {
 }
 
 const { endpoint, payload } = await queryOverpass();
+
+await mkdir(dirname(rawOutputPath), { recursive: true });
+await writeFile(rawOutputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+
 const features = payload.elements
   .map(normalizeElement)
   .sort((a, b) => a.id.localeCompare(b.id));
@@ -189,13 +193,17 @@ const output = {
   features,
 };
 
-await mkdir(dirname(outputPath), { recursive: true });
-await writeFile(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
+await mkdir(dirname(normalizedOutputPath), { recursive: true });
+await writeFile(
+  normalizedOutputPath,
+  `${JSON.stringify(output, null, 2)}\n`,
+  "utf8",
+);
 
 console.log(
   [
     `Imported ${features.length} OSM features.`,
     `Named targets found: ${namedTargets.length}.`,
-    `Output: ${manifest.sources.osm.output}`,
+    `Raw: ${manifest.sources.osm.rawOutput}.`,\n    `Normalized: ${manifest.sources.osm.normalizedOutput}.`,
   ].join(" "),
 );
