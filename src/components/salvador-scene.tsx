@@ -236,6 +236,9 @@ export function SalvadorScene() {
     let engine: Engine | null = null;
     let scene: Scene | null = null;
     let clearRuntimeTerrain: (() => void) | null = null;
+    let disposePlayer: (() => void) | null = null;
+    let syncPlayerToActiveTerrain:
+      (() => void) | null = null;
 
     const handleResize = () => engine?.resize();
 
@@ -527,7 +530,17 @@ export function SalvadorScene() {
         };
 
         const cameras = createCameras(scene, canvas);
-        configurePlayer(scene, cameras.street);
+        const playerController =
+          configurePlayer(
+            scene,
+            cameras.street,
+            data.terrain,
+            data.levels,
+          );
+        disposePlayer =
+          playerController.dispose;
+        syncPlayerToActiveTerrain =
+          playerController.syncToTerrain;
 
         const debug = createDebug(scene, [
           ...activeDebugBuildings,
@@ -746,6 +759,8 @@ export function SalvadorScene() {
               data.levels,
             );
 
+            syncPlayerToActiveTerrain?.();
+
             for (const mesh of spaceMeshes) {
               mesh.dispose();
             }
@@ -829,6 +844,7 @@ export function SalvadorScene() {
     return () => {
       disposed = true;
       clearRuntimeTerrain?.();
+      disposePlayer?.();
       controlsRef.current = null;
       window.removeEventListener("resize", handleResize);
       engine?.stopRenderLoop();
