@@ -1,4 +1,7 @@
-import { classifyRoadSurface } from "../src/game/road-surface";
+import {
+  classifyPublicSpaceSurface,
+  classifyRoadSurface,
+} from "../src/game/road-surface";
 import type { LinearFeature } from "../src/game/types";
 
 function feature(
@@ -41,6 +44,27 @@ for (const [tags, expected] of cases) {
   if (actual !== expected) {
     failures.push(
       `${JSON.stringify(tags)} => ${actual}; expected ${expected}`,
+    );
+  }
+}
+
+const publicCases: Array<
+  [Record<string, string>, ReturnType<typeof classifyPublicSpaceSurface>]
+> = [
+  [{ surface: "asphalt" }, "asphalt"],
+  [{ surface: "cobblestone" }, "stone"],
+  [{ surface: "paving_stones" }, "paving"],
+  [{}, "paving"],
+];
+
+for (const [tags, expected] of publicCases) {
+  const actual =
+    classifyPublicSpaceSurface(
+      feature(tags),
+    );
+  if (actual !== expected) {
+    failures.push(
+      `public ${JSON.stringify(tags)} => ${actual}; expected ${expected}`,
     );
   }
 }
