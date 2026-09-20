@@ -229,11 +229,18 @@ function applyTerrainPlateaus(
   x: number,
   z: number,
   baseHeight: number,
+  includeEstimated = true,
 ) {
   let height = baseHeight;
   const point: Point2 = [x, z];
 
   for (const plateau of config.plateaus ?? []) {
+    if (
+      !includeEstimated &&
+      plateau.estimated
+    ) {
+      continue;
+    }
     if (plateau.polygon.length < 3) continue;
 
     if (pointInPolygon(point, plateau.polygon)) {
@@ -256,10 +263,17 @@ function applyTerrainCutouts(
   x: number,
   z: number,
   baseHeight: number,
+  includeEstimated = true,
 ) {
   let height = baseHeight;
 
   for (const cutout of config.cutouts ?? []) {
+    if (
+      !includeEstimated &&
+      cutout.estimated
+    ) {
+      continue;
+    }
     if (cutout.polygon.length < 3) continue;
 
     const point: Point2 = [x, z];
@@ -400,12 +414,14 @@ export function terrainHeight(
         x,
         z,
         baseHeight,
+        false,
       );
     return applyTerrainCutouts(
       config,
       x,
       z,
       plateauHeight,
+      false,
     );
   }
 
