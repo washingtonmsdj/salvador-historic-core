@@ -27,12 +27,13 @@ const cases: Array<
   [Record<string, string>, ReturnType<typeof classifyRoadSurface>]
 > = [
   [{ highway: "secondary", surface: "asphalt" }, "asphalt"],
+  [{ highway: "secondary", surface: "paved" }, "paved"],
   [{ highway: "residential", surface: "paving_stones" }, "paving"],
   [{ highway: "residential", surface: "sett" }, "paving"],
   [{ highway: "residential", surface: "cobblestone" }, "stone"],
   [{ highway: "pedestrian" }, "pedestrian"],
-  [{ highway: "footway", surface: "asphalt" }, "pedestrian"],
-  [{ highway: "service" }, "asphalt"],
+  [{ highway: "footway", surface: "asphalt" }, "asphalt"],
+  [{ highway: "service" }, "paved"],
 ];
 
 const failures: string[] = [];
@@ -52,9 +53,13 @@ const publicCases: Array<
   [Record<string, string>, ReturnType<typeof classifyPublicSpaceSurface>]
 > = [
   [{ surface: "asphalt" }, "asphalt"],
+  [{ surface: "paved" }, "paved"],
   [{ surface: "cobblestone" }, "stone"],
   [{ surface: "paving_stones" }, "paving"],
-  [{}, "paving"],
+  [{ leisure: "park" }, null],
+  [{ leisure: "park", surface: "grass" }, null],
+  [{ place: "square" }, "pedestrian"],
+  [{}, null],
 ];
 
 for (const [tags, expected] of publicCases) {
