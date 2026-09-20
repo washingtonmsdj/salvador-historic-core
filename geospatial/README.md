@@ -71,7 +71,13 @@ Regras principais:
 
 Essas regras produzem uma superfície caminhável coerente sem afirmar que o projeto contém cotas de engenharia civil.
 
-## Passarela superior do Elevador
+## Elevador Lacerda
+
+A torre curada usa `footprintOsmId=59224731` como referência horizontal canônica. O runtime hidrata exatamente o footprint versionado de `site-vectors.json`; `site-data.json` não mantém outra cópia de seus vértices.
+
+A constraint `layoutConstraints.elevatorExclusion` referencia o mesmo OSM id. O único polígono duplicado intencionalmente é `terrain.cutouts/elevador-lacerda-footprint-clearance`, mantido como snapshot de recuperação do terreno procedural e marcado por `fallbackSnapshotOfOsmId=59224731`. `layout:validate` exige que esse snapshot continue idêntico ao footprint canônico, impedindo divergência silenciosa.
+
+### Passarela superior
 
 Corredores OSM com `highway=corridor` + `indoor=yes` continuam excluídos de `roads`, mas passam a ser preservados separadamente em `elevatedCorridors`.
 
@@ -173,6 +179,10 @@ Pipeline completo:
 ```bash
 npm run geospatial:refresh
 npm run geospatial:validate
+npm run layout:validate
+npm run landmark:fidelity-test
 ```
+
+`layout:validate` também participa do workflow `Quality`, resolvendo `footprintOsmId` diretamente do produto derivado antes de validar constraints de implantação.
 
 Nenhum produto deve ser promovido a `geospatial-derived` apenas por existir no disco. O validador precisa confirmar CRS, perímetro, metadata, cobertura crítica, qualidade do terreno e contratos de gameplay.

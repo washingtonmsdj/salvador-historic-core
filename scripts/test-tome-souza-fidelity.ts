@@ -19,6 +19,7 @@ import type {
 
 interface SiteData {
   buildings: MeasuredObject[];
+  elevator: MeasuredObject[];
   terrain: TerrainConfig;
   levels: SceneLevels;
   layoutConstraints: {
@@ -162,6 +163,29 @@ if (!palaceFootprint) {
   ) {
     failures.push(
       `Palácio long side ${longSide.toFixed(2)} m no longer fits the documented TPTS longitudinal envelope.`,
+    );
+  }
+}
+
+const curatedTower =
+  data.elevator.find(
+    (part) =>
+      part.id ===
+      "lacerda-lower-tower",
+  );
+
+if (!curatedTower) {
+  failures.push(
+    "Curated Elevador Lacerda tower is missing.",
+  );
+} else {
+  if (
+    curatedTower.footprintOsmId !==
+      59224731 ||
+    curatedTower.footprint
+  ) {
+    failures.push(
+      "Elevador Lacerda tower must reference OSM way 59224731 without duplicating footprint vertices.",
     );
   }
 }

@@ -6,6 +6,9 @@ import geospatialBase from "../data/geospatial-base.json";
 import siteData from "../data/site-data.json";
 import { chooseWalkableSpawn } from "../game/walkable-spawn";
 import {
+  hydrateMeasuredObjectFootprints,
+} from "../game/derived-buildings";
+import {
   deriveRoadJunctions,
   roadJunctionMaskPolygon,
 } from "../game/road-junctions";
@@ -137,6 +140,14 @@ const persistentElevatorCorridorsActive =
   derivedVectors.elevatedCorridors
     .length > 0;
 
+const sourcedElevatorParts =
+  derivedVectors.available
+    ? hydrateMeasuredObjectFootprints(
+        data.elevator,
+        derivedVectors.buildingFootprints,
+      )
+    : data.elevator;
+
 const provisionalUpperElevatorIds =
   new Set([
     "lacerda-walkway",
@@ -144,13 +155,13 @@ const provisionalUpperElevatorIds =
   ]);
 const runtimeElevatorParts =
   persistentElevatorCorridorsActive
-    ? data.elevator.filter(
+    ? sourcedElevatorParts.filter(
         (part) =>
           !provisionalUpperElevatorIds.has(
             part.id,
           ),
       )
-    : data.elevator;
+    : sourcedElevatorParts;
 const runtimeLandmarks =
   persistentElevatorCorridorsActive
     ? data.landmarks.filter(

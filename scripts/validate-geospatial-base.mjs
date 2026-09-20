@@ -1312,6 +1312,14 @@ const curatedBuildings =
   Array.isArray(siteData.buildings)
     ? siteData.buildings
     : [];
+const curatedElevatorParts =
+  Array.isArray(siteData.elevator)
+    ? siteData.elevator
+    : [];
+const curatedMeasuredObjects = [
+  ...curatedBuildings,
+  ...curatedElevatorParts,
+];
 const derivedBuildingFootprints =
   Array.isArray(
     derivedVectors?.buildingFootprints,
@@ -1325,7 +1333,7 @@ const derivedBuildingOsmIds =
       .filter(Number.isFinite),
   );
 
-for (const building of curatedBuildings) {
+for (const building of curatedMeasuredObjects) {
   if (
     building.footprintOsmId === undefined
   ) {

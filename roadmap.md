@@ -41,6 +41,8 @@
 
 - [x] Palácio Thomé de Souza: substituir retângulo manual pelo footprint OSM correlacionado ao lote IPHAN e proteger a correlação em CI.
 - [x] Elevador Lacerda: preservar corredores indoor OSM separadamente das ruas e renderizar a passarela superior como deck elevado caminhável.
+- [x] Elevador Lacerda: eliminar cópias runtime do footprint da torre, usar `footprintOsmId=59224731` e manter somente um snapshot explicitamente validado para o fallback procedural.
+- [x] Integrar `layout:validate` ao CI para impedir regressões entre constraints legadas e a base GIS canônica.
 
 ## Próximas prioridades
 

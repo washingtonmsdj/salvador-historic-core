@@ -121,8 +121,8 @@ function measuredObjectFootprint(item: MeasuredObject): Point2[] {
   );
 }
 
-export function hydrateCuratedBuildingFootprints(
-  buildings: MeasuredObject[],
+export function hydrateMeasuredObjectFootprints(
+  objects: MeasuredObject[],
   footprints: DerivedBuildingFootprint[],
 ): MeasuredObject[] {
   const byOsmId =
@@ -133,7 +133,7 @@ export function hydrateCuratedBuildingFootprints(
       ]),
     );
 
-  return buildings.map(
+  return objects.map(
     (building) => {
       if (
         typeof building.footprintOsmId !==
@@ -192,6 +192,9 @@ export function hydrateCuratedBuildingFootprints(
     },
   );
 }
+
+export const hydrateCuratedBuildingFootprints =
+  hydrateMeasuredObjectFootprints;
 
 export function sampleTerrainFootprint(
   footprint: Point2[],
