@@ -15,8 +15,17 @@ const OVERPASS_ENDPOINTS = [
   "https://overpass.kumi.systems/api/interpreter",
 ];
 
-const { manifest, origin, bounds, projected } = await loadGeospatialContext();
-const rawOutputPath = resolve(root, manifest.sources.osm.rawOutput);\nconst normalizedOutputPath = resolve(root, manifest.sources.osm.normalizedOutput);
+const { manifest, origin, bounds, projected } =
+  await loadGeospatialContext();
+
+const rawOutputPath = resolve(
+  root,
+  manifest.sources.osm.rawOutput,
+);
+const normalizedOutputPath = resolve(
+  root,
+  manifest.sources.osm.normalizedOutput,
+);
 
 function localToGeographic(x, z) {
   const easting = projected.easting + x;
@@ -25,12 +34,21 @@ function localToGeographic(x, z) {
 }
 
 function geographicToLocal(latitude, longitude) {
-  const [easting, northing] = latLonToUtm24S(latitude, longitude);
+  const [easting, northing] = latLonToUtm24S(
+    latitude,
+    longitude,
+  );
   return projectedToLocal(projected, easting, northing);
 }
 
-const [south, west] = localToGeographic(bounds.minX, bounds.minZ);
-const [north, east] = localToGeographic(bounds.maxX, bounds.maxZ);
+const [south, west] = localToGeographic(
+  bounds.minX,
+  bounds.minZ,
+);
+const [north, east] = localToGeographic(
+  bounds.maxX,
+  bounds.maxZ,
+);
 const bbox = [south, west, north, east]
   .map((value) => value.toFixed(7))
   .join(",");
@@ -59,29 +77,40 @@ async function queryOverpass() {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "content-type":
+            "application/x-www-form-urlencoded;charset=UTF-8",
         },
         body: new URLSearchParams({ data: query }),
       });
 
       if (!response.ok) {
-        throw new Error(`${response.status} ${response.statusText}`);
+        throw new Error(
+          `${response.status} ${response.statusText}`,
+        );
       }
 
       const payload = await response.json();
       if (!Array.isArray(payload.elements)) {
-        throw new Error("response did not contain an elements array");
+        throw new Error(
+          "response did not contain an elements array",
+        );
       }
 
       return { endpoint, payload };
     } catch (error) {
       errors.push(
-        `${endpoint}: ${error instanceof Error ? error.message : String(error)}`,
+        `${endpoint}: ${
+          error instanceof Error
+            ? error.message
+            : String(error)
+        }`,
       );
     }
   }
 
-  throw new Error(`All Overpass endpoints failed:\n${errors.join("\n")}`);
+  throw new Error(
+    `All Overpass endpoints failed:\n${errors.join("\n")}`,
+  );
 }
 
 function normalizeElement(element) {
@@ -100,18 +129,26 @@ function normalizeElement(element) {
     return {
       ...feature,
       geometryType: "point",
-      point: geographicToLocal(element.lat, element.lon),
+      point: geographicToLocal(
+        element.lat,
+        element.lon,
+      ),
     };
   }
 
-  if (Array.isArray(element.geometry) && element.geometry.length > 0) {
+  if (
+    Array.isArray(element.geometry) &&
+    element.geometry.length > 0
+  ) {
     const points = element.geometry
       .filter(
         (point) =>
           Number.isFinite(point?.lat) &&
           Number.isFinite(point?.lon),
       )
-      .map((point) => geographicToLocal(point.lat, point.lon));
+      .map((point) =>
+        geographicToLocal(point.lat, point.lon),
+      );
 
     if (points.length > 0) {
       const first = points[0];
@@ -120,11 +157,16 @@ function normalizeElement(element) {
         points.length >= 4 &&
         first &&
         last &&
-        Math.hypot(first[0] - last[0], first[1] - last[1]) < 0.05;
+        Math.hypot(
+          first[0] - last[0],
+          first[1] - last[1],
+        ) < 0.05;
 
       return {
         ...feature,
-        geometryType: closed ? "polygon" : "polyline",
+        geometryType: closed
+          ? "polygon"
+          : "polyline",
         points,
       };
     }
@@ -152,29 +194,39 @@ function normalizeElement(element) {
 
 const { endpoint, payload } = await queryOverpass();
 
-await mkdir(dirname(rawOutputPath), { recursive: true });
-await writeFile(rawOutputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+await mkdir(dirname(rawOutputPath), {
+  recursive: true,
+});
+await writeFile(
+  rawOutputPath,
+  `${JSON.stringify(payload, null, 2)}\n`,
+  "utf8",
+);
 
 const features = payload.elements
   .map(normalizeElement)
   .sort((a, b) => a.id.localeCompare(b.id));
 
+const targetNames = new Set([
+  "Ladeira da Montanha",
+  "Palácio Thomé de Souza",
+  "Palácio Tomé de Sousa",
+  "Prefeitura Municipal de Salvador",
+  "Câmara Municipal de Salvador",
+]);
+
 const namedTargets = features.filter((feature) =>
-  [
-    "Ladeira da Montanha",
-    "Palácio Thomé de Souza",
-    "Palácio Tomé de Sousa",
-    "Prefeitura Municipal de Salvador",
-    "Câmara Municipal de Salvador",
-  ].includes(feature.tags?.name),
+  targetNames.has(feature.tags?.name),
 );
 
 const output = {
   metadata: {
     source: "OpenStreetMap via Overpass API",
     sourceCrs: "EPSG:4326",
-    normalizedCrs: manifest.localCoordinateSystem.horizontalCrs,
-    transform: "deterministic WGS84 -> UTM zone 24S -> local metres",
+    normalizedCrs:
+      manifest.localCoordinateSystem.horizontalCrs,
+    transform:
+      "deterministic WGS84 -> UTM zone 24S -> local metres",
     endpoint,
     generatedAt: new Date().toISOString(),
     localOrigin: {
@@ -184,7 +236,12 @@ const output = {
       northing: projected.northing,
     },
     boundsMeters: bounds,
-    queryBboxWgs84: { south, west, north, east },
+    queryBboxWgs84: {
+      south,
+      west,
+      north,
+      east,
+    },
     featureCount: features.length,
     namedTargetCount: namedTargets.length,
   },
@@ -192,7 +249,9 @@ const output = {
   features,
 };
 
-await mkdir(dirname(normalizedOutputPath), { recursive: true });
+await mkdir(dirname(normalizedOutputPath), {
+  recursive: true,
+});
 await writeFile(
   normalizedOutputPath,
   `${JSON.stringify(output, null, 2)}\n`,
@@ -203,6 +262,9 @@ console.log(
   [
     `Imported ${features.length} OSM features.`,
     `Named targets found: ${namedTargets.length}.`,
-    `Raw: ${manifest.sources.osm.rawOutput}.`,\n    `Normalized: ${manifest.sources.osm.normalizedOutput}.`,
+    `Raw: ${manifest.sources.osm.rawOutput}.`,
+    `Normalized: ${
+      manifest.sources.osm.normalizedOutput
+    }.`,
   ].join(" "),
 );
