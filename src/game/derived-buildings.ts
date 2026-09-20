@@ -121,6 +121,78 @@ function measuredObjectFootprint(item: MeasuredObject): Point2[] {
   );
 }
 
+export function hydrateCuratedBuildingFootprints(
+  buildings: MeasuredObject[],
+  footprints: DerivedBuildingFootprint[],
+): MeasuredObject[] {
+  const byOsmId =
+    new Map(
+      footprints.map((item) => [
+        item.osmId,
+        item,
+      ]),
+    );
+
+  return buildings.map(
+    (building) => {
+      if (
+        typeof building.footprintOsmId !==
+        "number"
+      ) {
+        return building;
+      }
+
+      const source =
+        byOsmId.get(
+          building.footprintOsmId,
+        );
+      if (
+        !source ||
+        !Array.isArray(
+          source.footprint,
+        ) ||
+        source.footprint.length < 3
+      ) {
+        return building;
+      }
+
+      const footprint =
+        source.footprint.map(
+          ([x, z]): Point2 => [
+            x,
+            z,
+          ],
+        );
+      const centroid =
+        polygonCentroid(
+          footprint,
+        );
+      const dimensions =
+        boundsOf(
+          footprint,
+        );
+
+      return {
+        ...building,
+        footprint,
+        position: [
+          centroid[0],
+          building.position[1],
+          centroid[1],
+        ] as MeasuredObject["position"],
+        width:
+          dimensions.width,
+        depth:
+          dimensions.depth,
+        source: [
+          building.source,
+          `horizontal footprint synced from derived OpenStreetMap way ${building.footprintOsmId}`,
+        ].join("; "),
+      };
+    },
+  );
+}
+
 export function sampleTerrainFootprint(
   footprint: Point2[],
   terrain: TerrainConfig,
