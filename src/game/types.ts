@@ -26,6 +26,39 @@ export interface LinearFeature {
   elevation?: number;
 }
 
+export interface TerrainConfig {
+  tileSize: number;
+  bounds: {
+    minX: number;
+    maxX: number;
+    minZ: number;
+    maxZ: number;
+  };
+  cliffTransition: {
+    lowX: number;
+    highX: number;
+    lowerY: number;
+    upperY: number;
+    source: string;
+    estimated: boolean;
+  };
+  source: string;
+  estimated: boolean;
+}
+
+export interface SceneLevels {
+  lowerCity: {
+    elevation: number;
+    source: string;
+    estimated: boolean;
+  };
+  upperCity: {
+    elevation: number;
+    source: string;
+    estimated: boolean;
+  };
+}
+
 export interface SceneApi {
   setCamera: (mode: "aerial" | "street") => void;
   setDebug: (enabled: boolean) => void;
