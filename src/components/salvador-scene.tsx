@@ -100,12 +100,22 @@ const derivedVectorsUsable =
   (geo.vectors.active === "geospatial-derived" ||
     geo.vectors.active === "geospatial-hybrid") &&
   derivedVectors.available;
-const runtimeRoads = derivedVectorsUsable
-  ? mergeLinearFeatures(data.roads, derivedVectors.roads)
-  : data.roads;
-const runtimeSpaces = derivedVectorsUsable
-  ? mergeLinearFeatures(data.spaces, derivedVectors.spaces)
-  : data.spaces;
+const runtimeRoads =
+  geo.vectors.active === "geospatial-derived" &&
+  derivedVectors.available
+    ? derivedVectors.roads
+    : geo.vectors.active === "geospatial-hybrid" &&
+        derivedVectors.available
+      ? [...data.roads, ...derivedVectors.roads]
+      : data.roads;
+const runtimeSpaces =
+  geo.vectors.active === "geospatial-derived" &&
+  derivedVectors.available
+    ? derivedVectors.spaces
+    : geo.vectors.active === "geospatial-hybrid" &&
+        derivedVectors.available
+      ? mergeLinearFeatures(data.spaces, derivedVectors.spaces)
+      : data.spaces;
 const derivedBuildingsEligible =
   derivedVectorsUsable &&
   geo.terrain.active === "geospatial-derived" &&
