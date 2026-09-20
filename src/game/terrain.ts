@@ -399,9 +399,15 @@ function createTerrainContours(
 ) {
   const lines: Mesh[] = [];
   const stepZ = 5;
-  const levelsToDraw = [10, 20, 30, 40, 50, 60];
+  const interval = Math.max(1, config.presentation.contourInterval);
+  const maxContour =
+    Math.floor(levels.upperCity.elevation / interval) * interval;
 
-  for (const contourY of levelsToDraw) {
+  for (
+    let contourY = interval;
+    contourY < maxContour;
+    contourY += interval
+  ) {
     const points: Vector3[] = [];
 
     for (let z = config.bounds.minZ; z <= config.bounds.maxZ; z += stepZ) {
@@ -500,7 +506,11 @@ export function createTerrain(
         const cliff = createSurfaceMesh(
           scene,
           `terrain-cliff-accent-${tx}-${tz}`,
-          offsetPositions(positions, normals, 0.06),
+          offsetPositions(
+            positions,
+            normals,
+            config.presentation.cliffOverlayOffset,
+          ),
           normals,
           uvs,
           cliffIndices,
