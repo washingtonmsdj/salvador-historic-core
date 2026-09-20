@@ -26,7 +26,9 @@
     "buildingFootprintCount": 202,
     "excludedIndoorHighwayCount": 3,
     "laneDerivedRoadCount": 35,
-    "elevatedCorridorCount": 3
+    "elevatedCorridorCount": 3,
+    "terrainLineCount": 0,
+    "terrainAreaCount": 0
   },
   "roads": [
     {
@@ -11900,5 +11902,7 @@
         "layer": "1"
       }
     }
-  ]
+  ],
+  "terrainLines": [],
+  "terrainAreas": []
 }
