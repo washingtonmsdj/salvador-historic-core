@@ -465,14 +465,23 @@ export function SalvadorScene() {
               live.terrain,
             );
 
+            let nextTerrainMeshes:
+              typeof terrainMeshes;
+            try {
+              nextTerrainMeshes = createTerrain(
+                liveScene,
+                data.terrain,
+                data.levels,
+              );
+            } catch (error) {
+              setRuntimeDerivedTerrain(null);
+              throw error;
+            }
+
             for (const mesh of terrainMeshes) {
               mesh.dispose();
             }
-            terrainMeshes = createTerrain(
-              liveScene,
-              data.terrain,
-              data.levels,
-            );
+            terrainMeshes = nextTerrainMeshes;
             for (const mesh of terrainMeshes) {
               mesh.receiveShadows = true;
             }
