@@ -64,6 +64,8 @@ for (const road of vectors.roads) {
           policy.maxLongitudinalSlope,
         maxProfileIterations:
           policy.longitudinalProfileIterations,
+        fallbackOsmIds:
+          policy.longitudinalProfileFallbackOsmIds,
       },
     });
   const osmId = road.osmId;
@@ -114,15 +116,6 @@ for (const road of vectors.roads) {
       observedFallbacks.add(osmId);
     }
     continue;
-  }
-
-  if (
-    typeof osmId === "number" &&
-    configuredFallbacks.has(osmId)
-  ) {
-    failures.push(
-      `${road.name} (${road.id}): profile is now valid; remove stale fallback exception ${osmId}`,
-    );
   }
 
   if (
