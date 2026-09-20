@@ -113,6 +113,30 @@ const persistentTerrainActive =
     "geospatial-derived" &&
   geo.terrain.fallbackActive === false &&
   derivedTerrain.available;
+
+const provisionalUpperElevatorIds =
+  new Set([
+    "lacerda-walkway",
+    "lacerda-upper-access",
+  ]);
+const runtimeElevatorParts =
+  persistentTerrainActive
+    ? data.elevator.filter(
+        (part) =>
+          !provisionalUpperElevatorIds.has(
+            part.id,
+          ),
+      )
+    : data.elevator;
+const runtimeLandmarks =
+  persistentTerrainActive
+    ? data.landmarks.filter(
+        (landmark) =>
+          landmark.id !==
+          "upperEntrance",
+      )
+    : data.landmarks;
+
 function normalizeFeatureName(name: string) {
   return name.trim().toLocaleLowerCase("pt-BR");
 }
@@ -408,7 +432,7 @@ export function SalvadorScene() {
               derivedVectors.buildingFootprints,
               data.terrain,
               data.levels,
-              [...data.buildings, ...data.elevator].flatMap(
+              [...data.buildings, ...runtimeElevatorParts].flatMap(
                 (item) => (item.footprint ? [item.footprint] : []),
               ),
               data.buildings,
@@ -469,9 +493,12 @@ export function SalvadorScene() {
         );
         const elevatorMeshes = createElevatorBlockout(
           scene,
-          data.elevator,
+          runtimeElevatorParts,
         );
-        createConnectionPoints(scene, data.landmarks);
+        createConnectionPoints(
+          scene,
+          runtimeLandmarks,
+        );
         const barrierMeshes = createBarriers(scene, data.barriers);
 
         const shadows = new ShadowGenerator(2048, sun);
@@ -500,7 +527,7 @@ export function SalvadorScene() {
           null = null;
         const reservedFootprints = [
           ...data.buildings,
-          ...data.elevator,
+          ...runtimeElevatorParts,
         ].flatMap((item) =>
           item.footprint ? [item.footprint] : [],
         );
@@ -554,8 +581,8 @@ export function SalvadorScene() {
             nextBuildings;
           updateDebugItems?.([
             ...activeDebugBuildings,
-            ...data.elevator,
-            ...data.landmarks,
+            ...runtimeElevatorParts,
+            ...runtimeLandmarks,
             ...data.barriers,
             ...coordinateDebugItems(),
           ]);
@@ -586,8 +613,8 @@ export function SalvadorScene() {
 
         const debug = createDebug(scene, [
           ...activeDebugBuildings,
-          ...data.elevator,
-          ...data.landmarks,
+          ...runtimeElevatorParts,
+          ...runtimeLandmarks,
           ...data.barriers,
           ...coordinateDebugItems(),
         ]);
