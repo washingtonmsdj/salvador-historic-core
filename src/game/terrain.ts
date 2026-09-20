@@ -441,6 +441,50 @@ function isCliffQuad(
   return averageNormalY <= config.presentation.rockNormalYMax;
 }
 
+function projectedCliffUvs(
+  positions: number[],
+  normals: number[],
+  scale: number,
+) {
+  const uvs: number[] = [];
+  const textureScale =
+    Math.max(1, scale);
+
+  for (
+    let index = 0;
+    index < positions.length;
+    index += 3
+  ) {
+    const x =
+      positions[index] ?? 0;
+    const y =
+      positions[index + 1] ?? 0;
+    const z =
+      positions[index + 2] ?? 0;
+    const nx =
+      normals[index] ?? 0;
+    const nz =
+      normals[index + 2] ?? 0;
+
+    if (
+      Math.abs(nx) >=
+      Math.abs(nz)
+    ) {
+      uvs.push(
+        z / textureScale,
+        y / textureScale,
+      );
+    } else {
+      uvs.push(
+        x / textureScale,
+        y / textureScale,
+      );
+    }
+  }
+
+  return uvs;
+}
+
 function offsetPositions(
   positions: number[],
   normals: number[],
@@ -946,7 +990,12 @@ export function createTerrain(
             config.presentation.cliffOverlayOffset,
           ),
           normals,
-          uvs,
+          projectedCliffUvs(
+            positions,
+            normals,
+            config.presentation
+              .textureScale * 0.8,
+          ),
           cliffIndices,
           materials.cliff,
           {
