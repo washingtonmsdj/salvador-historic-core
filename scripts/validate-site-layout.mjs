@@ -292,7 +292,10 @@ if (!thomeSite?.polygon?.length || !thomeBuilding?.footprint?.length) {
 
   if (Math.abs(palaceFrontWidth - thomeSite.palaceStripWidth) > 0.15) {
     fail(
-      `Palácio Thomé strip width is ${palaceFrontWidth.toFixed(2)} m; expected ~${thomeSite.palaceStripWidth} m`,
+      [
+        `Palácio Thomé strip width is ${palaceFrontWidth.toFixed(2)} m;`,
+        `expected ~${thomeSite.palaceStripWidth} m`,
+      ].join(" "),
     );
   }
 
