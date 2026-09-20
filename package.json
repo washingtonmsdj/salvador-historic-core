@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "terrain:import:conder": "bun scripts/import-conder-contours.ts"
+    "terrain:import:conder": "node scripts/import-conder-contours.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
