@@ -21,12 +21,12 @@
       { "z": -200, "toeX": -90, "cliffX": -65, "shoulderX": -43 },
       { "z": -150, "toeX": -60, "cliffX": -35, "shoulderX": -13 },
       { "z": -100, "toeX": -32, "cliffX": -7, "shoulderX": 15 },
-      { "z": -50, "toeX": -25, "cliffX": 0, "shoulderX": 18 },
-      { "z": 0, "toeX": -26, "cliffX": -2, "shoulderX": 18 },
-      { "z": 50, "toeX": -2, "cliffX": 22, "shoulderX": 42 },
-      { "z": 100, "toeX": 2, "cliffX": 28, "shoulderX": 48 },
-      { "z": 160, "toeX": 5, "cliffX": 32, "shoulderX": 52 },
-      { "z": 240, "toeX": 8, "cliffX": 36, "shoulderX": 56 }
+      { "z": -50, "toeX": -20, "cliffX": 0, "shoulderX": 18 },
+      { "z": 0, "toeX": -6, "cliffX": 3, "shoulderX": 14 },
+      { "z": 50, "toeX": 20, "cliffX": 40, "shoulderX": 58 },
+      { "z": 100, "toeX": 22, "cliffX": 45, "shoulderX": 65 },
+      { "z": 160, "toeX": 25, "cliffX": 48, "shoulderX": 68 },
+      { "z": 240, "toeX": 28, "cliffX": 52, "shoulderX": 72 }
     ],
     "lowerGrade": { "risePerMeterX": 0.004, "maxRise": 1.2 },
     "upperGrade": { "risePerMeterX": 0.002, "risePerMeterZ": -0.001, "maxVariation": 1.5 },
@@ -65,7 +65,7 @@
     { "id": "avenida-estados-unidos", "name": "Via inferior junto ao Elevador", "type": "road", "elevationMode": "lower", "width": 11, "source": "Existing lower-city road network; exact segment name/alignment pending reference", "estimated": true, "points": [[-76,-130],[-55,-68],[-39,-12],[-42,55],[-54,125],[-58,220]] }
   ],
   "barriers": [
-    { "id": "retaining-wall-north", "name": "Contenção norte", "type": "retaining-wall", "position": [8, 30, 65], "rotation": [0, 0.02, 0], "width": 8, "depth": 100, "height": 60, "source": "Blockout of documented escarpment containment", "estimated": true },
-    { "id": "upper-guardrail", "name": "Guarda-corpo Cidade Alta", "type": "guardrail", "position": [29, 65.8, 45], "rotation": [0, 0, 0], "width": 1, "depth": 105, "height": 1.2, "source": "Safety edge blockout; exact alignment pending survey", "estimated": true }
+    { "id": "retaining-wall-north", "name": "Contenção norte", "type": "retaining-wall", "position": [35, 30, 65], "rotation": [0, 0.02, 0], "width": 8, "depth": 100, "height": 60, "source": "Blockout of documented escarpment containment", "estimated": true },
+    { "id": "upper-guardrail", "name": "Guarda-corpo Cidade Alta", "type": "guardrail", "position": [58, 65.8, 45], "rotation": [0, 0, 0], "width": 1, "depth": 105, "height": 1.2, "source": "Safety edge blockout; exact alignment pending survey", "estimated": true }
   ]
 }
