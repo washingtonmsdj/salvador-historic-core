@@ -78,3 +78,34 @@ A validação de layout verifica, entre outros pontos:
 - edifícios fora do polígono da praça;
 - alinhamento dos blockouts da Rua Chile;
 - orientação do Palácio Thomé de Souza em relação ao bordo da praça.
+
+
+## Importação OSM do recorte
+
+O repositório inclui um importador para substituir progressivamente blockouts estimados por
+geometria aberta verificável:
+
+```bash
+npm run site:import:osm
+```
+
+O importador:
+
+1. lê a origem e o perímetro em metros de `site-data.json`;
+2. converte o bbox local para WGS84;
+3. consulta dois endpoints Overpass com fallback;
+4. busca todas as vias e edifícios dentro do recorte;
+5. busca explicitamente Ladeira da Montanha, Palácio Thomé de Souza, Prefeitura e Câmara;
+6. converte toda geometria recebida para X/Z em metros locais;
+7. grava `src/data/osm-site.reference.json`.
+
+O arquivo gerado é referência bruta e não deve ser renderizado automaticamente sem revisão.
+A promoção de uma feature para `site-data.json` exige:
+
+- identificação inequívoca;
+- geometria compatível com o perímetro;
+- provenance registrada;
+- passagem em `layout:validate`.
+
+Não substituir uma feature verificada por uma aproximação manual quando ela já estiver disponível
+no arquivo de referência.
