@@ -9,7 +9,8 @@ import {
 const { manifest, bounds, projected } = await loadGeospatialContext();
 const source = manifest.sources.conderContours;
 const serviceUrl = `${source.service}/query`;
-const outputPath = resolve(root, source.output);
+const rawOutputPath = resolve(root, source.rawOutput);
+const normalizedOutputPath = resolve(root, source.normalizedOutput);
 
 const envelope = [
   projected.easting + bounds.minX,
@@ -39,6 +40,14 @@ if (!response.ok) {
 }
 
 const payload = await response.json();
+
+await mkdir(dirname(rawOutputPath), { recursive: true });
+await writeFile(
+  rawOutputPath,
+  `${JSON.stringify(payload, null, 2)}\n`,
+  "utf8",
+);
+
 if (payload.error) {
   throw new Error(`CONDER ArcGIS error: ${JSON.stringify(payload.error)}`);
 }
@@ -89,9 +98,17 @@ const output = {
   contours,
 };
 
-await mkdir(dirname(outputPath), { recursive: true });
-await writeFile(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
+await mkdir(dirname(normalizedOutputPath), { recursive: true });
+await writeFile(
+  normalizedOutputPath,
+  `${JSON.stringify(output, null, 2)}\n`,
+  "utf8",
+);
 
 console.log(
-  `Imported ${contours.length} CONDER contour paths into ${source.output}`,
+  [
+    `Imported ${contours.length} CONDER contour paths.`,
+    `Raw: ${source.rawOutput}.`,
+    `Normalized: ${source.normalizedOutput}.`,
+  ].join(" "),
 );
