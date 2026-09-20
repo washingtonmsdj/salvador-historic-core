@@ -69,5 +69,9 @@ npm run geospatial:build
 npm run geospatial:validate
 ```
 
-O build gera `src/data/geospatial-base.json`, que informa ao runtime quais camadas reais estão
-disponíveis. Nenhum fallback procedural pode ser apresentado como dado real.
+O build gera `src/data/geospatial-base.json`, que informa ao runtime quais camadas foram
+importadas e quais produtos derivados estão realmente prontos para uso.
+
+Importar OSM ou CONDER não muda automaticamente a cena para "base real". O runtime só deixa de
+mostrar fallback depois que existir um produto em `geospatial/derived/` que o Babylon consuma.
+Nenhum fallback procedural pode ser apresentado como dado real.
