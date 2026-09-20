@@ -13,6 +13,7 @@ const COLORS = {
   elevatorAccent: "#c54f3d",
   wall: "#73706b",
   estimated: "#d89a3d",
+  player: "#315f78",
 };
 
 export function material(
