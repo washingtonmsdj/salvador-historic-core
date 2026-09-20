@@ -2,21 +2,33 @@ import type { LinearFeature } from "./types";
 
 export type RoadSurfaceKind =
   | "asphalt"
+  | "paved"
   | "paving"
   | "stone"
   | "pedestrian";
 
-export function classifyRoadSurface(
+function normalizedSurface(
   feature: LinearFeature,
-): RoadSurfaceKind {
-  const surface =
-    feature.tags?.["surface"]
-      ?.trim()
-      .toLocaleLowerCase("en-US");
-  const highway =
-    feature.tags?.["highway"]
-      ?.trim()
-      .toLocaleLowerCase("en-US");
+) {
+  return feature.tags?.["surface"]
+    ?.trim()
+    .toLocaleLowerCase("en-US");
+}
+
+function explicitSurfaceKind(
+  surface: string | undefined,
+): RoadSurfaceKind | null {
+  if (surface === "asphalt") {
+    return "asphalt";
+  }
+
+  if (
+    surface === "paved" ||
+    surface === "concrete" ||
+    surface === "concrete:plates"
+  ) {
+    return "paved";
+  }
 
   if (
     surface === "paving_stones" ||
@@ -28,39 +40,6 @@ export function classifyRoadSurface(
 
   if (
     surface === "cobblestone" ||
-    surface === "unhewn_cobblestone" ||
-    surface === "stone"
-  ) {
-    return "stone";
-  }
-
-  if (
-    highway === "pedestrian" ||
-    highway === "footway" ||
-    highway === "path" ||
-    highway === "steps"
-  ) {
-    return "pedestrian";
-  }
-
-  return "asphalt";
-}
-
-
-export function classifyPublicSpaceSurface(
-  feature: LinearFeature,
-): RoadSurfaceKind {
-  const surface =
-    feature.tags?.["surface"]
-      ?.trim()
-      .toLocaleLowerCase("en-US");
-
-  if (surface === "asphalt") {
-    return "asphalt";
-  }
-
-  if (
-    surface === "cobblestone" ||
     surface ===
       "unhewn_cobblestone" ||
     surface === "stone"
@@ -68,5 +47,81 @@ export function classifyPublicSpaceSurface(
     return "stone";
   }
 
-  return "paving";
+  return null;
+}
+
+export function classifyRoadSurface(
+  feature: LinearFeature,
+): RoadSurfaceKind {
+  const surface =
+    normalizedSurface(feature);
+  const explicit =
+    explicitSurfaceKind(surface);
+
+  if (explicit) {
+    return explicit;
+  }
+
+  const highway =
+    feature.tags?.["highway"]
+      ?.trim()
+      .toLocaleLowerCase("en-US");
+
+  if (
+    highway === "pedestrian" ||
+    highway === "footway" ||
+    highway === "path" ||
+    highway === "steps" ||
+    highway === "corridor"
+  ) {
+    return "pedestrian";
+  }
+
+  return "paved";
+}
+
+export function classifyPublicSpaceSurface(
+  feature: LinearFeature,
+): RoadSurfaceKind | null {
+  const surface =
+    normalizedSurface(feature);
+  const explicit =
+    explicitSurfaceKind(surface);
+
+  if (explicit) {
+    return explicit;
+  }
+
+  if (
+    surface === "grass" ||
+    surface === "ground" ||
+    surface === "dirt" ||
+    surface === "earth" ||
+    surface === "sand" ||
+    surface === "gravel" ||
+    surface === "fine_gravel" ||
+    surface === "unpaved"
+  ) {
+    return null;
+  }
+
+  const leisure =
+    feature.tags?.["leisure"];
+  if (leisure === "park") {
+    return null;
+  }
+
+  if (
+    feature.tags?.["place"] ===
+      "square" ||
+    leisure === "square" ||
+    (feature.tags?.["highway"] ===
+      "pedestrian" &&
+      feature.tags?.["area"] ===
+        "yes")
+  ) {
+    return "pedestrian";
+  }
+
+  return null;
 }
