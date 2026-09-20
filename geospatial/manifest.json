@@ -55,7 +55,9 @@
     "raw": "geospatial/raw",
     "normalized": "geospatial/normalized",
     "derived": "geospatial/derived",
-    "runtimeManifest": "src/data/geospatial-base.json"
+    "runtimeManifest": "src/data/geospatial-base.json",
+    "derivedTerrain": "geospatial/derived/terrain.json",
+    "derivedVectors": "geospatial/derived/site-vectors.json"
   },
   "runtime": {
     "preferredTerrainSource": "official-dem-or-contours",
