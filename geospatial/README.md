@@ -18,6 +18,13 @@ O terreno procedural antigo continua disponível apenas como fallback de desenvo
 
 O arquivo `manifest.json` registra as fontes, comandos e caminhos oficiais do pipeline.
 
+Cada importação preserva duas camadas:
+
+- `raw/`: resposta original da fonte externa, sem transformação;
+- `normalized/`: geometrias transformadas para EPSG:32724 e coordenadas locais em metros.
+
+A camada `derived/` fica reservada para produtos gerados, como TIN/heightfield/GLB.
+
 ## Camadas
 
 ### OSM
