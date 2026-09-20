@@ -138,5 +138,14 @@
     "cacheTtlMinutes": 15,
     "verticalDatum": "minimum-derived-elevation",
     "notes": "Browser-only preview grid. It may replace the procedural fallback during a session but never promotes itself to geospatial/derived terrain."
+  },
+  "roadSurfacePolicy": {
+    "sampleSpacing": 1.25,
+    "textureRepeatMeters": 4,
+    "surfaceGap": 0.045,
+    "maxMiterScale": 2.2,
+    "maxCrossSlope": 0.06,
+    "maxGradeSmoothingDeviation": 0.12,
+    "notes": "Gameplay road mesh follows OSM centerlines and the active terrain. Longitudinal smoothing is limited to 0.12 m around sampled terrain height and crossfall is capped at 6% to avoid collision jitter from coarse contour interpolation. These are rendering/gameplay constraints, not surveyed road elevations."
   }
 }
