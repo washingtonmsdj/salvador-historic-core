@@ -136,6 +136,13 @@ const runtimeLandmarks =
           "upperEntrance",
       )
     : data.landmarks;
+const runtimeBarriers =
+  persistentTerrainActive
+    ? data.barriers.filter(
+        (barrier) =>
+          !barrier.estimated,
+      )
+    : data.barriers;
 
 function normalizeFeatureName(name: string) {
   return name.trim().toLocaleLowerCase("pt-BR");
@@ -499,7 +506,10 @@ export function SalvadorScene() {
           scene,
           runtimeLandmarks,
         );
-        const barrierMeshes = createBarriers(scene, data.barriers);
+        const barrierMeshes = createBarriers(
+          scene,
+          runtimeBarriers,
+        );
 
         const shadows = new ShadowGenerator(2048, sun);
         shadows.useBlurExponentialShadowMap = true;
@@ -583,7 +593,7 @@ export function SalvadorScene() {
             ...activeDebugBuildings,
             ...runtimeElevatorParts,
             ...runtimeLandmarks,
-            ...data.barriers,
+            ...runtimeBarriers,
             ...coordinateDebugItems(),
           ]);
 
@@ -615,7 +625,7 @@ export function SalvadorScene() {
           ...activeDebugBuildings,
           ...runtimeElevatorParts,
           ...runtimeLandmarks,
-          ...data.barriers,
+          ...runtimeBarriers,
           ...coordinateDebugItems(),
         ]);
         debug.setEnabled(false);
@@ -860,7 +870,7 @@ export function SalvadorScene() {
               ...activeDebugBuildings,
               ...data.elevator,
               ...data.landmarks,
-              ...data.barriers,
+              ...runtimeBarriers,
               ...coordinateDebugItems(),
             ]);
 
