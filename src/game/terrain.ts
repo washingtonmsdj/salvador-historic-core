@@ -552,7 +552,17 @@ function terrainNormal(
   x: number,
   z: number,
 ) {
-  const sample = 1;
+  const renderSpacing =
+    config.tileSize /
+    Math.max(
+      1,
+      config.subdivisionsPerTile,
+    );
+  const sample =
+    Math.max(
+      0.35,
+      renderSpacing / 2,
+    );
   const left = terrainHeight(config, levels, x - sample, z);
   const right = terrainHeight(config, levels, x + sample, z);
   const south = terrainHeight(config, levels, x, z - sample);
