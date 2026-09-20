@@ -131,13 +131,13 @@
     "purpose": "runtime alignment/debug reference only; not a source of 3D geometry"
   },
   "liveTerrainPreview": {
-    "gridSpacing": 5,
-    "contourSampleSpacing": 2.5,
-    "maxIterations": 750,
-    "tolerance": 0.01,
+    "gridSpacing": 4,
+    "contourSampleSpacing": 2,
+    "maxIterations": 900,
+    "tolerance": 0.008,
     "cacheTtlMinutes": 15,
     "verticalDatum": "minimum-derived-elevation",
-    "notes": "Browser-only preview grid. It may replace the procedural fallback during a session but never promotes itself to geospatial/derived terrain."
+    "notes": "Browser preview grid with 4 m spacing and 2 m contour constraints. It may replace the procedural fallback during a session but never promotes itself to geospatial/derived terrain. Persistent terrain remains the higher-resolution 2.5 m product."
   },
   "roadSurfacePolicy": {
     "sampleSpacing": 1.25,
