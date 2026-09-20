@@ -3,7 +3,7 @@
     "title": "Centro Histórico de Salvador — blockout v1",
     "units": "meters",
     "coordinateSystem": { "x": "east/west; positive east", "y": "height; positive up", "z": "north/south; positive north" },
-    "origin": { "id": "elevador-lacerda-osm-centroid", "name": "Elevador Lacerda", "latitude": -12.9740882, "longitude": -38.5133597, "local": [0, 0, 0], "source": "OpenStreetMap way 59224731 centroid", "estimated": false },
+    "origin": { "id": "elevador-lacerda-osm-centroid", "name": "Elevador Lacerda", "latitude": -12.9740882, "longitude": -38.5133597, "local": [0, 0, 0], "projected": { "crs": "EPSG:32724", "easting": 552777.9809, "northing": 8565679.442, "source": "Deterministic projection of the WGS84 origin coordinate to SIRGAS/UTM zone 24S" }, "source": "OpenStreetMap way 59224731 centroid", "estimated": false },
     "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements."
   },
   "levels": {
