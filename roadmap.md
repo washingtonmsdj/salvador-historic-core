@@ -47,6 +47,7 @@
 - [x] Converter OSM WGS84 para UTM 24S/local metres com transformação determinística
 - [x] Preparar importação oficial de curvas CONDER REL_Curva_Nivel_L
 - [x] Expor no runtime quando terreno/vetores ainda estão em fallback
+- [x] Ativar seed OSM versionada parcial para Rua Chile, Praça Tomé e Elevador
 - [ ] Executar importação OSM completa do recorte e revisar features
 - [ ] Executar importação CONDER do recorte
 - [x] Implementar gerador determinístico de heightfield derivado das curvas CONDER
