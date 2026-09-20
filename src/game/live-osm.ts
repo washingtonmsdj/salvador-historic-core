@@ -191,17 +191,17 @@ function isClosedGeometry(
   if (
     !first ||
     !last ||
-    !Number.isFinite(first.lat) ||
-    !Number.isFinite(first.lon) ||
-    !Number.isFinite(last.lat) ||
-    !Number.isFinite(last.lon)
+    typeof first.lat !== "number" ||
+    typeof first.lon !== "number" ||
+    typeof last.lat !== "number" ||
+    typeof last.lon !== "number"
   ) {
     return false;
   }
 
   return (
-    Math.abs(first.lat! - last.lat!) < 1e-8 &&
-    Math.abs(first.lon! - last.lon!) < 1e-8
+    Math.abs(first.lat - last.lat) < 1e-8 &&
+    Math.abs(first.lon - last.lon) < 1e-8
   );
 }
 
@@ -213,16 +213,16 @@ function geometryToLocal(
 
   for (const point of geometry ?? []) {
     if (
-      !Number.isFinite(point.lat) ||
-      !Number.isFinite(point.lon)
+      typeof point.lat !== "number" ||
+      typeof point.lon !== "number"
     ) {
       continue;
     }
 
     points.push(
       geographicToLocalMeters(
-        point.lat!,
-        point.lon!,
+        point.lat,
+        point.lon,
         origin.easting,
         origin.northing,
       ),
@@ -602,7 +602,7 @@ function deriveVectors(
   for (const element of payload.elements ?? []) {
     if (
       element.type !== "way" ||
-      !Number.isFinite(element.id)
+      typeof element.id !== "number"
     ) {
       continue;
     }
@@ -617,7 +617,7 @@ function deriveVectors(
     );
     if (points.length < 2) continue;
 
-    const osmId = element.id!;
+    const osmId = element.id;
     const source =
       `OpenStreetMap live way/${osmId}`;
 
@@ -646,7 +646,10 @@ function deriveVectors(
           source,
           estimated: width.estimated,
           points: part,
-          elevationMode: "terrain",
+          elevationMode:
+            tags["name"] === "Rua Chile"
+              ? "upper"
+              : "terrain",
         });
       });
     }
@@ -674,7 +677,10 @@ function deriveVectors(
         source,
         estimated: false,
         points: polygon,
-        elevationMode: "terrain",
+        elevationMode:
+          tags["name"] === "Praça Tomé de Souza"
+            ? "upper"
+            : "terrain",
       });
     }
 
