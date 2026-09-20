@@ -309,3 +309,23 @@ Somente um produto persistente que declare `coverage: "complete"` e contenha tod
 pode ativar o modo `geospatial-derived` sem fallback. O validador cruza o metadado declarado com
 os nomes realmente presentes em `site-vectors.json`; portanto não é possível promover cobertura
 completa apenas aumentando a contagem total de features.
+
+
+## Endpoint CONDER same-origin
+
+O Preview tenta primeiro `GET /api/geospatial/conder`.
+
+A rota do app:
+
+- usa exclusivamente o envelope UTM EPSG:32724 versionado do projeto;
+- não aceita envelope ou camada arbitrária enviados pelo cliente;
+- consulta a camada oficial `REL_Curva_Nivel_L` da CONDER;
+- rejeita erro ArcGIS, resposta vazia e `exceededTransferLimit`;
+- aplica cache HTTP curto;
+- devolve as curvas originais em JSON para o mesmo pipeline de normalização do browser.
+
+Somente se essa rota falhar o browser tenta a CONDER diretamente. O painel de debug mostra qual
+provedor foi usado.
+
+O import persistente segue o mesmo princípio de integridade: respostas parciais são rejeitadas e
+nenhum produto normalizado é promovido se menos de duas curvas utilizáveis sobreviverem.
