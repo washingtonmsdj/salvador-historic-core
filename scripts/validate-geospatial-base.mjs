@@ -283,6 +283,31 @@ if (!roadSurfacePolicy) {
       "road junctionMaxSegments must be an integer between 8 and 64",
     );
   }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionMaxSlope,
+    ) ||
+    roadSurfacePolicy.junctionMaxSlope <= 0 ||
+    roadSurfacePolicy.junctionMaxSlope > 0.2
+  ) {
+    fail(
+      "road junctionMaxSlope must be > 0 and <= 20%",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionMaxLift,
+    ) ||
+    roadSurfacePolicy.junctionMaxLift <= 0 ||
+    roadSurfacePolicy.junctionMaxLift >
+      roadSurfacePolicy.maxSupportedFillHeight
+  ) {
+    fail(
+      "road junctionMaxLift must be > 0 and <= maxSupportedFillHeight",
+    );
+  }
 }
 
 const liveTerrainPreview =
