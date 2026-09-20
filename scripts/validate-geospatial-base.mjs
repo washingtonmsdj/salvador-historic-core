@@ -469,6 +469,26 @@ if (
   );
 }
 
+if (
+  manifest.vectorDerivation?.useLaneCountForEstimatedWidth !== true
+) {
+  fail(
+    "vector derivation must prefer OSM lane count for estimated road widths",
+  );
+}
+
+if (
+  !Number.isFinite(
+    manifest.vectorDerivation?.laneWidthMeters,
+  ) ||
+  manifest.vectorDerivation.laneWidthMeters < 2.5 ||
+  manifest.vectorDerivation.laneWidthMeters > 3.5
+) {
+  fail(
+    "vector laneWidthMeters must be between 2.5 and 3.5 metres",
+  );
+}
+
 const buildingPolicy = manifest.buildingBlockoutPolicy;
 
 if (!buildingPolicy) {
@@ -968,11 +988,85 @@ if (derivedVectors?.available === true) {
     z >= bounds.minZ - 0.001 &&
     z <= bounds.maxZ + 0.001;
 
+  let laneDerivedRoadCount = 0;
+
   for (const road of roads) {
     if (road.tags?.indoor === "yes") {
       fail(
         `${road.id} is indoor and must not be derived as a terrain road`,
       );
+    }
+
+    const explicitWidth =
+      typeof road.tags?.width === "string" ||
+      typeof road.tags?.width === "number"
+        ? Number(
+            String(road.tags.width)
+              .trim()
+              .replace(",", ".")
+              .match(/-?\d+(?:\.\d+)?/)?.[0],
+          )
+        : Number.NaN;
+    const laneCount =
+      Number(
+        String(
+          road.tags?.lanes ?? "",
+        ).trim(),
+      );
+    const hasLaneCount =
+      Number.isInteger(laneCount) &&
+      laneCount > 0;
+    const laneWidth =
+      manifest.vectorDerivation
+        .laneWidthMeters;
+
+    if (
+      Number.isFinite(explicitWidth) &&
+      explicitWidth > 0
+    ) {
+      if (
+        Math.abs(
+          road.width -
+            explicitWidth,
+        ) > 0.001 ||
+        road.estimated !== false ||
+        road.widthSource !==
+          "OSM width tag"
+      ) {
+        fail(
+          `${road.id} must preserve explicit OSM width provenance`,
+        );
+      }
+    } else if (
+      hasLaneCount &&
+      manifest.vectorDerivation
+        .useLaneCountForEstimatedWidth === true
+    ) {
+      const expectedLaneWidth =
+        Number(
+          (
+            laneCount *
+            laneWidth
+          ).toFixed(2),
+        );
+      laneDerivedRoadCount += 1;
+
+      if (
+        Math.abs(
+          road.width -
+            expectedLaneWidth,
+        ) > 0.001 ||
+        road.estimated !== true ||
+        !String(
+          road.widthSource ?? "",
+        ).startsWith(
+          `OSM lanes=${laneCount} × ${laneWidth} m`,
+        )
+      ) {
+        fail(
+          `${road.id} must use OSM lanes before highway-class width fallback`,
+        );
+      }
     }
 
     if (
@@ -1002,6 +1096,16 @@ if (derivedVectors?.available === true) {
         `${road.id} must follow the active terrain; fixed upper/lower road elevation is not allowed for derived OSM geometry`,
       );
     }
+  }
+
+  if (
+    derivedVectors.metadata
+      ?.laneDerivedRoadCount !==
+    laneDerivedRoadCount
+  ) {
+    fail(
+      "derived vector laneDerivedRoadCount does not match actual lane-derived roads",
+    );
   }
 
   for (const space of spaces) {
