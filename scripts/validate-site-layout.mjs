@@ -170,6 +170,53 @@ if (!ruaAxis?.points || ruaAxis.points.length < 2) {
   }
 }
 
+const marketClearance = layout?.lowerRoadMarketClearance;
+if (marketClearance) {
+  const road = data.roads.find((item) => item.id === marketClearance.roadId);
+  const building = data.buildings.find(
+    (item) => item.id === marketClearance.buildingId,
+  );
+
+  if (!road) {
+    fail(`Missing constrained road ${marketClearance.roadId}`);
+  } else if (!building?.footprint?.length) {
+    fail(`Missing verified footprint for ${marketClearance.buildingId}`);
+  } else {
+    for (let index = 0; index < road.points.length - 1; index++) {
+      const start = road.points[index];
+      const end = road.points[index + 1];
+      if (!start || !end) continue;
+
+      const distance = segmentToPolygonDistance(
+        start,
+        end,
+        building.footprint,
+      );
+
+      if (distance < marketClearance.minimumCenterlineClearance) {
+        fail(
+          `${road.id} is only ${distance.toFixed(2)} m from ${building.id}`,
+        );
+      }
+    }
+  }
+}
+
+const lowerTower = data.elevator.find(
+  (item) => item.id === "lacerda-lower-tower",
+);
+const elevatorCutout = data.terrain.cutouts?.find(
+  (item) => item.id === "elevador-lacerda-footprint-clearance",
+);
+if (!lowerTower?.footprint?.length || !elevatorCutout?.polygon?.length) {
+  fail("Elevador footprint and matching terrain cutout are required");
+} else if (
+  JSON.stringify(lowerTower.footprint) !==
+  JSON.stringify(elevatorCutout.polygon)
+) {
+  fail("Elevador terrain cutout must match the verified tower footprint");
+}
+
 const frontage = layout?.plazaNortheastFrontage?.edge;
 const thome = data.buildings.find(
   (item) => item.id === "palacio-thome-souza",
