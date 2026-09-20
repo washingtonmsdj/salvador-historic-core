@@ -32,6 +32,16 @@ interface SceneControls {
 }
 
 interface GeospatialBaseRuntime {
+  origin: {
+    latitude: number;
+    longitude: number;
+  };
+  geographicBounds: {
+    south: number;
+    west: number;
+    north: number;
+    east: number;
+  };
   terrain: {
     active: string;
     fallbackActive: boolean;
@@ -44,6 +54,11 @@ interface GeospatialBaseRuntime {
 
 interface DerivedSiteVectors {
   available: boolean;
+  metadata?: {
+    roadCount: number;
+    spaceCount: number;
+    buildingFootprintCount: number;
+  };
   roads: LinearFeature[];
   spaces: LinearFeature[];
   buildingFootprints: DerivedBuildingFootprint[];
@@ -69,12 +84,23 @@ const derivedBuildingsEligible =
   geo.terrain.fallbackActive === false;
 const geospatialFallback =
   geo.terrain.fallbackActive || geo.vectors.fallbackActive;
+const osmBbox = [
+  geo.geographicBounds.west,
+  geo.geographicBounds.south,
+  geo.geographicBounds.east,
+  geo.geographicBounds.north,
+].join(",");
+const osmEmbedUrl =
+  "https://www.openstreetmap.org/export/embed.html" +
+  `?bbox=${encodeURIComponent(osmBbox)}&layer=mapnik` +
+  `&marker=${geo.origin.latitude}%2C${geo.origin.longitude}`;
 
 export function SalvadorScene() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const controlsRef = useRef<SceneControls | null>(null);
   const [cameraMode, setCameraMode] = useState<CameraMode>("aerial");
   const [debugEnabled, setDebugEnabled] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -291,11 +317,42 @@ export function SalvadorScene() {
     <main className="relative h-dvh min-h-[480px] w-full overflow-hidden bg-[#0b1110] text-[#f2eee4]">
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 h-full w-full touch-none outline-none"
+        className={`absolute inset-0 h-full w-full touch-none outline-none transition-opacity ${
+          mapVisible ? "pointer-events-none opacity-0" : "opacity-100"
+        }`}
         tabIndex={0}
         aria-label="Cena 3D navegável do Centro Histórico de Salvador"
         onPointerDown={(event) => event.currentTarget.focus()}
       />
+
+      {mapVisible && (
+        <section className="absolute inset-0 z-[5] bg-[#e9e5dc]">
+          <iframe
+            title="Mapa real OpenStreetMap do perímetro do projeto"
+            src={osmEmbedUrl}
+            className="h-full w-full border-0"
+            loading="eager"
+          />
+          <div className="pointer-events-none absolute bottom-20 left-4 max-w-sm rounded-xl border border-black/10 bg-white/92 p-3 text-xs text-black/75 shadow-xl backdrop-blur-md">
+            <p className="font-semibold text-black">
+              Referência geográfica real · OpenStreetMap
+            </p>
+            <p className="mt-1">
+              Origem: Elevador Lacerda · {geo.origin.latitude.toFixed(7)},{" "}
+              {geo.origin.longitude.toFixed(7)}
+            </p>
+            <p className="mt-1">
+              Recorte: {(geo.geographicBounds.east - geo.geographicBounds.west).toFixed(6)}° ×{" "}
+              {(geo.geographicBounds.north - geo.geographicBounds.south).toFixed(6)}°
+            </p>
+            {geospatialFallback && (
+              <p className="mt-2 font-medium text-[#8a5514]">
+                O mapa é real; o 3D ainda usa fallback até os produtos GIS derivados serem materializados.
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       <header className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-start justify-between gap-4 p-4 sm:p-6">
         <div className="max-w-xl rounded-xl border border-white/10 bg-black/55 px-4 py-3 shadow-2xl backdrop-blur-md">
@@ -322,6 +379,11 @@ export function SalvadorScene() {
               }`}
             />
             Base geo: {geo.terrain.active} · {geo.vectors.active}
+          </div>
+          <div className="mt-1 text-white/45">
+            GIS materializado: {derivedVectors.metadata?.roadCount ?? 0} ruas ·{" "}
+            {derivedVectors.metadata?.spaceCount ?? 0} espaços ·{" "}
+            {derivedVectors.metadata?.buildingFootprintCount ?? 0} edifícios
           </div>
         </div>
       </header>
@@ -372,6 +434,18 @@ export function SalvadorScene() {
           } disabled:cursor-not-allowed disabled:opacity-40`}
         >
           Debug
+        </button>
+        <button
+          type="button"
+          onClick={() => setMapVisible((current) => !current)}
+          aria-pressed={mapVisible}
+          className={`rounded-xl px-3 py-2 text-xs font-medium transition ${
+            mapVisible
+              ? "bg-[#75b884] text-[#0c2114]"
+              : "bg-white/5 text-white/75 hover:bg-white/10"
+          }`}
+        >
+          {mapVisible ? "Voltar ao 3D" : "Mapa real"}
         </button>
       </div>
 

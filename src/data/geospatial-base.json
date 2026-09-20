@@ -48,5 +48,11 @@
       "available": false,
       "featureCount": 0
     }
+  },
+  "geographicBounds": {
+    "south": -12.97617053659062,
+    "west": -38.51473870960592,
+    "north": -12.972005856571682,
+    "east": -38.511980712483926
   }
 }
