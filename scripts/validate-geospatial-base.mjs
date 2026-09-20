@@ -298,14 +298,38 @@ if (!roadSurfacePolicy) {
 
   if (
     !Number.isFinite(
-      roadSurfacePolicy.junctionMaxLift,
+      roadSurfacePolicy.junctionMaxCut,
     ) ||
-    roadSurfacePolicy.junctionMaxLift <= 0 ||
-    roadSurfacePolicy.junctionMaxLift >
+    roadSurfacePolicy.junctionMaxCut < 0 ||
+    roadSurfacePolicy.junctionMaxCut > 2
+  ) {
+    fail(
+      "road junctionMaxCut must be between 0 and 2 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionMaxFill,
+    ) ||
+    roadSurfacePolicy.junctionMaxFill < 0 ||
+    roadSurfacePolicy.junctionMaxFill >
       roadSurfacePolicy.maxSupportedFillHeight
   ) {
     fail(
-      "road junctionMaxLift must be > 0 and <= maxSupportedFillHeight",
+      "road junctionMaxFill must be between 0 and maxSupportedFillHeight",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionTerrainMaskPadding,
+    ) ||
+    roadSurfacePolicy.junctionTerrainMaskPadding < 0 ||
+    roadSurfacePolicy.junctionTerrainMaskPadding > 0.5
+  ) {
+    fail(
+      "road junctionTerrainMaskPadding must be between 0 and 0.5 metres",
     );
   }
 }
