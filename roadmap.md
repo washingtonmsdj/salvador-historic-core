@@ -32,6 +32,7 @@
 - [x] Remover placeholders urbanos sem identidade/alinhamento verificável
 - [x] Preparar importador OSM do recorte com fallback de endpoint e conversão para metros locais
 - [ ] Rodar importador OSM e promover traçado verificável da Ladeira da Montanha antes de recolocá-la na cena
+- [x] Nivelar o envelope TPTS 46 x 50 m como patamar coerente com a Praça no blockout
 - [ ] Validar orientação, escala e alinhamento visual dos marcos principais contra referências verificadas
 - [ ] Restaurar typecheck/lint/build em CI quando o runner hospedado estiver disponível
 - [ ] Validar desktop, celular, desempenho e acessibilidade dos controles
