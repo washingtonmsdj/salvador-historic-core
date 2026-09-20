@@ -99,9 +99,10 @@ Footprints OSM só são promovidos automaticamente para blockouts 3D quando:
 - existe `height` explícito ou altura derivável de `building:levels`;
 - o objeto não está na lista de marcos protegidos;
 - não existe sobreposição indevida com um modelo/footprint curado;
-- o relevo sob a fundação está dentro do limite permitido.
+- o relevo sob a fundação está dentro do limite permitido;
+- o footprint não invade a superfície horizontal renderizada de ruas ou junctions, incluindo a margem conservadora configurada em `minAutoRoadClearance`.
 
-Footprints em encosta forte permanecem sem volume automático até receberem fundação/modelagem específica.
+Quando há conflito com uma via, o footprint OSM continua preservado como dado-fonte/guia, mas não vira automaticamente um volume 3D com colisão. Footprints em encosta forte ou em conflito viário permanecem pendentes para revisão/fundação/modelagem específica.
 
 ## Referência raster
 
