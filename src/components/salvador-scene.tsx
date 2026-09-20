@@ -146,7 +146,7 @@ const sourcedElevatorParts =
         data.elevator,
         derivedVectors.buildingFootprints,
       )
-    : sourcedElevatorParts;
+    : data.elevator;
 
 const provisionalUpperElevatorIds =
   new Set([
@@ -161,7 +161,7 @@ const runtimeElevatorParts =
             part.id,
           ),
       )
-    : data.elevator;
+    : sourcedElevatorParts;
 const runtimeLandmarks =
   persistentElevatorCorridorsActive
     ? data.landmarks.filter(
