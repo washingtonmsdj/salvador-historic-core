@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-20T17:11:07.849Z",
+  "generatedAt": "2026-09-20T17:14:00.532Z",
   "crs": "EPSG:32724",
   "units": "meters",
   "origin": {
@@ -78,7 +78,7 @@
       "available": true,
       "featureCount": 340,
       "coverage": "complete",
-      "generatedAt": "2026-09-20T17:11:07.685Z",
+      "generatedAt": "2026-09-20T17:14:00.170Z",
       "source": "OpenStreetMap via Overpass API"
     },
     "contours": {
@@ -104,7 +104,7 @@
       "available": true,
       "featureCount": 327,
       "coverage": "complete",
-      "generatedAt": "2026-09-20T17:11:07.739Z",
+      "generatedAt": "2026-09-20T17:14:00.216Z",
       "source": "OpenStreetMap via Overpass API"
     }
   },

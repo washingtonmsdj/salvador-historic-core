@@ -5,8 +5,8 @@
     "sourceCrs": "EPSG:4326",
     "normalizedCrs": "EPSG:32724",
     "transform": "deterministic WGS84 -> UTM zone 24S -> local metres",
-    "endpoint": "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-    "generatedAt": "2026-09-20T17:11:07.685Z",
+    "endpoint": "https://overpass-api.de/api/interpreter",
+    "generatedAt": "2026-09-20T17:14:00.170Z",
     "localOrigin": {
       "latitude": -12.9740882,
       "longitude": -38.5133597,
