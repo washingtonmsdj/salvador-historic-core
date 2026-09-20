@@ -290,3 +290,22 @@ O browser tenta essa rota primeiro. Chamadas diretas aos provedores externos fic
 Com dados OSM ativos, as ruas fallback manuais são substituídas por centerlines reais. O dataset
 curado não contém mais a via inferior inventada nem eixos extrapolados de Rua Chile; quando o
 live falha, a cena mostra apenas vetores já versionados e verificáveis.
+
+
+## Contrato de cobertura parcial
+
+Uma resposta OSM com features válidas não é automaticamente considerada cobertura completa.
+
+As vias críticas do recorte são declaradas uma única vez em `geospatial/manifest.json` e a
+importação persistente registra `criticalRoadCoverage` com contagem, ausências e estado de
+completude. O produto derivado preserva o mesmo metadado.
+
+No Preview, uma resposta live parcial funciona como **overlay** sobre os vetores versionados:
+features com o mesmo nome são atualizadas pela geometria live, mas ruas versionadas que não vieram
+na resposta não são apagadas. Isso evita o caso em que uma resposta incompleta do Overpass/API
+faz o mapa aparentemente "perder" ruas.
+
+Somente um produto persistente que declare `coverage: "complete"` e contenha todas as vias críticas
+pode ativar o modo `geospatial-derived` sem fallback. O validador cruza o metadado declarado com
+os nomes realmente presentes em `site-vectors.json`; portanto não é possível promover cobertura
+completa apenas aumentando a contagem total de features.
