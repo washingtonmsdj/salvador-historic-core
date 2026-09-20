@@ -350,6 +350,9 @@ export function SalvadorScene() {
 
         let runtimeTerrainReady =
           derivedBuildingsEligible;
+        let updateDebugItems:
+          ((items: MeasuredObject[]) => void) |
+          null = null;
         const reservedFootprints = [
           ...data.buildings,
           ...data.elevator,
@@ -402,7 +405,14 @@ export function SalvadorScene() {
             shadows.addShadowCaster(mesh);
           }
 
-          setLiveBuildingStats({
+          updateDebugItems?.([
+            ...nextBuildings,
+            ...data.elevator,
+            ...data.landmarks,
+            ...data.barriers,
+          ]);
+
+                    setLiveBuildingStats({
             promoted: result.buildings.length,
             noHeight: result.skipped.noHeight,
             excessiveRelief:
@@ -423,6 +433,7 @@ export function SalvadorScene() {
           ...data.barriers,
         ]);
         debug.setEnabled(false);
+        updateDebugItems = debug.setItems;
 
         controlsRef.current = {
           activateCamera: cameras.activate,
