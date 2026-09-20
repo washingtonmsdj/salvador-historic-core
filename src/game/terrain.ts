@@ -6,6 +6,7 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
 import derivedTerrainData from "../../geospatial/derived/terrain.json";
+import geospatialBaseData from "../data/geospatial-base.json";
 import { createTerrainMaterials } from "./terrain-materials";
 import type {
   DerivedTerrainGrid,
@@ -17,6 +18,12 @@ import type {
 
 const derivedTerrain =
   derivedTerrainData as unknown as DerivedTerrainGrid;
+const geospatialBase = geospatialBaseData as {
+  terrain: {
+    active: string;
+    fallbackActive: boolean;
+  };
+};
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
@@ -28,7 +35,14 @@ const smoothstep = (value: number) => {
 
 function isDerivedTerrainActive(config: TerrainConfig) {
   const grid = derivedTerrain.grid;
-  if (!derivedTerrain.available || !grid) return false;
+  if (
+    geospatialBase.terrain.active !== "geospatial-derived" ||
+    geospatialBase.terrain.fallbackActive ||
+    !derivedTerrain.available ||
+    !grid
+  ) {
+    return false;
+  }
 
   const expectedVertices = grid.columns * grid.rows;
   if (
