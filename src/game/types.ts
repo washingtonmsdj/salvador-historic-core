@@ -149,6 +149,11 @@ export interface TerrainConfig {
     rockNormalYMax: number;
     rockBlendNormalYBand: number;
     cliffProjectionSharpness: number;
+    toneMappingExposure: number;
+    toneMappingContrast: number;
+    atmosphereFogStart: number;
+    atmosphereFogEnd: number;
+    atmosphereFogColor: [number, number, number];
     contourInterval: number;
     cliffOverlayOffset: number;
   };
