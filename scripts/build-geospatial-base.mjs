@@ -48,7 +48,9 @@ async function summarize(path, kind) {
     kind,
     available: !explicitlyUnavailable && featureCount > 0,
     featureCount,
-    generatedAt: payload.generatedAt ?? payload.metadata?.generatedAt ?? null,
+    coverage: payload.metadata?.coverage ?? "complete",
+    generatedAt:
+      payload.generatedAt ?? payload.metadata?.generatedAt ?? null,
     source: payload.source ?? payload.metadata?.source ?? null,
   };
 }
@@ -97,9 +99,13 @@ const runtime = {
   vectors: {
     preferred: manifest.runtime.preferredVectorSource,
     active: vectorsDerived.available
-      ? "geospatial-derived"
+      ? vectorsDerived.coverage === "complete"
+        ? "geospatial-derived"
+        : "geospatial-hybrid"
       : "site-data-fallback",
-    fallbackActive: !vectorsDerived.available,
+    fallbackActive:
+      !vectorsDerived.available ||
+      vectorsDerived.coverage !== "complete",
   },
 };
 
