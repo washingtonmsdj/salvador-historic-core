@@ -102,7 +102,7 @@
     "vectors": {
       "kind": "vectors-derived",
       "available": true,
-      "featureCount": 324,
+      "featureCount": 327,
       "coverage": "complete",
       "generatedAt": "2026-09-20T18:13:39.119Z",
       "source": "OpenStreetMap via Overpass API"
