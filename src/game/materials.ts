@@ -17,7 +17,9 @@ const COLORS = {
 
 export function material(scene: Scene, name: keyof typeof COLORS, alpha = 1) {
   const mat = new StandardMaterial(`mat-${name}-${alpha}`, scene);
-  mat.diffuseColor = Color3.FromHexString(COLORS[name]);
+  const baseColor = Color3.FromHexString(COLORS[name]);
+  mat.diffuseColor = baseColor;
+  mat.emissiveColor = baseColor.scale(name === "terrain" ? 0.16 : 0.045);
   mat.specularColor = new Color3(0.08, 0.08, 0.08);
   mat.alpha = alpha;
   return mat;
