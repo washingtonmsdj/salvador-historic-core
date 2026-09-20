@@ -23,6 +23,20 @@ const config = {
   buildingLevelHeight: 3,
   indoorCorridorWidth: 3,
   preserveIndoorCorridors: true,
+  terrainFeatures: {
+    lines: {
+      "barrier=retaining_wall":
+        "retaining-wall",
+      "natural=cliff":
+        "cliff",
+    },
+    areas: {
+      "natural=wood":
+        "wood",
+      "landuse=grass":
+        "grass",
+    },
+  },
 };
 
 const failures = [];
@@ -153,6 +167,35 @@ const derived = deriveOsmSiteVectors({
       },
     },
     {
+      id: "way/7",
+      osmType: "way",
+      osmId: 7,
+      geometryType: "polyline",
+      points: [
+        [-5, 4],
+        [25, 4],
+      ],
+      tags: {
+        barrier:
+          "retaining_wall",
+      },
+    },
+    {
+      id: "way/8",
+      osmType: "way",
+      osmId: 8,
+      geometryType: "polygon",
+      points: [
+        [12, 1],
+        [19, 1],
+        [19, 7],
+        [12, 7],
+        [12, 1],
+      ],
+      tags: {
+        natural: "wood",
+      },
+    },    {
       id: "way/5",
       osmType: "way",
       osmId: 5,
@@ -188,6 +231,34 @@ if (
   );
 }
 
+if (
+  derived.terrainLines.length !== 1 ||
+  derived.terrainLines[0]?.kind !==
+    "retaining-wall"
+) {
+  failures.push(
+    "retaining wall must be preserved as a terrain line",
+  );
+}
+
+if (
+  derived.terrainAreas.length !== 1 ||
+  derived.terrainAreas[0]?.kind !==
+    "wood"
+) {
+  failures.push(
+    "wood polygon must be preserved as a terrain area",
+  );
+}
+
+if (
+  derived.metadata?.terrainLineCount !== 1 ||
+  derived.metadata?.terrainAreaCount !== 1
+) {
+  failures.push(
+    "terrain feature metadata counts are incorrect",
+  );
+}
 if (
   derived.roads.some(
     (road) =>
@@ -306,6 +377,8 @@ if (failures.length > 0) {
       "OSM vector derivation test passed.",
       `roads=${derived.roads.length},`,
       `corridors=${derived.elevatedCorridors.length},`,
+      `terrainLines=${derived.terrainLines.length},`,
+      `terrainAreas=${derived.terrainAreas.length},`,
       `spaces=${derived.spaces.length},`,
       `buildings=${derived.buildingFootprints.length}.`,
     ].join(" "),
