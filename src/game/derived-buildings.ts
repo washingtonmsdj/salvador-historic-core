@@ -71,6 +71,30 @@ function isExcluded(item: DerivedBuildingFootprint) {
   );
 }
 
+function measuredObjectFootprint(item: MeasuredObject): Point2[] {
+  if (item.footprint && item.footprint.length >= 3) {
+    return item.footprint;
+  }
+
+  const halfWidth = item.width / 2;
+  const halfDepth = item.depth / 2;
+  const angle = item.rotation[1];
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const centerX = item.position[0];
+  const centerZ = item.position[2];
+
+  return [
+    [-halfWidth, -halfDepth],
+    [halfWidth, -halfDepth],
+    [halfWidth, halfDepth],
+    [-halfWidth, halfDepth],
+  ].map(([localX, localZ]) => [
+    centerX + localX * cos + localZ * sin,
+    centerZ - localX * sin + localZ * cos,
+  ]);
+}
+
 function pointInPolygon(point: Point2, polygon: Point2[]) {
   let inside = false;
   const [x, z] = point;
@@ -192,6 +216,7 @@ export function deriveRuntimeBuildingBlockouts(
   terrain: TerrainConfig,
   levels: SceneLevels,
   reservedFootprints: Point2[][] = [],
+  fallbackBuildings: MeasuredObject[] = [],
 ) {
   const buildings: MeasuredObject[] = [];
   const skipped = {
@@ -278,9 +303,30 @@ export function deriveRuntimeBuildingBlockouts(
     });
   }
 
+  const generatedFootprints = buildings.flatMap(
+    (building) =>
+      building.footprint && building.footprint.length >= 3
+        ? [building.footprint]
+        : [],
+  );
+  const replacedFallbackIds = fallbackBuildings
+    .filter((fallback) =>
+      policy.removeFallbackTypesWhenActive.includes(
+        fallback.type,
+      ),
+    )
+    .filter((fallback) => {
+      const footprint = measuredObjectFootprint(fallback);
+      return generatedFootprints.some((generated) =>
+        polygonsOverlap(footprint, generated),
+      );
+    })
+    .map((fallback) => fallback.id);
+
   return {
     buildings,
     skipped,
     policy,
+    replacedFallbackIds,
   };
 }
