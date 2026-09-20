@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import geospatialBase from "../data/geospatial-base.json";
 import siteData from "../data/site-data.json";
 import type {
   LinearFeature,
@@ -28,7 +29,21 @@ interface SceneControls {
   setDebug: (enabled: boolean) => void;
 }
 
+interface GeospatialBaseRuntime {
+  terrain: {
+    active: string;
+    fallbackActive: boolean;
+  };
+  vectors: {
+    active: string;
+    fallbackActive: boolean;
+  };
+}
+
 const data = siteData as unknown as SalvadorSiteData;
+const geo = geospatialBase as GeospatialBaseRuntime;
+const geospatialFallback =
+  geo.terrain.fallbackActive || geo.vectors.fallbackActive;
 
 export function SalvadorScene() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -228,6 +243,14 @@ export function SalvadorScene() {
           <div className="flex items-center gap-2">
             <span className="inline-block h-2 w-2 rounded-full bg-[#d89a3d]" />
             ESTIMATED = medida ainda não verificada
+          </div>
+          <div className="mt-1.5 flex items-center gap-2">
+            <span
+              className={`inline-block h-2 w-2 rounded-full ${
+                geospatialFallback ? "bg-[#d89a3d]" : "bg-[#75b884]"
+              }`}
+            />
+            Base geo: {geo.terrain.active} · {geo.vectors.active}
           </div>
         </div>
       </header>
