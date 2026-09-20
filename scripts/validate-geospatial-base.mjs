@@ -10,7 +10,12 @@ import {
   utm24SToLatLon,
 } from "./lib/utm-wgs84.mjs";
 
-const { manifest, origin, bounds } = await loadGeospatialContext();
+const {
+  manifest,
+  siteData,
+  origin,
+  bounds,
+} = await loadGeospatialContext();
 const runtimePath = resolve(root, manifest.pipeline.runtimeManifest);
 const terrainPath = resolve(root, manifest.pipeline.derivedTerrain);
 const vectorsPath = resolve(root, manifest.pipeline.derivedVectors);
@@ -341,6 +346,25 @@ if (
 if (derivedTerrain?.available === true) {
   const grid = derivedTerrain.grid;
   const terrainBounds = derivedTerrain.bounds;
+  const renderSpacing =
+    siteData.terrain.tileSize /
+    siteData.terrain.subdivisionsPerTile;
+
+  if (
+    !Number.isFinite(renderSpacing) ||
+    renderSpacing <= 0
+  ) {
+    fail(
+      "terrain render spacing must be finite and positive",
+    );
+  } else if (
+    grid &&
+    renderSpacing > grid.spacing + 0.000001
+  ) {
+    fail(
+      `terrain render spacing ${renderSpacing} m is coarser than derived grid spacing ${grid.spacing} m`,
+    );
+  }
 
   if (derivedTerrain.crs !== manifest.localCoordinateSystem.horizontalCrs) {
     fail("derived terrain CRS differs from geospatial manifest");
