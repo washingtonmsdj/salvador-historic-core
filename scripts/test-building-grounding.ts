@@ -247,3 +247,83 @@ if (
     "A building footprint overlapping the rendered road surface must not be promoted to a collidable blockout.",
   );
 }
+
+
+const measuredBlockouts =
+  deriveRuntimeBuildingBlockouts(
+    vectors.buildingFootprints,
+    data.terrain,
+    data.levels,
+    [],
+    [],
+    [],
+  );
+
+if (
+  measuredBlockouts.buildings.length <
+  85
+) {
+  throw new Error(
+    `Expected at least 85 measured OSM building blockouts, got ${measuredBlockouts.buildings.length}.`,
+  );
+}
+
+if (
+  measuredBlockouts.steppedFoundations <
+  30
+) {
+  throw new Error(
+    `Expected at least 30 terrain-adaptive building foundations, got ${measuredBlockouts.steppedFoundations}.`,
+  );
+}
+
+const foundedBuildings =
+  measuredBlockouts.buildings.filter(
+    (building) =>
+      typeof building.foundationBottomY ===
+      "number",
+  );
+
+for (const building of foundedBuildings) {
+  if (
+    !building.footprint ||
+    building.footprint.length < 3
+  ) {
+    throw new Error(
+      `Founded building ${building.id} must retain its canonical footprint.`,
+    );
+  }
+
+  const stats =
+    sampleTerrainFootprint(
+      building.footprint,
+      data.terrain,
+      data.levels,
+    );
+  const buildingBase =
+    building.position[1] -
+    building.height / 2;
+
+  if (
+    Math.abs(
+      buildingBase -
+        stats.maxGround,
+    ) > 0.001
+  ) {
+    throw new Error(
+      `Founded building ${building.id} must start at highest sampled terrain.`,
+    );
+  }
+
+  if (
+    Math.abs(
+      (building.foundationBottomY ??
+        Number.NaN) -
+        stats.minGround,
+    ) > 0.001
+  ) {
+    throw new Error(
+      `Founded building ${building.id} foundation must reach lowest sampled terrain.`,
+    );
+  }
+}
