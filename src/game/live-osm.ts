@@ -488,7 +488,7 @@ out body geom;
 
 function cacheKey(bounds: GeographicBounds) {
   return [
-    "salvador-osm-live-v1",
+    "salvador-osm-live-v2",
     bounds.south.toFixed(6),
     bounds.west.toFixed(6),
     bounds.north.toFixed(6),
