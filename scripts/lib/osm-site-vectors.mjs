@@ -400,10 +400,12 @@ export function deriveOsmSiteVectors({
     roads.length +
     spaces.length +
     buildingFootprints.length;
+  const runtimeReady =
+    roads.length > 0 && spaces.length > 0;
 
   return {
     schemaVersion: 1,
-    available: featureCount > 0,
+    available: runtimeReady,
     generatedAt: new Date().toISOString(),
     source,
     crs,
@@ -411,6 +413,7 @@ export function deriveOsmSiteVectors({
     bounds,
     metadata: {
       featureCount,
+      runtimeReady,
       roadCount: roads.length,
       spaceCount: spaces.length,
       buildingFootprintCount:
