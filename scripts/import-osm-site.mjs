@@ -1,56 +1,33 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
+import proj4 from "proj4";
+import {
+  loadGeospatialContext,
+  projectedToLocal,
+  root,
+} from "./lib/geospatial-context.mjs";
 
-const EARTH_RADIUS_METERS = 6_378_137;
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
 ];
 
-const root = process.cwd();
-const siteDataPath = resolve(root, "src/data/site-data.json");
-const outputPath = resolve(root, "src/data/osm-site.reference.json");
-const siteData = JSON.parse(await readFile(siteDataPath, "utf8"));
+const { manifest, origin, bounds, projected } = await loadGeospatialContext();
+const outputPath = resolve(root, manifest.sources.osm.output);
 
-const origin = siteData.metadata?.origin;
-const bounds = siteData.terrain?.bounds;
-
-if (!origin || !Number.isFinite(origin.latitude) || !Number.isFinite(origin.longitude)) {
-  throw new Error("site-data.json must define a geographic origin.");
-}
-if (!bounds) {
-  throw new Error("site-data.json must define terrain bounds.");
-}
-
-const toRadians = Math.PI / 180;
-const toDegrees = 180 / Math.PI;
+const WGS84 = "EPSG:4326";
+const UTM24S = "+proj=utm +zone=24 +south +datum=WGS84 +units=m +no_defs";
 
 function localToGeographic(x, z) {
-  const latitude =
-    origin.latitude + (z / EARTH_RADIUS_METERS) * toDegrees;
-  const longitude =
-    origin.longitude +
-    (x / (EARTH_RADIUS_METERS * Math.cos(origin.latitude * toRadians))) *
-      toDegrees;
-
+  const easting = projected.easting + x;
+  const northing = projected.northing + z;
+  const [longitude, latitude] = proj4(UTM24S, WGS84, [easting, northing]);
   return [latitude, longitude];
 }
 
 function geographicToLocal(latitude, longitude) {
-  const x =
-    (longitude - origin.longitude) *
-    toRadians *
-    EARTH_RADIUS_METERS *
-    Math.cos(origin.latitude * toRadians);
-  const z =
-    (latitude - origin.latitude) *
-    toRadians *
-    EARTH_RADIUS_METERS;
-
-  return [
-    Number(x.toFixed(3)),
-    Number(z.toFixed(3)),
-  ];
+  const [easting, northing] = proj4(WGS84, UTM24S, [longitude, latitude]);
+  return projectedToLocal(projected, easting, northing);
 }
 
 const [south, west] = localToGeographic(bounds.minX, bounds.minZ);
@@ -69,6 +46,8 @@ const query = `
   nwr["name"="Câmara Municipal de Salvador"](${bbox});
   way["highway"](${bbox});
   way["building"](${bbox});
+  way["leisure"="square"](${bbox});
+  way["place"="square"](${bbox});
 );
 out geom center tags;
 `.trim();
@@ -103,9 +82,7 @@ async function queryOverpass() {
     }
   }
 
-  throw new Error(
-    `All Overpass endpoints failed:\n${errors.join("\n")}`,
-  );
+  throw new Error(`All Overpass endpoints failed:\n${errors.join("\n")}`);
 }
 
 function normalizeElement(element) {
@@ -138,10 +115,13 @@ function normalizeElement(element) {
       .map((point) => geographicToLocal(point.lat, point.lon));
 
     if (points.length > 0) {
+      const first = points[0];
+      const last = points.at(-1);
       const closed =
         points.length >= 4 &&
-        points[0]?.[0] === points.at(-1)?.[0] &&
-        points[0]?.[1] === points.at(-1)?.[1];
+        first &&
+        last &&
+        Math.hypot(first[0] - last[0], first[1] - last[1]) < 0.05;
 
       return {
         ...feature,
@@ -189,19 +169,19 @@ const namedTargets = features.filter((feature) =>
 const output = {
   metadata: {
     source: "OpenStreetMap via Overpass API",
+    sourceCrs: "EPSG:4326",
+    normalizedCrs: manifest.localCoordinateSystem.horizontalCrs,
+    transform: "proj4 WGS84 -> UTM zone 24S -> local metres",
     endpoint,
     generatedAt: new Date().toISOString(),
     localOrigin: {
       latitude: origin.latitude,
       longitude: origin.longitude,
+      easting: projected.easting,
+      northing: projected.northing,
     },
     boundsMeters: bounds,
-    queryBboxWgs84: {
-      south,
-      west,
-      north,
-      east,
-    },
+    queryBboxWgs84: { south, west, north, east },
     featureCount: features.length,
     namedTargetCount: namedTargets.length,
   },
@@ -210,16 +190,12 @@ const output = {
 };
 
 await mkdir(dirname(outputPath), { recursive: true });
-await writeFile(
-  outputPath,
-  `${JSON.stringify(output, null, 2)}\n`,
-  "utf8",
-);
+await writeFile(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
 
 console.log(
   [
     `Imported ${features.length} OSM features.`,
     `Named targets found: ${namedTargets.length}.`,
-    `Output: ${outputPath.replace(`${root}/`, "")}`,
+    `Output: ${manifest.sources.osm.output}`,
   ].join(" "),
 );
