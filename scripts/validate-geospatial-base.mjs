@@ -32,6 +32,25 @@ function fail(message) {
   errors.push(message);
 }
 
+const terrainStructureMaskPolicy =
+  manifest.terrainStructureMaskPolicy;
+
+if (!terrainStructureMaskPolicy) {
+  fail(
+    "geospatial manifest must define terrainStructureMaskPolicy",
+  );
+} else if (
+  !Number.isFinite(
+    terrainStructureMaskPolicy.padding,
+  ) ||
+  terrainStructureMaskPolicy.padding < 0 ||
+  terrainStructureMaskPolicy.padding > 1
+) {
+  fail(
+    "terrain structure-mask padding must be between 0 and 1 metre",
+  );
+}
+
 const publicSpaceSurfacePolicy =
   manifest.publicSpaceSurfacePolicy;
 
