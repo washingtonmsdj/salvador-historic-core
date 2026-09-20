@@ -180,6 +180,54 @@ if (!roadSurfacePolicy) {
       "road textureRepeatMeters must be between 1 and 20 metres",
     );
   }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionSnapDistance,
+    ) ||
+    roadSurfacePolicy.junctionSnapDistance <= 0 ||
+    roadSurfacePolicy.junctionSnapDistance > 1
+  ) {
+    fail(
+      "road junctionSnapDistance must be > 0 and <= 1 metre",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionOverlap,
+    ) ||
+    roadSurfacePolicy.junctionOverlap < 0 ||
+    roadSurfacePolicy.junctionOverlap > 1
+  ) {
+    fail(
+      "road junctionOverlap must be between 0 and 1 metre",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionSurfaceOffset,
+    ) ||
+    roadSurfacePolicy.junctionSurfaceOffset < 0 ||
+    roadSurfacePolicy.junctionSurfaceOffset > 0.03
+  ) {
+    fail(
+      "road junctionSurfaceOffset must be between 0 and 0.03 metres",
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      roadSurfacePolicy.junctionMaxSegments,
+    ) ||
+    roadSurfacePolicy.junctionMaxSegments < 8 ||
+    roadSurfacePolicy.junctionMaxSegments > 64
+  ) {
+    fail(
+      "road junctionMaxSegments must be an integer between 8 and 64",
+    );
+  }
 }
 
 const liveTerrainPreview =
