@@ -8,12 +8,18 @@ import type { Scene } from "@babylonjs/core/scene";
 import derivedTerrainData from "../../geospatial/derived/terrain.json";
 import geospatialBaseData from "../data/geospatial-base.json";
 import { createTerrainMaterials } from "./terrain-materials";
+import {
+  distanceToPolygon,
+  pointInPolygon,
+  triangleIntersectsPolygon,
+} from "./geometry-2d";
 import type {
   DerivedTerrainGrid,
   Point2,
   SceneLevels,
   TerrainConfig,
   TerrainProfile,
+  TerrainRenderMask,
 } from "./types";
 
 const derivedTerrain =
@@ -170,58 +176,6 @@ function sampleDerivedTerrain(
   const south = h00 + (h10 - h00) * tx;
   const north = h01 + (h11 - h01) * tx;
   return south + (north - south) * tz;
-}
-
-function pointInPolygon(point: Point2, polygon: Point2[]) {
-  let inside = false;
-  const [x, z] = point;
-
-  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index++) {
-    const currentPoint = polygon[index];
-    const previousPoint = polygon[previous];
-    if (!currentPoint || !previousPoint) continue;
-
-    const [xi, zi] = currentPoint;
-    const [xj, zj] = previousPoint;
-    const intersects =
-      zi > z !== zj > z &&
-      x < ((xj - xi) * (z - zi)) / (zj - zi || Number.EPSILON) + xi;
-
-    if (intersects) inside = !inside;
-  }
-
-  return inside;
-}
-
-function distanceToSegment(point: Point2, start: Point2, end: Point2) {
-  const [px, pz] = point;
-  const [ax, az] = start;
-  const [bx, bz] = end;
-  const dx = bx - ax;
-  const dz = bz - az;
-  const lengthSquared = dx * dx + dz * dz;
-
-  if (lengthSquared <= 0.000001) {
-    return Math.hypot(px - ax, pz - az);
-  }
-
-  const t = clamp(((px - ax) * dx + (pz - az) * dz) / lengthSquared, 0, 1);
-  const closestX = ax + dx * t;
-  const closestZ = az + dz * t;
-  return Math.hypot(px - closestX, pz - closestZ);
-}
-
-function distanceToPolygon(point: Point2, polygon: Point2[]) {
-  let distance = Number.POSITIVE_INFINITY;
-
-  for (let index = 0; index < polygon.length; index++) {
-    const start = polygon[index];
-    const end = polygon[(index + 1) % polygon.length];
-    if (!start || !end) continue;
-    distance = Math.min(distance, distanceToSegment(point, start, end));
-  }
-
-  return distance;
 }
 
 function applyTerrainPlateaus(
@@ -821,6 +775,7 @@ export function createTerrain(
   scene: Scene,
   config: TerrainConfig,
   levels: SceneLevels,
+  renderMasks: TerrainRenderMask[] = [],
 ) {
   const meshes: Mesh[] = [];
   const { tileSize, bounds, subdivisionsPerTile } = config;
@@ -856,17 +811,91 @@ export function createTerrain(
         }
       }
 
-      for (let iz = 0; iz < steps; iz++) {
-        for (let ix = 0; ix < steps; ix++) {
-          const a = iz * (steps + 1) + ix;
-          const b = a + 1;
-          const c = a + steps + 1;
-          const d = c + 1;
-          const triangles = [a, c, b, b, c, d];
-          indices.push(...triangles);
+      const vertexPoint = (
+        vertexIndex: number,
+      ): Point2 => [
+        positions[
+          vertexIndex * 3
+        ] ?? 0,
+        positions[
+          vertexIndex * 3 + 2
+        ] ?? 0,
+      ];
 
-          if (isCliffQuad(config, normals, [a, b, c, d])) {
-            cliffIndices.push(...triangles);
+      const triangleMasked = (
+        triangle: readonly [
+          number,
+          number,
+          number,
+        ],
+      ) => {
+        if (
+          renderMasks.length === 0
+        ) {
+          return false;
+        }
+
+        const points = [
+          vertexPoint(triangle[0]),
+          vertexPoint(triangle[1]),
+          vertexPoint(triangle[2]),
+        ] as const;
+
+        return renderMasks.some(
+          (mask) =>
+            triangleIntersectsPolygon(
+              points,
+              mask.polygon,
+              mask.padding,
+            ),
+        );
+      };
+
+      for (
+        let iz = 0;
+        iz < steps;
+        iz++
+      ) {
+        for (
+          let ix = 0;
+          ix < steps;
+          ix++
+        ) {
+          const a =
+            iz * (steps + 1) +
+            ix;
+          const b = a + 1;
+          const c =
+            a + steps + 1;
+          const d = c + 1;
+          const triangles = [
+            [a, c, b] as const,
+            [b, c, d] as const,
+          ];
+          const cliffQuad =
+            isCliffQuad(
+              config,
+              normals,
+              [a, b, c, d],
+            );
+
+          for (const triangle of triangles) {
+            if (
+              triangleMasked(
+                triangle,
+              )
+            ) {
+              continue;
+            }
+
+            indices.push(
+              ...triangle,
+            );
+            if (cliffQuad) {
+              cliffIndices.push(
+                ...triangle,
+              );
+            }
           }
         }
       }
@@ -890,6 +919,8 @@ export function createTerrain(
           activeTerrain ===
           runtimeDerivedTerrain,
         walkableSurface: true,
+        renderMaskCount:
+          renderMasks.length,
       };
 
       const surface = createSurfaceMesh(
