@@ -94,13 +94,14 @@
       "steps": 2
     },
     "buildingLevelHeight": 3,
+    "excludeIndoorHighways": true,
     "criticalRoadNames": [
       "Rua Chile",
       "Ladeira da Montanha",
       "Rua da Conceição da Praia",
       "Avenida Lafayete Coutinho"
     ],
-    "notes": "Road centerlines and polygons are clipped to the project perimeter. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated. Complete coverage requires every critical road name to be present."
+    "notes": "Road centerlines and polygons are clipped to the project perimeter. Indoor highway features remain preserved in normalized OSM but are excluded from terrain-road derivation. Explicit OSM width/height tags are preserved; deterministic defaults remain marked estimated. Complete coverage requires every critical road name to be present."
   },
   "buildingBlockoutPolicy": {
     "maxAutoFoundationRelief": 0.75,
@@ -156,8 +157,7 @@
     "maxLongitudinalSlope": 0.14,
     "longitudinalProfileIterations": 8,
     "longitudinalProfileFallbackOsmIds": [
-      421206045,
-      59409445
+      421206045
     ],
     "supportWallThreshold": 0.18,
     "supportWallTextureRepeatMeters": 3,
