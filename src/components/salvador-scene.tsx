@@ -161,6 +161,12 @@ export function SalvadorScene() {
     rows: 0,
     maxHeight: 0,
   });
+  const [liveBuildingStats, setLiveBuildingStats] = useState({
+    promoted: 0,
+    noHeight: 0,
+    excessiveRelief: 0,
+    protected: 0,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -312,7 +318,7 @@ export function SalvadorScene() {
           ...curatedBuildings,
           ...(derivedBuildingResult?.buildings ?? []),
         ];
-        const buildingMeshes = createBuildings(
+        let buildingMeshes = createBuildings(
           scene,
           runtimeBuildings,
         );
@@ -341,6 +347,71 @@ export function SalvadorScene() {
         for (const mesh of terrainMeshes) {
           mesh.receiveShadows = true;
         }
+
+        let runtimeTerrainReady =
+          derivedBuildingsEligible;
+        const reservedFootprints = [
+          ...data.buildings,
+          ...data.elevator,
+        ].flatMap((item) =>
+          item.footprint ? [item.footprint] : [],
+        );
+
+        const rebuildLiveBuildingBlockouts = (
+          targetScene: Scene,
+        ) => {
+          if (
+            !runtimeTerrainReady ||
+            activeBuildingFootprints.length === 0
+          ) {
+            return;
+          }
+
+          const result =
+            deriveRuntimeBuildingBlockouts(
+              activeBuildingFootprints,
+              data.terrain,
+              data.levels,
+              reservedFootprints,
+              data.buildings,
+            );
+          const replacedIds = new Set(
+            result.replacedFallbackIds,
+          );
+          const nextBuildings = [
+            ...data.buildings.filter(
+              (building) =>
+                !replacedIds.has(building.id),
+            ),
+            ...result.buildings,
+          ];
+
+          for (const mesh of buildingMeshes) {
+            shadows.removeShadowCaster(
+              mesh,
+              true,
+            );
+            mesh.dispose();
+          }
+
+          buildingMeshes = createBuildings(
+            targetScene,
+            nextBuildings,
+          );
+          for (const mesh of buildingMeshes) {
+            shadows.addShadowCaster(mesh);
+          }
+
+          setLiveBuildingStats({
+            promoted: result.buildings.length,
+            noHeight: result.skipped.noHeight,
+            excessiveRelief:
+              result.skipped.excessiveRelief,
+            protected:
+              result.skipped.excluded +
+              result.skipped.overlapsReserved,
+          });
+        };
 
         const cameras = createCameras(scene, canvas);
         configurePlayer(scene, cameras.street);
