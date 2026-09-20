@@ -37,7 +37,8 @@
     "road:grading-test": "bun scripts/test-road-grading.ts",
     "geospatial:test:osm-api": "node scripts/test-osm-api-xml.mjs",
     "road:terrain-fit-test": "bun scripts/test-road-terrain-fit.ts",
-    "road:junction-surface-test": "bun scripts/test-junction-surface.ts"
+    "road:junction-surface-test": "bun scripts/test-junction-surface.ts",
+    "road:junction-terrain-fit-test": "bun scripts/test-road-junction-terrain-fit.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
