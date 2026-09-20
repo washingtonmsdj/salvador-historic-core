@@ -14,6 +14,8 @@ A cena já opera prioritariamente com uma base geoespacial persistente e version
 - origem local no Elevador Lacerda;
 - coordenadas locais em metros, com transformação WGS84 ↔ UTM 24S ↔ X/Z local;
 - ruas caminháveis com largura/proveniência preservadas e materiais derivados de tags OSM;
+- perfil viário condicionado a crossfall de 6%, inclinação longitudinal de 14% e suporte máximo de 12 m;
+- corredores OSM `indoor=yes` preservados na camada normalizada, mas excluídos das pistas de terreno;
 - junctions viários derivados apenas de endpoints compatíveis;
 - player sincronizado com a superfície caminhável real da cena;
 - terreno procedural e consultas live mantidos somente como fallback/diagnóstico.
