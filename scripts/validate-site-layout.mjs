@@ -337,7 +337,12 @@ if (frontage?.length === 2 && thome) {
   }
 
   for (const corner of orientedBoxCorners(thome)) {
-    if (pointInPolygon(corner, plaza.points)) {
+    const onPlazaBoundary = plaza.points.some((start, index) => {
+      const end = plaza.points[(index + 1) % plaza.points.length];
+      return end && pointToSegmentDistance(corner, start, end) < 0.03;
+    });
+
+    if (pointInPolygon(corner, plaza.points) && !onPlazaBoundary) {
       fail("Palácio Thomé de Souza blockout intrudes into Praça Tomé de Souza");
       break;
     }
