@@ -38,7 +38,7 @@
           -254.61
         ]
       ],
-      "elevationMode": "terrain",
+      "elevationMode": "upper",
       "osmId": 258560240,
       "osmType": "way",
       "tags": {
