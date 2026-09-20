@@ -342,21 +342,53 @@ export function SalvadorScene() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [liveOsmState, setLiveOsmState] = useState<
     "loading" | "active" | "cached" | "unavailable"
-  >("loading");
+  >(
+    persistentVectorsActive
+      ? "active"
+      : "loading",
+  );
   const [liveOsmCounts, setLiveOsmCounts] = useState({
-    roads: 0,
-    spaces: 0,
-    buildings: 0,
+    roads:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.roadCount ?? 0
+        : 0,
+    spaces:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.spaceCount ?? 0
+        : 0,
+    buildings:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.buildingFootprintCount ??
+          0
+        : 0,
   });
   const [liveOsmProvider, setLiveOsmProvider] =
-    useState("—");
+    useState(
+      persistentVectorsActive
+        ? "Versionado · OpenStreetMap"
+        : "—",
+    );
   const [
     criticalRoadCoverage,
     setCriticalRoadCoverage,
   ] = useState({
-    found: 0,
-    total: criticalRoadNames.length,
-    missing: [...criticalRoadNames],
+    found:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.criticalRoadCoverage
+            ?.found ?? 0
+        : 0,
+    total:
+      criticalRoadNames.length,
+    missing:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.criticalRoadCoverage
+            ?.missing ?? []
+        : [...criticalRoadNames],
   });
   const [liveTerrainState, setLiveTerrainState] = useState<
     "loading" | "active" | "cached" | "unavailable"
@@ -764,130 +796,132 @@ export function SalvadorScene() {
           typeof createBuildingFootprintGuides
         > = [];
 
-        void loadLiveOsmVectors({
-          geographicBounds: geo.geographicBounds,
-          localBounds: data.terrain.bounds,
-          origin: {
-            easting: geo.origin.easting,
-            northing: geo.origin.northing,
-          },
-        })
-          .then((live) => {
-            const liveScene = scene;
-            if (disposed || !liveScene) return;
-
-            if (live.roads.length > 0) {
-              activeRoadFeatures =
-                mergeLinearFeatures(
-                  runtimeRoads,
-                  live.roads,
-                );
-              for (const mesh of roadMeshes) {
-                mesh.dispose();
-              }
-              roadMeshes = createRoads(
-                liveScene,
-                activeRoadFeatures,
-                data.terrain,
-                data.levels,
-              );
-            }
-
-            if (live.spaces.length > 0) {
-              activeSpaceFeatures =
-                mergeLinearFeatures(
-                  runtimeSpaces,
-                  live.spaces,
-                );
-              for (const mesh of spaceMeshes) {
-                mesh.dispose();
-              }
-              spaceMeshes = createSpaces(
-                liveScene,
-                activeSpaceFeatures,
-                data.terrain,
-                data.levels,
-              );
-            }
-
-            activeBuildingFootprints =
-              live.buildingFootprints;
-            for (const mesh of buildingGuideMeshes) {
-              mesh.dispose();
-            }
-            buildingGuideMeshes =
-              createBuildingFootprintGuides(
-                liveScene,
-                activeBuildingFootprints,
-                data.terrain,
-                data.levels,
-              );
-
-            rebuildLiveBuildingBlockouts(
-              liveScene,
-            );
-
-            setLiveOsmCounts({
-              roads: live.roads.length,
-              spaces: live.spaces.length,
-              buildings:
-                live.buildingFootprints.length,
-            });
-            const roadNames = new Set(
-              activeRoadFeatures.map((road) =>
-                normalizeFeatureName(
-                  road.name,
-                ),
-              ),
-            );
-            const missingRoads =
-              criticalRoadNames.filter(
-                (name) =>
-                  !roadNames.has(
-                    normalizeFeatureName(
-                      name,
-                    ),
-                  ),
-              );
-            setCriticalRoadCoverage({
-              found:
-                criticalRoadNames.length -
-                missingRoads.length,
-              total:
-                criticalRoadNames.length,
-              missing: missingRoads,
-            });
-
-            setLiveOsmProvider(
-              live.endpoint.startsWith(
-                "/api/geospatial/osm",
-              )
-                ? live.endpoint.includes(
-                    "openstreetmap-api",
-                  )
-                  ? "Servidor · API bbox"
-                  : "Servidor · Overpass"
-                : live.endpoint.includes(
-                      "api.openstreetmap.org",
-                    )
-                  ? "API bbox"
-                  : "Overpass",
-            );
-            setLiveOsmState(
-              live.source === "session-cache"
-                ? "cached"
-                : "active",
-            );
+        if (!persistentVectorsActive) {
+          void loadLiveOsmVectors({
+            geographicBounds: geo.geographicBounds,
+            localBounds: data.terrain.bounds,
+            origin: {
+              easting: geo.origin.easting,
+              northing: geo.origin.northing,
+            },
           })
-          .catch((error) => {
-            console.warn(
-              "Live OSM vectors unavailable; keeping versioned seed.",
-              error,
-            );
-            if (!disposed) {
-              setLiveOsmState("unavailable");
-            }
-          });
+            .then((live) => {
+              const liveScene = scene;
+              if (disposed || !liveScene) return;
+  
+              if (live.roads.length > 0) {
+                activeRoadFeatures =
+                  mergeLinearFeatures(
+                    runtimeRoads,
+                    live.roads,
+                  );
+                for (const mesh of roadMeshes) {
+                  mesh.dispose();
+                }
+                roadMeshes = createRoads(
+                  liveScene,
+                  activeRoadFeatures,
+                  data.terrain,
+                  data.levels,
+                );
+              }
+  
+              if (live.spaces.length > 0) {
+                activeSpaceFeatures =
+                  mergeLinearFeatures(
+                    runtimeSpaces,
+                    live.spaces,
+                  );
+                for (const mesh of spaceMeshes) {
+                  mesh.dispose();
+                }
+                spaceMeshes = createSpaces(
+                  liveScene,
+                  activeSpaceFeatures,
+                  data.terrain,
+                  data.levels,
+                );
+              }
+  
+              activeBuildingFootprints =
+                live.buildingFootprints;
+              for (const mesh of buildingGuideMeshes) {
+                mesh.dispose();
+              }
+              buildingGuideMeshes =
+                createBuildingFootprintGuides(
+                  liveScene,
+                  activeBuildingFootprints,
+                  data.terrain,
+                  data.levels,
+                );
+  
+              rebuildLiveBuildingBlockouts(
+                liveScene,
+              );
+  
+              setLiveOsmCounts({
+                roads: live.roads.length,
+                spaces: live.spaces.length,
+                buildings:
+                  live.buildingFootprints.length,
+              });
+              const roadNames = new Set(
+                activeRoadFeatures.map((road) =>
+                  normalizeFeatureName(
+                    road.name,
+                  ),
+                ),
+              );
+              const missingRoads =
+                criticalRoadNames.filter(
+                  (name) =>
+                    !roadNames.has(
+                      normalizeFeatureName(
+                        name,
+                      ),
+                    ),
+                );
+              setCriticalRoadCoverage({
+                found:
+                  criticalRoadNames.length -
+                  missingRoads.length,
+                total:
+                  criticalRoadNames.length,
+                missing: missingRoads,
+              });
+  
+              setLiveOsmProvider(
+                live.endpoint.startsWith(
+                  "/api/geospatial/osm",
+                )
+                  ? live.endpoint.includes(
+                      "openstreetmap-api",
+                    )
+                    ? "Servidor · API bbox"
+                    : "Servidor · Overpass"
+                  : live.endpoint.includes(
+                        "api.openstreetmap.org",
+                      )
+                    ? "API bbox"
+                    : "Overpass",
+              );
+              setLiveOsmState(
+                live.source === "session-cache"
+                  ? "cached"
+                  : "active",
+              );
+            })
+            .catch((error) => {
+              console.warn(
+                "Live OSM vectors unavailable; keeping versioned seed.",
+                error,
+              );
+              if (!disposed) {
+                setLiveOsmState("unavailable");
+              }
+            });
+        }
 
         if (!persistentTerrainActive) {
           void loadLiveConderTerrain({
