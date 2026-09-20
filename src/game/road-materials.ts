@@ -73,7 +73,13 @@ function createRoadTexture(
     false,
   );
   const context = texture.getContext();
-  const image = context.createImageData(size, size);
+  const image =
+    context.getImageData(
+      0,
+      0,
+      size,
+      size,
+    );
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
