@@ -2,6 +2,12 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+function normalizeFeatureName(value) {
+  return String(value ?? "")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+}
+
 function samePoint(a, b, tolerance = 0.001) {
   return (
     Math.abs(a[0] - b[0]) <= tolerance &&
@@ -283,6 +289,8 @@ export function deriveOsmSiteVectors({
   source = "OpenStreetMap normalized site layer",
   crs = "EPSG:32724",
   units = "meters",
+  coverage = "partial",
+  criticalRoadNames = [],
 }) {
   const roads = [];
   const spaces = [];
@@ -402,6 +410,27 @@ export function deriveOsmSiteVectors({
     buildingFootprints.length;
   const runtimeReady =
     roads.length > 0 && spaces.length > 0;
+  const roadNames = new Set(
+    roads.map((road) =>
+      normalizeFeatureName(road.name),
+    ),
+  );
+  const missingCriticalRoads =
+    criticalRoadNames.filter(
+      (name) =>
+        !roadNames.has(
+          normalizeFeatureName(name),
+        ),
+    );
+  const criticalRoadCoverage = {
+    found:
+      criticalRoadNames.length -
+      missingCriticalRoads.length,
+    total: criticalRoadNames.length,
+    missing: missingCriticalRoads,
+    complete:
+      missingCriticalRoads.length === 0,
+  };
 
   return {
     schemaVersion: 1,
@@ -414,6 +443,8 @@ export function deriveOsmSiteVectors({
     metadata: {
       featureCount,
       runtimeReady,
+      coverage,
+      criticalRoadCoverage,
       roadCount: roads.length,
       spaceCount: spaces.length,
       buildingFootprintCount:
