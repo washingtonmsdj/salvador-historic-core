@@ -415,38 +415,16 @@ function worldNoise(
   );
 }
 
-function terrainMacroColor(
+function terrainConcavity(
   config: TerrainConfig,
   levels: SceneLevels,
   x: number,
   y: number,
   z: number,
-  normalY: number,
+  radius: number,
 ) {
-  const presentation =
-    config.presentation;
-  const macro =
-    worldNoise(
-      x,
-      z,
-      presentation
-        .macroVariationScale,
-    );
-  const elevationSpan =
-    Math.max(
-      1,
-      levels.upperCity.elevation -
-        levels.lowerCity.elevation,
-    );
-  const elevation =
-    clamp(
-      (y -
-        levels.lowerCity.elevation) /
-        elevationSpan,
-      0,
-      1,
-    );
-  const sampleRadius = 5;
+  const sampleRadius =
+    Math.max(1, radius);
   const neighborhoodMean =
     (
       terrainHeight(
@@ -475,15 +453,68 @@ function terrainMacroColor(
       )
     ) /
     4;
-  const concavity =
-    clamp(
-      (
-        neighborhoodMean -
-        y
-      ) /
-        3,
-      -1,
+
+  return clamp(
+    (
+      neighborhoodMean -
+      y
+    ) /
+      Math.max(
+        1,
+        sampleRadius * 0.55,
+      ),
+    -1,
+    1,
+  );
+}
+
+function terrainPresentationSample(
+  config: TerrainConfig,
+  levels: SceneLevels,
+  x: number,
+  y: number,
+  z: number,
+  normalY: number,
+) {
+  const presentation =
+    config.presentation;
+  const macro =
+    worldNoise(
+      x,
+      z,
+      presentation
+        .macroVariationScale,
+    );
+  const micro =
+    worldNoise(
+      x + 17.3,
+      z - 9.1,
+      presentation
+        .microVariationScale,
+    );
+  const elevationSpan =
+    Math.max(
       1,
+      levels.upperCity.elevation -
+        levels.lowerCity.elevation,
+    );
+  const elevation =
+    clamp(
+      (y -
+        levels.lowerCity.elevation) /
+        elevationSpan,
+      0,
+      1,
+    );
+  const concavity =
+    terrainConcavity(
+      config,
+      levels,
+      x,
+      y,
+      z,
+      presentation
+        .weatheringConcavityRadius,
     );
   const slope =
     1 -
@@ -497,7 +528,10 @@ function terrainMacroColor(
     1 +
     macro *
       presentation
-        .macroVariationStrength -
+        .macroVariationStrength +
+    micro *
+      presentation
+        .microVariationStrength -
     elevation *
       presentation
         .elevationTintStrength *
@@ -516,7 +550,11 @@ function terrainMacroColor(
     macro *
       presentation
         .macroVariationStrength *
-      0.18;
+      0.18 +
+    micro *
+      presentation
+        .microVariationStrength *
+      0.12;
   const green =
     Math.max(
       0,
@@ -524,26 +562,89 @@ function terrainMacroColor(
     ) *
       presentation
         .concavityTintStrength *
-      0.18;
+      0.2;
 
-  return [
+  const lowElevationRange =
+    Math.max(
+      1,
+      presentation
+        .weatheringElevationMax -
+        levels.lowerCity.elevation,
+    );
+  const lowElevation =
+    1 -
+    smoothstep(
+      (y -
+        levels.lowerCity.elevation) /
+        lowElevationRange,
+    );
+  const flatness =
+    smoothstep(
+      (
+        normalY -
+        presentation
+          .weatheringMinNormalY
+      ) /
+        Math.max(
+          0.001,
+          1 -
+            presentation
+              .weatheringMinNormalY,
+        ),
+    );
+  const weatheringNoise =
     clamp(
-      value + warm,
-      0.72,
-      1.16,
-    ),
+      0.82 +
+        worldNoise(
+          x - 31.7,
+          z + 12.4,
+          presentation
+            .macroVariationScale *
+            0.55,
+        ) *
+          0.18,
+      0.62,
+      1,
+    );
+  const weatheringWeight =
     clamp(
-      value + green,
-      0.72,
-      1.16,
-    ),
-    clamp(
-      value - warm * 0.45,
-      0.72,
-      1.16,
-    ),
-    1,
-  ] as const;
+      (
+        lowElevation * 0.34 +
+        Math.max(
+          0,
+          concavity,
+        ) *
+          0.9
+      ) *
+        presentation
+          .weatheringStrength *
+        flatness *
+        weatheringNoise,
+      0,
+      0.82,
+    );
+
+  return {
+    color: [
+      clamp(
+        value + warm,
+        0.68,
+        1.18,
+      ),
+      clamp(
+        value + green,
+        0.68,
+        1.18,
+      ),
+      clamp(
+        value - warm * 0.45,
+        0.68,
+        1.18,
+      ),
+      1,
+    ] as const,
+    weatheringWeight,
+  };
 }
 
 function terrainNormal(
@@ -798,6 +899,154 @@ function createCliffOverlayGeometry(
           config,
           ny,
         ),
+      );
+    }
+
+    overlayIndices.push(
+      firstOverlayVertex,
+      firstOverlayVertex + 1,
+      firstOverlayVertex + 2,
+    );
+  }
+
+  return {
+    positions:
+      overlayPositions,
+    normals:
+      overlayNormals,
+    uvs:
+      overlayUvs,
+    colors:
+      overlayColors,
+    indices:
+      overlayIndices,
+  };
+}
+
+function createWeatheringOverlayGeometry(
+  config: TerrainConfig,
+  positions: number[],
+  normals: number[],
+  uvs: number[],
+  indices: number[],
+  weatheringWeights: number[],
+) {
+  const overlayPositions: number[] = [];
+  const overlayNormals: number[] = [];
+  const overlayUvs: number[] = [];
+  const overlayColors: number[] = [];
+  const overlayIndices: number[] = [];
+  const offset =
+    config.presentation
+      .weatheringOverlayOffset;
+
+  for (
+    let index = 0;
+    index < indices.length;
+    index += 3
+  ) {
+    const triangle = [
+      indices[index],
+      indices[index + 1],
+      indices[index + 2],
+    ];
+
+    if (
+      triangle.some(
+        (vertex) =>
+          vertex === undefined,
+      )
+    ) {
+      continue;
+    }
+
+    const weights =
+      triangle.map(
+        (vertex) =>
+          weatheringWeights[
+            vertex ?? 0
+          ] ?? 0,
+      );
+    const averageWeight =
+      weights.reduce(
+        (sum, value) =>
+          sum + value,
+        0,
+      ) /
+      weights.length;
+
+    if (
+      averageWeight <
+      0.045
+    ) {
+      continue;
+    }
+
+    const firstOverlayVertex =
+      overlayPositions.length /
+      3;
+
+    for (
+      let localIndex = 0;
+      localIndex < triangle.length;
+      localIndex++
+    ) {
+      const vertexIndex =
+        triangle[
+          localIndex
+        ] ?? 0;
+      const x =
+        positions[
+          vertexIndex * 3
+        ] ?? 0;
+      const y =
+        positions[
+          vertexIndex * 3 +
+            1
+        ] ?? 0;
+      const z =
+        positions[
+          vertexIndex * 3 +
+            2
+        ] ?? 0;
+      const nx =
+        normals[
+          vertexIndex * 3
+        ] ?? 0;
+      const ny =
+        normals[
+          vertexIndex * 3 +
+            1
+        ] ?? 1;
+      const nz =
+        normals[
+          vertexIndex * 3 +
+            2
+        ] ?? 0;
+      const uvOffset =
+        vertexIndex * 2;
+
+      overlayPositions.push(
+        x + nx * offset,
+        y + ny * offset,
+        z + nz * offset,
+      );
+      overlayNormals.push(
+        nx,
+        ny,
+        nz,
+      );
+      overlayUvs.push(
+        uvs[uvOffset] ?? 0,
+        uvs[uvOffset + 1] ?? 0,
+      );
+      overlayColors.push(
+        1,
+        1,
+        1,
+        weights[
+          localIndex
+        ] ?? 0,
       );
     }
 
