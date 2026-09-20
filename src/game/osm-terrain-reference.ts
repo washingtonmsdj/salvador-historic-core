@@ -26,6 +26,8 @@ interface RasterReferenceConfig {
 interface Origin {
   latitude: number;
   longitude: number;
+  easting: number;
+  northing: number;
 }
 
 const toRadians = Math.PI / 180;
@@ -121,8 +123,8 @@ function createTileMesh(
       const [x, z] = geographicToLocalMeters(
         latitude,
         longitude,
-        origin.latitude,
-        origin.longitude,
+        origin.easting,
+        origin.northing,
       );
       const y = terrainHeight(terrain, levels, x, z) + 0.03;
 
