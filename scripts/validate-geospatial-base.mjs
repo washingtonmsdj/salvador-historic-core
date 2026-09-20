@@ -13,9 +13,13 @@ import {
 const { manifest, origin, bounds } = await loadGeospatialContext();
 const runtimePath = resolve(root, manifest.pipeline.runtimeManifest);
 const terrainPath = resolve(root, manifest.pipeline.derivedTerrain);
+const vectorsPath = resolve(root, manifest.pipeline.derivedVectors);
 const runtime = JSON.parse(await readFile(runtimePath, "utf8"));
 const derivedTerrain = (await pathExists(terrainPath))
   ? JSON.parse(await readFile(terrainPath, "utf8"))
+  : null;
+const derivedVectors = (await pathExists(vectorsPath))
+  ? JSON.parse(await readFile(vectorsPath, "utf8"))
   : null;
 const errors = [];
 
@@ -195,6 +199,117 @@ if (
 ) {
   fail("vectors cannot be marked geospatial-derived without a derived vector product");
 }
+if (derivedVectors?.available === true) {
+  if (derivedVectors.crs !== manifest.localCoordinateSystem.horizontalCrs) {
+    fail("derived vectors CRS differs from geospatial manifest");
+  }
+
+  for (const key of ["minX", "maxX", "minZ", "maxZ"]) {
+    if (derivedVectors.bounds?.[key] !== bounds[key]) {
+      fail(`derived vectors bounds.${key} differs from project perimeter`);
+    }
+  }
+
+  const roads = Array.isArray(derivedVectors.roads)
+    ? derivedVectors.roads
+    : [];
+  const spaces = Array.isArray(derivedVectors.spaces)
+    ? derivedVectors.spaces
+    : [];
+  const buildings = Array.isArray(
+    derivedVectors.buildingFootprints,
+  )
+    ? derivedVectors.buildingFootprints
+    : [];
+
+  const expectedCount =
+    roads.length + spaces.length + buildings.length;
+
+  if (derivedVectors.metadata?.featureCount !== expectedCount) {
+    fail("derived vector featureCount does not match its collections");
+  }
+
+  const inBounds = ([x, z]) =>
+    Number.isFinite(x) &&
+    Number.isFinite(z) &&
+    x >= bounds.minX - 0.001 &&
+    x <= bounds.maxX + 0.001 &&
+    z >= bounds.minZ - 0.001 &&
+    z <= bounds.maxZ + 0.001;
+
+  for (const road of roads) {
+    if (
+      !Number.isFinite(road.width) ||
+      road.width <= 0 ||
+      !Array.isArray(road.points) ||
+      road.points.length < 2
+    ) {
+      fail(`${road.id} has invalid road geometry or width`);
+      continue;
+    }
+
+    if (!road.points.every(inBounds)) {
+      fail(`${road.id} contains a road point outside project bounds`);
+    }
+  }
+
+  for (const space of spaces) {
+    if (!Array.isArray(space.points) || space.points.length < 3) {
+      fail(`${space.id} has invalid space geometry`);
+      continue;
+    }
+
+    if (!space.points.every(inBounds)) {
+      fail(`${space.id} contains a space point outside project bounds`);
+    }
+  }
+
+  for (const building of buildings) {
+    if (
+      !Array.isArray(building.footprint) ||
+      building.footprint.length < 3
+    ) {
+      fail(`${building.id} has invalid building footprint`);
+      continue;
+    }
+
+    if (!building.footprint.every(inBounds)) {
+      fail(`${building.id} contains a footprint point outside project bounds`);
+    }
+  }
+}
+
+if (
+  derivedVectors?.available === true &&
+  runtime.vectors.active !== "geospatial-derived"
+) {
+  fail(
+    "derived vectors are available but runtime manifest has not activated them",
+  );
+}
+
+if (
+  runtime.vectors.active === "geospatial-derived" &&
+  derivedVectors?.available !== true
+) {
+  fail("runtime vectors are geospatial-derived but site-vectors.json is unavailable");
+}
+
+if (
+  runtime.vectors.active === "geospatial-derived" &&
+  runtime.vectors.fallbackActive !== false
+) {
+  fail("geospatial-derived vectors cannot remain marked as fallback");
+}
+
+if (
+  runtime.vectors.active === "geospatial-derived" &&
+  runtime.derived?.vectors?.featureCount !==
+    derivedVectors?.metadata?.featureCount
+) {
+  fail("runtime vector summary does not match derived vector feature count");
+}
+
 
 if (runtime.sources.contours.available && runtime.sources.contours.featureCount <= 0) {
   fail("CONDER contours marked available but contain no features");
