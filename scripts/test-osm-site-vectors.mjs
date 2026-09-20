@@ -21,6 +21,8 @@ const config = {
     service: 4,
   },
   buildingLevelHeight: 3,
+  indoorCorridorWidth: 3,
+  preserveIndoorCorridors: true,
 };
 
 const failures = [];
@@ -176,6 +178,17 @@ if (derived.roads.length !== 2) {
 }
 
 if (
+  derived.elevatedCorridors.length !== 1 ||
+  derived.elevatedCorridors[0]?.id !==
+    "way/6" ||
+  derived.elevatedCorridors[0]?.width !== 3
+) {
+  failures.push(
+    "indoor corridor must be preserved separately from terrain roads",
+  );
+}
+
+if (
   derived.roads.some(
     (road) =>
       road.tags?.indoor === "yes",
@@ -292,6 +305,7 @@ if (failures.length > 0) {
     [
       "OSM vector derivation test passed.",
       `roads=${derived.roads.length},`,
+      `corridors=${derived.elevatedCorridors.length},`,
       `spaces=${derived.spaces.length},`,
       `buildings=${derived.buildingFootprints.length}.`,
     ].join(" "),

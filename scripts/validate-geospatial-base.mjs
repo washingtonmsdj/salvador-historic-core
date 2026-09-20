@@ -462,6 +462,19 @@ if (!liveTerrainPreview) {
 }
 
 if (
+  manifest.vectorDerivation?.preserveIndoorCorridors !== true ||
+  !Number.isFinite(
+    manifest.vectorDerivation?.indoorCorridorWidth,
+  ) ||
+  manifest.vectorDerivation.indoorCorridorWidth <= 0 ||
+  manifest.vectorDerivation.indoorCorridorWidth > 6
+) {
+  fail(
+    "vector derivation must preserve indoor corridors with a width > 0 and <= 6 metres",
+  );
+}
+
+if (
   manifest.vectorDerivation?.excludeIndoorHighways !== true
 ) {
   fail(
@@ -487,6 +500,39 @@ if (
   fail(
     "vector laneWidthMeters must be between 2.5 and 3.5 metres",
   );
+}
+
+const elevatedCorridorPolicy =
+  manifest.elevatedCorridorPolicy;
+
+if (!elevatedCorridorPolicy) {
+  fail(
+    "geospatial manifest must define elevatedCorridorPolicy",
+  );
+} else {
+  if (
+    !Number.isFinite(
+      elevatedCorridorPolicy.deckThickness,
+    ) ||
+    elevatedCorridorPolicy.deckThickness <= 0 ||
+    elevatedCorridorPolicy.deckThickness > 1
+  ) {
+    fail(
+      "elevated corridor deckThickness must be > 0 and <= 1 metre",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      elevatedCorridorPolicy.surfaceGap,
+    ) ||
+    elevatedCorridorPolicy.surfaceGap < 0.05 ||
+    elevatedCorridorPolicy.surfaceGap > 1
+  ) {
+    fail(
+      "elevated corridor surfaceGap must be between 0.05 and 1 metre",
+    );
+  }
 }
 
 const buildingPolicy = manifest.buildingBlockoutPolicy;
@@ -903,6 +949,11 @@ if (derivedVectors?.available === true) {
   const roads = Array.isArray(derivedVectors.roads)
     ? derivedVectors.roads
     : [];
+  const elevatedCorridors = Array.isArray(
+    derivedVectors.elevatedCorridors,
+  )
+    ? derivedVectors.elevatedCorridors
+    : [];
   const spaces = Array.isArray(derivedVectors.spaces)
     ? derivedVectors.spaces
     : [];
@@ -974,7 +1025,10 @@ if (derivedVectors?.available === true) {
   }
 
   const expectedCount =
-    roads.length + spaces.length + buildings.length;
+    roads.length +
+    elevatedCorridors.length +
+    spaces.length +
+    buildings.length;
 
   if (derivedVectors.metadata?.featureCount !== expectedCount) {
     fail("derived vector featureCount does not match its collections");
@@ -999,6 +1053,30 @@ if (derivedVectors?.available === true) {
     z <= bounds.maxZ + 0.001;
 
   let laneDerivedRoadCount = 0;
+
+  if (
+    derivedVectors.metadata?.elevatedCorridorCount !==
+    elevatedCorridors.length
+  ) {
+    fail(
+      "derived vector elevatedCorridorCount does not match its collection",
+    );
+  }
+
+  for (const corridor of elevatedCorridors) {
+    if (
+      corridor.tags?.highway !== "corridor" ||
+      corridor.tags?.indoor !== "yes" ||
+      !Array.isArray(corridor.points) ||
+      corridor.points.length < 2 ||
+      !Number.isFinite(corridor.width) ||
+      corridor.width <= 0
+    ) {
+      fail(
+        `${corridor.id} is not a valid preserved indoor corridor`,
+      );
+    }
+  }
 
   for (const road of roads) {
     if (road.tags?.indoor === "yes") {

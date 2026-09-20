@@ -39,6 +39,9 @@
 - [x] Junctions com limites automáticos de slope/cut/fill/road-edge delta
 - [x] Estradas auditadas contra o terreno ativo em toda a coleção derivada
 
+- [x] Palácio Thomé de Souza: substituir retângulo manual pelo footprint OSM correlacionado ao lote IPHAN e proteger a correlação em CI.
+- [x] Elevador Lacerda: preservar corredores indoor OSM separadamente das ruas e renderizar a passarela superior como deck elevado caminhável.
+
 ## Próximas prioridades
 
 - [ ] Fazer revisão visual sistemática contra ortofoto/mapa e referências de rua

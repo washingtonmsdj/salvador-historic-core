@@ -71,6 +71,18 @@ Regras principais:
 
 Essas regras produzem uma superfície caminhável coerente sem afirmar que o projeto contém cotas de engenharia civil.
 
+## Passarela superior do Elevador
+
+Corredores OSM com `highway=corridor` + `indoor=yes` continuam excluídos de `roads`, mas passam a ser preservados separadamente em `elevatedCorridors`.
+
+No conjunto do Elevador Lacerda:
+
+- `way/59409445` liga a torre à transição superior;
+- `way/1455480196` continua até a Praça Tomé de Souza;
+- `way/1455480198` preserva o trecho interno da torre.
+
+Esses elementos são renderizados como um deck elevado caminhável, ancorado pela cota do ponto superior fora da estrutura. O caminho horizontal vem do OSM e não é drapeado pela escarpa CONDER. As caixas provisórias de passarela/acesso superior só permanecem como fallback quando os corredores persistentes não estão disponíveis.
+
 ## Máscaras do terreno
 
 Máscaras são usadas somente quando uma estrutura ou deck precisa substituir visualmente/colisivamente o terreno existente.
@@ -94,6 +106,8 @@ Polígonos de espaço são triangulados e acompanhados sobre o terreno ativo.
 ## Edifícios
 
 Marcos curados que já possuem footprint OSM versionado usam `footprintOsmId` como referência canônica. O runtime hidrata o polígono diretamente de `site-vectors.json`, recalcula centro/largura/profundidade e mantém altura/material/modelagem curada separadamente. O mesmo objeto não deve copiar os vértices OSM novamente em `site-data.json`.
+
+O Palácio Thomé de Souza usa o OSM way `1317127245` como footprint horizontal canônico por correlação geométrica com o lote documentado pelo IPHAN: o polígono está integralmente dentro do TPTS de aproximadamente 46 × 50 m e mede aproximadamente 15,2 × 44,2 m, compatível com o corpo longitudinal central descrito como ~16 m de largura. O OSM não nomeia esse way no snapshot; essa identificação permanece explicitamente documentada como correlação IPHAN + geometria OSM, não como uma tag nominal do OSM.
 
 Footprints OSM só são promovidos automaticamente para blockouts 3D quando:
 
