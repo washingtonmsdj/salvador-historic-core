@@ -84,15 +84,19 @@ function measuredObjectFootprint(item: MeasuredObject): Point2[] {
   const centerX = item.position[0];
   const centerZ = item.position[2];
 
-  return [
+  const localCorners: Point2[] = [
     [-halfWidth, -halfDepth],
     [halfWidth, -halfDepth],
     [halfWidth, halfDepth],
     [-halfWidth, halfDepth],
-  ].map(([localX, localZ]) => [
-    centerX + localX * cos + localZ * sin,
-    centerZ - localX * sin + localZ * cos,
-  ]);
+  ];
+
+  return localCorners.map(
+    ([localX, localZ]): Point2 => [
+      centerX + localX * cos + localZ * sin,
+      centerZ - localX * sin + localZ * cos,
+    ],
+  );
 }
 
 function pointInPolygon(point: Point2, polygon: Point2[]) {
