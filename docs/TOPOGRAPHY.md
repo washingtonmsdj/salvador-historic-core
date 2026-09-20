@@ -57,3 +57,37 @@ a partir das curvas e então remover os perfis provisórios.
 
 Nenhum perfil provisório, interpolação visual ou ajuste de blockout pode ser promovido para
 `estimated: false` sem fonte geográfica verificável.
+
+
+## Perímetro de apresentação
+
+O recorte visual do protótipo é uma maquete topográfica centrada no Elevador Lacerda:
+
+- centro local: `X=0, Z=0`;
+- extensão X: `-150 m .. +150 m`;
+- extensão Z: `-230 m .. +230 m`;
+- base estrutural: abaixo do datum da Cidade Baixa;
+- o topo do terreno, as paredes laterais e a base formam uma estrutura fechada.
+
+A centralização é validada por `npm run terrain:validate`. Esse comando também verifica
+cobertura dos perfis e se os objetos/footprints permanecem dentro do perímetro.
+
+## Materiais do blockout
+
+A superfície usa três materiais procedurais distintos:
+
+- Cidade Baixa: mineral/urbano neutro;
+- escarpa: rocha/terra com estratificação e relevo visual;
+- Cidade Alta: solo/vegetação seca de blockout.
+
+As texturas são geradas deterministicamente no navegador, sem dependências externas ou assets
+de terceiros. Elas alteram apenas a leitura visual, não a geometria nem as cotas do terreno.
+
+As paredes laterais do perímetro recebem material estratificado próprio para que a maquete tenha
+espessura e estrutura legíveis em vista aérea.
+
+## Limite de fidelidade
+
+Textura, material, base estrutural e paredes do perímetro são elementos de apresentação. Eles não
+devem ser confundidos com geologia ou acabamento oficial. A elevação continua
+`estimated: true` até a substituição pelos dados altimétricos verificáveis.
