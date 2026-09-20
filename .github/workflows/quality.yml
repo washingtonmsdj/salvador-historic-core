@@ -48,6 +48,9 @@ jobs:
       - name: Validate road junctions
         run: bun run road:junction-test
 
+      - name: Validate terrain-safe road grading
+        run: bun run road:grading-test
+
       - name: Validate walkable player spawn
         run: bun run player:spawn-test
 
