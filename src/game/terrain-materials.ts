@@ -28,24 +28,30 @@ function createSurfaceTexture(
   const size = 128;
   const texture = new DynamicTexture(name, { width: size, height: size }, scene, false);
   const context = texture.getContext();
-  const image = context.createImageData(size, size);
+  const cell = 4;
 
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const index = (y * size + x) * 4;
-      const coarse = deterministicNoise(Math.floor(x / 6), Math.floor(y / 6), seed);
-      const fine = deterministicNoise(x, y, seed + 11);
-      const band = striated ? Math.sin(y * 0.36 + coarse * 2.2) * 0.28 : 0;
+  for (let y = 0; y < size; y += cell) {
+    for (let x = 0; x < size; x += cell) {
+      const coarse = deterministicNoise(Math.floor(x / 12), Math.floor(y / 12), seed);
+      const fine = deterministicNoise(x / cell, y / cell, seed + 11);
+      const band = striated ? Math.sin(y * 0.24 + coarse * 2.2) * 0.28 : 0;
       const delta = (coarse * 0.58 + fine * 0.42 - 0.5 + band) * variation;
+      const red = clampChannel(base[0] + delta);
+      const green = clampChannel(base[1] + delta);
+      const blue = clampChannel(base[2] + delta);
 
-      image.data[index] = clampChannel(base[0] + delta);
-      image.data[index + 1] = clampChannel(base[1] + delta);
-      image.data[index + 2] = clampChannel(base[2] + delta);
-      image.data[index + 3] = 255;
+      context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+      context.fillRect(x, y, cell, cell);
     }
   }
 
-  context.putImageData(image, 0, 0);
+  if (striated) {
+    context.fillStyle = "rgba(43, 37, 31, 0.16)";
+    for (let y = 8; y < size; y += 13) {
+      context.fillRect(0, y, size, 1);
+    }
+  }
+
   texture.update(false);
   texture.wrapU = Texture.WRAP_ADDRESSMODE;
   texture.wrapV = Texture.WRAP_ADDRESSMODE;
