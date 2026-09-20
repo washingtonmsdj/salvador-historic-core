@@ -56,10 +56,6 @@ const fixedWeight = new Float64Array(cellCount);
 
 const indexOf = (column, row) => row * columns + column;
 
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
 function addConstraint(x, z, elevation) {
   const column = Math.round((x - bounds.minX) / spacing);
   const row = Math.round((z - bounds.minZ) / spacing);
