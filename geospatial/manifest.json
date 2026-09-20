@@ -146,7 +146,7 @@
     "surfaceGap": 0.045,
     "maxMiterScale": 2.2,
     "maxCrossSlope": 0.06,
-    "notes": "Gameplay road mesh follows OSM centerlines and active terrain. Longitudinal smoothing may only raise local depressions by up to 0.12 m and never cuts below official terrain. Crossfall is capped at 6% by preserving the higher terrain edge and raising only the lower edge. Where this creates more than 0.18 m of support, a terrain-connected retaining skirt is rendered; automatic road fill is limited to 12 m. Compatible road endpoints receive a junction deck fitted to their graded road-edge elevations, capped at 14% plane slope. Junction terrain is masked only beneath the deck, allowing at most 0.75 m local cut and 3 m local fill, with a perimeter retaining/cut wall; junction-to-road edge mismatch must remain <= 0.15 m. These are rendering/gameplay constraints, not surveyed civil-engineering elevations.",
+    "notes": "Gameplay road mesh follows OSM centerlines and active terrain. Longitudinal smoothing may only raise local depressions by up to 0.12 m and never cuts below official terrain. Crossfall is capped at 6% by preserving the higher terrain edge and raising only the lower edge. Where this creates more than 0.18 m of support, a terrain-connected retaining skirt is rendered; automatic road fill is limited to 12 m. Compatible road endpoints receive a junction deck fitted to their graded road-edge elevations, capped at 14% plane slope. Junction terrain is masked only beneath the deck using an inset footprint plus adaptive boundary refinement, allowing at most 0.75 m local cut and 3 m local fill, with a perimeter retaining/cut wall; junction-to-road edge mismatch must remain <= 0.15 m. These are rendering/gameplay constraints, not surveyed civil-engineering elevations.",
     "junctionSnapDistance": 0.35,
     "junctionOverlap": 0.35,
     "junctionSurfaceOffset": 0.008,
@@ -159,7 +159,7 @@
     "junctionMaxSlope": 0.14,
     "junctionMaxCut": 0.75,
     "junctionMaxFill": 3,
-    "junctionTerrainMaskPadding": 0.12,
+    "junctionTerrainMaskInset": 0.1,
     "junctionMaxRoadEdgeDelta": 0.15
   },
   "publicSpaceSurfacePolicy": {
@@ -179,7 +179,11 @@
     "notes": "Persistent official terrain must preserve the 2.5 m grid or better, retain broad contour coverage, converge below 2 mm solver delta and represent meaningful Cidade Baixa/Cidade Alta relief. These thresholds validate the derived product, not the source survey accuracy."
   },
   "terrainStructureMaskPolicy": {
-    "padding": 0.35,
-    "notes": "Verified structure footprints may mask terrain render/collision triangles beneath their volume without changing source terrain elevations. Padding is presentation-only and prevents terrain triangles from poking through structure walls."
+    "padding": 0,
+    "notes": "Verified structure footprints mask terrain render/collision only inside their measured volume. Boundary refinement keeps the cut tight to the footprint instead of deleting coarse 2.5 m terrain triangles around the structure."
+  },
+  "terrainRenderMaskPolicy": {
+    "maxBoundaryEdge": 0.08,
+    "notes": "Terrain triangles are adaptively subdivided only where they cross a render-mask boundary. Boundary leaves are refined to at most 8 cm before removal, preserving the original terrain grid away from masks while preventing metre-scale holes around structures and road junction decks."
   }
 }
