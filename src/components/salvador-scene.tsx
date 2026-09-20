@@ -86,7 +86,8 @@ interface DerivedSiteVectors {
 }
 
 const data = siteData as unknown as SalvadorSiteData;
-const geo = geospatialBase as GeospatialBaseRuntime;
+const geo =
+  geospatialBase as unknown as GeospatialBaseRuntime;
 const derivedVectors =
   derivedVectorsData as unknown as DerivedSiteVectors;
 function normalizeFeatureName(name: string) {
@@ -226,8 +227,10 @@ export function SalvadorScene() {
   });
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const currentCanvas = canvasRef.current;
+    if (!currentCanvas) return;
+    const canvas: HTMLCanvasElement =
+      currentCanvas;
 
     let disposed = false;
     let engine: Engine | null = null;
