@@ -148,7 +148,7 @@ function createRoadTexture(
   return texture;
 }
 
-function getOrCreateRoadMaterial(
+export function surfaceMaterialForKind(
   scene: Scene,
   kind: RoadSurfaceKind,
 ) {
@@ -191,7 +191,7 @@ export function roadMaterialFor(
   scene: Scene,
   feature: LinearFeature,
 ) {
-  return getOrCreateRoadMaterial(
+  return surfaceMaterialForKind(
     scene,
     classifyRoadSurface(feature),
   );
