@@ -1,5 +1,9 @@
 import buildingPolicyData from "../../geospatial/manifest.json";
 import { terrainHeight } from "./terrain";
+import {
+  pointInPolygon,
+  polygonsOverlap,
+} from "./geometry-2d";
 import type {
   DerivedBuildingFootprint,
   MeasuredObject,
@@ -99,120 +103,167 @@ function measuredObjectFootprint(item: MeasuredObject): Point2[] {
   );
 }
 
-function pointInPolygon(point: Point2, polygon: Point2[]) {
-  let inside = false;
-  const [x, z] = point;
+export function sampleTerrainFootprint(
+  footprint: Point2[],
+  terrain: TerrainConfig,
+  levels: SceneLevels,
+) {
+  if (footprint.length < 3) {
+    throw new Error(
+      "Terrain footprint sampling requires at least 3 points.",
+    );
+  }
+
+  const centroid =
+    polygonCentroid(footprint);
+  const xs =
+    footprint.map(([x]) => x);
+  const zs =
+    footprint.map(([, z]) => z);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minZ = Math.min(...zs);
+  const maxZ = Math.max(...zs);
+  const renderSpacing =
+    terrain.tileSize /
+    Math.max(
+      1,
+      terrain.subdivisionsPerTile,
+    );
+  const spacing = Math.max(
+    1,
+    Math.min(
+      5,
+      renderSpacing,
+    ),
+  );
+  const samplePoints: Point2[] = [
+    centroid,
+    ...footprint,
+  ];
 
   for (
-    let index = 0, previous = polygon.length - 1;
-    index < polygon.length;
-    previous = index++
+    let x =
+      minX + spacing / 2;
+    x < maxX;
+    x += spacing
   ) {
-    const current = polygon[index];
-    const before = polygon[previous];
-    if (!current || !before) continue;
-
-    const intersects =
-      current[1] > z !== before[1] > z &&
-      x <
-        ((before[0] - current[0]) *
-          (z - current[1])) /
-          (before[1] - current[1] || Number.EPSILON) +
-          current[0];
-
-    if (intersects) inside = !inside;
-  }
-
-  return inside;
-}
-
-function orientation(a: Point2, b: Point2, c: Point2) {
-  return (
-    (b[0] - a[0]) * (c[1] - a[1]) -
-    (b[1] - a[1]) * (c[0] - a[0])
-  );
-}
-
-function onSegment(
-  a: Point2,
-  b: Point2,
-  point: Point2,
-) {
-  const epsilon = 0.000001;
-
-  return (
-    point[0] >= Math.min(a[0], b[0]) - epsilon &&
-    point[0] <= Math.max(a[0], b[0]) + epsilon &&
-    point[1] >= Math.min(a[1], b[1]) - epsilon &&
-    point[1] <= Math.max(a[1], b[1]) + epsilon
-  );
-}
-
-function segmentsIntersect(
-  a: Point2,
-  b: Point2,
-  c: Point2,
-  d: Point2,
-) {
-  const epsilon = 0.000001;
-  const abC = orientation(a, b, c);
-  const abD = orientation(a, b, d);
-  const cdA = orientation(c, d, a);
-  const cdB = orientation(c, d, b);
-
-  if (
-    ((abC > epsilon && abD < -epsilon) ||
-      (abC < -epsilon && abD > epsilon)) &&
-    ((cdA > epsilon && cdB < -epsilon) ||
-      (cdA < -epsilon && cdB > epsilon))
-  ) {
-    return true;
-  }
-
-  if (Math.abs(abC) <= epsilon && onSegment(a, b, c)) {
-    return true;
-  }
-  if (Math.abs(abD) <= epsilon && onSegment(a, b, d)) {
-    return true;
-  }
-  if (Math.abs(cdA) <= epsilon && onSegment(c, d, a)) {
-    return true;
-  }
-  if (Math.abs(cdB) <= epsilon && onSegment(c, d, b)) {
-    return true;
-  }
-
-  return false;
-}
-
-function polygonsOverlap(a: Point2[], b: Point2[]) {
-  if (a.some((point) => pointInPolygon(point, b))) {
-    return true;
-  }
-
-  if (b.some((point) => pointInPolygon(point, a))) {
-    return true;
-  }
-
-  for (let aIndex = 0; aIndex < a.length; aIndex++) {
-    const aStart = a[aIndex];
-    const aEnd = a[(aIndex + 1) % a.length];
-    if (!aStart || !aEnd) continue;
-
-    for (let bIndex = 0; bIndex < b.length; bIndex++) {
-      const bStart = b[bIndex];
-      const bEnd = b[(bIndex + 1) % b.length];
+    for (
+      let z =
+        minZ + spacing / 2;
+      z < maxZ;
+      z += spacing
+    ) {
+      const point: Point2 = [
+        x,
+        z,
+      ];
       if (
-        bStart &&
-        bEnd &&
-        segmentsIntersect(aStart, aEnd, bStart, bEnd)
+        pointInPolygon(
+          point,
+          footprint,
+        )
       ) {
-        return true;
+        samplePoints.push(point);
       }
     }
   }
 
-  return false;
+  const values =
+    samplePoints.map(
+      ([x, z]) =>
+        terrainHeight(
+          terrain,
+          levels,
+          x,
+          z,
+        ),
+    );
+  const minGround =
+    Math.min(...values);
+  const maxGround =
+    Math.max(...values);
+  const meanGround =
+    values.reduce(
+      (sum, value) =>
+        sum + value,
+      0,
+    ) / values.length;
+
+  return {
+    centroid,
+    minGround,
+    maxGround,
+    meanGround,
+    relief:
+      maxGround - minGround,
+    sampleCount:
+      values.length,
+  };
+}
+
+export function alignEstimatedBuildingsToTerrain(
+  buildings: MeasuredObject[],
+  terrain: TerrainConfig,
+  levels: SceneLevels,
+): MeasuredObject[] {
+  return buildings.map(
+    (building) => {
+      if (
+        !building.estimated ||
+        building.height <= 0
+      ) {
+        return building;
+      }
+
+      const footprint =
+        measuredObjectFootprint(
+          building,
+        );
+      if (
+        footprint.length < 3
+      ) {
+        return building;
+      }
+
+      const stats =
+        sampleTerrainFootprint(
+          footprint,
+          terrain,
+          levels,
+        );
+      const currentBase =
+        building.position[1] -
+        building.height / 2;
+      const delta =
+        stats.minGround -
+        currentBase;
+
+      if (
+        Math.abs(delta) <
+        0.025
+      ) {
+        return building;
+      }
+
+      return {
+        ...building,
+        position: [
+          building.position[0],
+          stats.minGround +
+            building.height / 2,
+          building.position[2],
+        ] as MeasuredObject["position"],
+        source: [
+          building.source,
+          "vertical placement aligned to active geospatial terrain",
+          "foundation relief " +
+            stats.relief.toFixed(2) +
+            " m",
+        ].join("; "),
+      };
+    },
+  );
 }
 
 export function deriveRuntimeBuildingBlockouts(
@@ -262,25 +313,27 @@ export function deriveRuntimeBuildingBlockouts(
       continue;
     }
 
-    const centroid = polygonCentroid(item.footprint);
-    const samples = [
-      centroid,
-      ...item.footprint,
-    ].map(([x, z]) =>
-      terrainHeight(terrain, levels, x, z),
-    );
-    const minGround = Math.min(...samples);
-    const maxGround = Math.max(...samples);
-    const relief = maxGround - minGround;
+    const stats =
+      sampleTerrainFootprint(
+        item.footprint,
+        terrain,
+        levels,
+      );
+    const centroid =
+      stats.centroid;
+    const relief =
+      stats.relief;
 
-    if (relief > policy.maxAutoFoundationRelief) {
+    if (
+      relief >
+      policy.maxAutoFoundationRelief
+    ) {
       skipped.excessiveRelief += 1;
       continue;
     }
 
     const ground =
-      samples.reduce((sum, value) => sum + value, 0) /
-      samples.length;
+      stats.meanGround;
     const dimensions = boundsOf(item.footprint);
     const height = item.height;
 

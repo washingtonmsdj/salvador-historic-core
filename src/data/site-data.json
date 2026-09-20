@@ -26,7 +26,7 @@
       "source": "OpenStreetMap way 59224731 centroid",
       "estimated": false
     },
-    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated. Blockout values are never official measurements. Unverified generic plaza building placeholders and the provisional Ladeira da Montanha ribbon were removed rather than rendered with invented placement. Palácio Thomé de Souza horizontal blockout now follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); only vertical height remains estimated. TPTS terrain is flattened as a data-driven upper-city plateau following the IPHAN 46 x 50 m envelope; its local elevation remains estimated. Project Z perimeter expanded to ±300 m so the versioned verified Rua Chile OSM segment is inside the scene; procedural profiles beyond the previous ±230 m remain fallback-only. Manual/extrapolated road ribbons and generic Rua Chile building blocks were removed from fallback rendering; roads and context-building placement must come from versioned or live geospatial geometry."
+    "notes": "Positions are local metres. For box-like blockouts, position is the mesh center. Only dimensions explicitly supported by a cited source are non-estimated; blockout values are never official measurements. The runtime now prefers versioned geospatial-derived OSM vectors and CONDER terrain. Procedural profiles, estimated plateaus/cutouts and manually curated fallback geometry are development fallbacks only and do not overwrite the persistent terrain when it is active. Palácio Thomé de Souza horizontal blockout follows IPHAN documented TPTS dimensions (46 x 50 m site, 16 m central longitudinal strip); unsupported vertical dimensions remain estimated. Manual/extrapolated road ribbons and generic Rua Chile blocks were removed; road placement must come from versioned geospatial geometry, with live sources limited to refresh/diagnostic fallback."
   },
   "levels": {
     "lowerCity": {
@@ -146,7 +146,7 @@
       "contourInterval": 10,
       "cliffOverlayOffset": 0.06
     },
-    "source": "Provisional 2D escarpment control profiles prepared for blockout. CONDER Cartografia Sistemática 1992 REL_Curva_Nivel_L is the official contour reference to import next; profiles must not be treated as surveyed contours.",
+    "source": "Procedural fallback profiles retained only for development recovery. Normal runtime terrain is the versioned geospatial-derived grid from CONDER Cartografia Sistemática 1992 REL_Curva_Nivel_L; these profiles are not surveyed contours.",
     "estimated": true,
     "cutouts": [
       {

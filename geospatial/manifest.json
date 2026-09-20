@@ -26,23 +26,24 @@
     "osm": {
       "kind": "vector",
       "authority": "OpenStreetMap contributors",
-      "status": "seed-partial",
+      "status": "versioned-derived",
       "command": "npm run geospatial:import:osm",
       "rawOutput": "geospatial/raw/osm/overpass.json",
       "normalizedOutput": "geospatial/normalized/osm/site.json",
-      "notes": "A versioned OSM seed is active from public/data/osm-reference.json while full bbox import remains pending."
+      "notes": "Complete versioned OSM bbox snapshot is active for the project perimeter. Derived runtime vectors contain all configured critical roads; live OSM remains refresh/debug only."
     },
     "conderContours": {
       "kind": "elevation-contours",
       "authority": "CONDER",
-      "status": "import-required",
+      "status": "versioned-derived",
       "service": "https://mapas.conder.ba.gov.br/arcgis/rest/services/CARTOGRAFIA_SISTEMATICA/CARTOGRAFIA_SISTEMATICA_1992_24/MapServer/14",
       "layer": "REL_Curva_Nivel_L",
       "elevationField": "ELEVATION",
       "crs": "EPSG:32724",
       "command": "npm run geospatial:import:conder",
       "rawOutput": "geospatial/raw/conder/contours.arcgis.json",
-      "normalizedOutput": "geospatial/normalized/conder/contours.json"
+      "normalizedOutput": "geospatial/normalized/conder/contours.json",
+      "notes": "Official CONDER 1992 contour snapshot is versioned for the project envelope and derives the persistent 2.5 m terrain grid. Runtime live refresh is fallback-only when the persistent product is unavailable."
     },
     "salvadorMunicipalCartography": {
       "kind": "dem-lidar-orthophoto",
@@ -131,12 +132,58 @@
     "purpose": "runtime alignment/debug reference only; not a source of 3D geometry"
   },
   "liveTerrainPreview": {
-    "gridSpacing": 5,
-    "contourSampleSpacing": 2.5,
-    "maxIterations": 750,
-    "tolerance": 0.01,
+    "gridSpacing": 4,
+    "contourSampleSpacing": 2,
+    "maxIterations": 900,
+    "tolerance": 0.008,
     "cacheTtlMinutes": 15,
     "verticalDatum": "minimum-derived-elevation",
-    "notes": "Browser-only preview grid. It may replace the procedural fallback during a session but never promotes itself to geospatial/derived terrain."
+    "notes": "Browser preview grid with 4 m spacing and 2 m contour constraints. It may replace the procedural fallback during a session but never promotes itself to geospatial/derived terrain. Persistent terrain remains the higher-resolution 2.5 m product."
+  },
+  "roadSurfacePolicy": {
+    "sampleSpacing": 1.25,
+    "textureRepeatMeters": 4,
+    "surfaceGap": 0.045,
+    "maxMiterScale": 2.2,
+    "maxCrossSlope": 0.06,
+    "notes": "Gameplay road mesh follows OSM centerlines and active terrain. Longitudinal smoothing may only raise local depressions by up to 0.12 m and never cuts below official terrain. Crossfall is capped at 6% by preserving the higher terrain edge and raising only the lower edge. Where this creates more than 0.18 m of support, a terrain-connected retaining skirt is rendered; automatic road fill is limited to 12 m. Compatible road endpoints receive a junction deck fitted to their graded road-edge elevations, capped at 14% plane slope. Junction terrain is masked only beneath the deck using an inset footprint plus adaptive boundary refinement, allowing at most 0.75 m local cut and 3 m local fill, with a perimeter retaining/cut wall; junction-to-road edge mismatch must remain <= 0.15 m. These are rendering/gameplay constraints, not surveyed civil-engineering elevations.",
+    "junctionSnapDistance": 0.35,
+    "junctionOverlap": 0.35,
+    "junctionSurfaceOffset": 0.008,
+    "junctionMaxSegments": 28,
+    "maxGradeSmoothingRaise": 0.12,
+    "maxSupportedFillHeight": 12,
+    "supportWallThreshold": 0.18,
+    "supportWallTextureRepeatMeters": 3,
+    "supportWallSink": 0.06,
+    "junctionMaxSlope": 0.14,
+    "junctionMaxCut": 0.75,
+    "junctionMaxFill": 3,
+    "junctionTerrainMaskInset": 0.1,
+    "junctionMaxRoadEdgeDelta": 0.15
+  },
+  "publicSpaceSurfacePolicy": {
+    "maxTriangleEdge": 4,
+    "maxSubdivisions": 32,
+    "surfaceGap": 0.045,
+    "textureRepeatMeters": 4,
+    "notes": "Walkable hard-surface polygons are tessellated before terrain draping so collision triangles do not bridge across terrain relief. Generic leisure=park polygons without an explicit hard surface do not receive an invented paving overlay; the official terrain remains visible and walkable. Source polygon boundaries remain unchanged.",
+    "requireExplicitSurfaceForParks": true
+  },
+  "terrainQualityPolicy": {
+    "maxPersistentGridSpacing": 2.5,
+    "minContourCount": 50,
+    "minFixedCellCoverage": 0.2,
+    "maxSolverDelta": 0.002,
+    "minLocalRelief": 40,
+    "notes": "Persistent official terrain must preserve the 2.5 m grid or better, retain broad contour coverage, converge below 2 mm solver delta and represent meaningful Cidade Baixa/Cidade Alta relief. These thresholds validate the derived product, not the source survey accuracy."
+  },
+  "terrainStructureMaskPolicy": {
+    "padding": 0,
+    "notes": "Verified structure footprints mask terrain render/collision only inside their measured volume. Boundary refinement keeps the cut tight to the footprint instead of deleting coarse 2.5 m terrain triangles around the structure."
+  },
+  "terrainRenderMaskPolicy": {
+    "maxBoundaryEdge": 0.08,
+    "notes": "Terrain triangles are adaptively subdivided only where they cross a render-mask boundary. Boundary leaves are refined to at most 8 cm before removal, preserving the original terrain grid away from masks while preventing metre-scale holes around structures and road junction decks."
   }
 }

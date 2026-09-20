@@ -73,6 +73,14 @@ export interface TerrainPlateau {
   estimated: boolean;
 }
 
+export interface TerrainRenderMask {
+  id: string;
+  polygon: Point2[];
+  padding: number;
+  maxBoundaryEdge: number;
+  source: string;
+}
+
 export interface DerivedTerrainGrid {
   available: boolean;
   source: string | null;

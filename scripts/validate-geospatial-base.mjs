@@ -10,7 +10,12 @@ import {
   utm24SToLatLon,
 } from "./lib/utm-wgs84.mjs";
 
-const { manifest, origin, bounds } = await loadGeospatialContext();
+const {
+  manifest,
+  siteData,
+  origin,
+  bounds,
+} = await loadGeospatialContext();
 const runtimePath = resolve(root, manifest.pipeline.runtimeManifest);
 const terrainPath = resolve(root, manifest.pipeline.derivedTerrain);
 const vectorsPath = resolve(root, manifest.pipeline.derivedVectors);
@@ -25,6 +30,394 @@ const errors = [];
 
 function fail(message) {
   errors.push(message);
+}
+
+const terrainStructureMaskPolicy =
+  manifest.terrainStructureMaskPolicy;
+
+if (!terrainStructureMaskPolicy) {
+  fail(
+    "geospatial manifest must define terrainStructureMaskPolicy",
+  );
+} else if (
+  !Number.isFinite(
+    terrainStructureMaskPolicy.padding,
+  ) ||
+  terrainStructureMaskPolicy.padding < 0 ||
+  terrainStructureMaskPolicy.padding > 1
+) {
+  fail(
+    "terrain structure-mask padding must be between 0 and 1 metre",
+  );
+}
+
+const terrainRenderMaskPolicy =
+  manifest.terrainRenderMaskPolicy;
+
+if (!terrainRenderMaskPolicy) {
+  fail(
+    "geospatial manifest must define terrainRenderMaskPolicy",
+  );
+} else if (
+  !Number.isFinite(
+    terrainRenderMaskPolicy.maxBoundaryEdge,
+  ) ||
+  terrainRenderMaskPolicy.maxBoundaryEdge < 0.02 ||
+  terrainRenderMaskPolicy.maxBoundaryEdge > 0.25
+) {
+  fail(
+    "terrain render-mask maxBoundaryEdge must be between 0.02 and 0.25 metres",
+  );
+}
+
+const publicSpaceSurfacePolicy =
+  manifest.publicSpaceSurfacePolicy;
+
+if (!publicSpaceSurfacePolicy) {
+  fail(
+    "geospatial manifest must define publicSpaceSurfacePolicy",
+  );
+} else {
+  if (
+    !Number.isFinite(
+      publicSpaceSurfacePolicy.maxTriangleEdge,
+    ) ||
+    publicSpaceSurfacePolicy.maxTriangleEdge <= 0 ||
+    publicSpaceSurfacePolicy.maxTriangleEdge > 10
+  ) {
+    fail(
+      "public-space maxTriangleEdge must be > 0 and <= 10 metres",
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      publicSpaceSurfacePolicy.maxSubdivisions,
+    ) ||
+    publicSpaceSurfacePolicy.maxSubdivisions < 1 ||
+    publicSpaceSurfacePolicy.maxSubdivisions > 64
+  ) {
+    fail(
+      "public-space maxSubdivisions must be an integer between 1 and 64",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      publicSpaceSurfacePolicy.surfaceGap,
+    ) ||
+    publicSpaceSurfacePolicy.surfaceGap < 0.01 ||
+    publicSpaceSurfacePolicy.surfaceGap > 0.15
+  ) {
+    fail(
+      "public-space surfaceGap must be between 0.01 and 0.15 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      publicSpaceSurfacePolicy.textureRepeatMeters,
+    ) ||
+    publicSpaceSurfacePolicy.textureRepeatMeters < 1 ||
+    publicSpaceSurfacePolicy.textureRepeatMeters > 20
+  ) {
+    fail(
+      "public-space textureRepeatMeters must be between 1 and 20 metres",
+    );
+  }
+
+  if (
+    publicSpaceSurfacePolicy.requireExplicitSurfaceForParks !== true
+  ) {
+    fail(
+      "public-space parks must require an explicit hard surface before receiving a paving overlay",
+    );
+  }
+}
+
+const roadSurfacePolicy =
+  manifest.roadSurfacePolicy;
+
+if (!roadSurfacePolicy) {
+  fail(
+    "geospatial manifest must define roadSurfacePolicy",
+  );
+} else {
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.sampleSpacing,
+    ) ||
+    roadSurfacePolicy.sampleSpacing <= 0 ||
+    roadSurfacePolicy.sampleSpacing > 5
+  ) {
+    fail(
+      "road sampleSpacing must be > 0 and <= 5 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.surfaceGap,
+    ) ||
+    roadSurfacePolicy.surfaceGap < 0.01 ||
+    roadSurfacePolicy.surfaceGap > 0.15
+  ) {
+    fail(
+      "road surfaceGap must be between 0.01 and 0.15 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.maxCrossSlope,
+    ) ||
+    roadSurfacePolicy.maxCrossSlope <= 0 ||
+    roadSurfacePolicy.maxCrossSlope > 0.12
+  ) {
+    fail(
+      "road maxCrossSlope must be > 0 and <= 12%",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.maxGradeSmoothingRaise,
+    ) ||
+    roadSurfacePolicy.maxGradeSmoothingRaise < 0 ||
+    roadSurfacePolicy.maxGradeSmoothingRaise > 0.25
+  ) {
+    fail(
+      "road maxGradeSmoothingRaise must be between 0 and 0.25 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.maxSupportedFillHeight,
+    ) ||
+    roadSurfacePolicy.maxSupportedFillHeight <= 0 ||
+    roadSurfacePolicy.maxSupportedFillHeight > 20
+  ) {
+    fail(
+      "road maxSupportedFillHeight must be > 0 and <= 20 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.supportWallThreshold,
+    ) ||
+    roadSurfacePolicy.supportWallThreshold < 0.05 ||
+    roadSurfacePolicy.supportWallThreshold > 1
+  ) {
+    fail(
+      "road supportWallThreshold must be between 0.05 and 1 metre",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.supportWallTextureRepeatMeters,
+    ) ||
+    roadSurfacePolicy.supportWallTextureRepeatMeters < 1 ||
+    roadSurfacePolicy.supportWallTextureRepeatMeters > 10
+  ) {
+    fail(
+      "road supportWallTextureRepeatMeters must be between 1 and 10 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.supportWallSink,
+    ) ||
+    roadSurfacePolicy.supportWallSink < 0 ||
+    roadSurfacePolicy.supportWallSink > 0.2
+  ) {
+    fail(
+      "road supportWallSink must be between 0 and 0.2 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.maxMiterScale,
+    ) ||
+    roadSurfacePolicy.maxMiterScale < 1 ||
+    roadSurfacePolicy.maxMiterScale > 4
+  ) {
+    fail(
+      "road maxMiterScale must be between 1 and 4",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.textureRepeatMeters,
+    ) ||
+    roadSurfacePolicy.textureRepeatMeters < 1 ||
+    roadSurfacePolicy.textureRepeatMeters > 20
+  ) {
+    fail(
+      "road textureRepeatMeters must be between 1 and 20 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionSnapDistance,
+    ) ||
+    roadSurfacePolicy.junctionSnapDistance <= 0 ||
+    roadSurfacePolicy.junctionSnapDistance > 1
+  ) {
+    fail(
+      "road junctionSnapDistance must be > 0 and <= 1 metre",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionOverlap,
+    ) ||
+    roadSurfacePolicy.junctionOverlap < 0 ||
+    roadSurfacePolicy.junctionOverlap > 1
+  ) {
+    fail(
+      "road junctionOverlap must be between 0 and 1 metre",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionSurfaceOffset,
+    ) ||
+    roadSurfacePolicy.junctionSurfaceOffset < 0 ||
+    roadSurfacePolicy.junctionSurfaceOffset > 0.03
+  ) {
+    fail(
+      "road junctionSurfaceOffset must be between 0 and 0.03 metres",
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      roadSurfacePolicy.junctionMaxSegments,
+    ) ||
+    roadSurfacePolicy.junctionMaxSegments < 8 ||
+    roadSurfacePolicy.junctionMaxSegments > 64
+  ) {
+    fail(
+      "road junctionMaxSegments must be an integer between 8 and 64",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionMaxSlope,
+    ) ||
+    roadSurfacePolicy.junctionMaxSlope <= 0 ||
+    roadSurfacePolicy.junctionMaxSlope > 0.2
+  ) {
+    fail(
+      "road junctionMaxSlope must be > 0 and <= 20%",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionMaxCut,
+    ) ||
+    roadSurfacePolicy.junctionMaxCut < 0 ||
+    roadSurfacePolicy.junctionMaxCut > 2
+  ) {
+    fail(
+      "road junctionMaxCut must be between 0 and 2 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionMaxFill,
+    ) ||
+    roadSurfacePolicy.junctionMaxFill < 0 ||
+    roadSurfacePolicy.junctionMaxFill >
+      roadSurfacePolicy.maxSupportedFillHeight
+  ) {
+    fail(
+      "road junctionMaxFill must be between 0 and maxSupportedFillHeight",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionTerrainMaskInset,
+    ) ||
+    roadSurfacePolicy.junctionTerrainMaskInset < 0 ||
+    roadSurfacePolicy.junctionTerrainMaskInset > 0.5
+  ) {
+    fail(
+      "road junctionTerrainMaskInset must be between 0 and 0.5 metres",
+    );
+  }
+
+  if (
+    terrainRenderMaskPolicy &&
+    Number.isFinite(
+      terrainRenderMaskPolicy.maxBoundaryEdge,
+    ) &&
+    roadSurfacePolicy.junctionTerrainMaskInset <
+      terrainRenderMaskPolicy.maxBoundaryEdge
+  ) {
+    fail(
+      "road junctionTerrainMaskInset must be >= terrain render-mask maxBoundaryEdge so adaptive clipping cannot open a gap beyond the junction deck",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      roadSurfacePolicy.junctionMaxRoadEdgeDelta,
+    ) ||
+    roadSurfacePolicy.junctionMaxRoadEdgeDelta < 0 ||
+    roadSurfacePolicy.junctionMaxRoadEdgeDelta > 0.3
+  ) {
+    fail(
+      "road junctionMaxRoadEdgeDelta must be between 0 and 0.3 metres",
+    );
+  }
+}
+
+const liveTerrainPreview =
+  manifest.liveTerrainPreview;
+
+if (!liveTerrainPreview) {
+  fail(
+    "geospatial manifest must define liveTerrainPreview",
+  );
+} else {
+  if (
+    !Number.isFinite(
+      liveTerrainPreview.gridSpacing,
+    ) ||
+    liveTerrainPreview.gridSpacing < 2.5 ||
+    liveTerrainPreview.gridSpacing > 8
+  ) {
+    fail(
+      "live terrain gridSpacing must be between 2.5 and 8 metres",
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      liveTerrainPreview.contourSampleSpacing,
+    ) ||
+    liveTerrainPreview.contourSampleSpacing <= 0 ||
+    liveTerrainPreview.contourSampleSpacing >
+      liveTerrainPreview.gridSpacing
+  ) {
+    fail(
+      "live terrain contourSampleSpacing must be > 0 and <= gridSpacing",
+    );
+  }
 }
 
 const buildingPolicy = manifest.buildingBlockoutPolicy;
@@ -212,8 +605,103 @@ if (
   fail("terrain cannot be marked geospatial-derived without a derived terrain product");
 }
 if (derivedTerrain?.available === true) {
+  const terrainQualityPolicy =
+    manifest.terrainQualityPolicy;
+
+  if (!terrainQualityPolicy) {
+    fail(
+      "geospatial manifest must define terrainQualityPolicy when derived terrain is available",
+    );
+  } else {
+    const statistics =
+      derivedTerrain.statistics ?? {};
+
+    if (
+      !Number.isFinite(
+        derivedTerrain.grid?.spacing,
+      ) ||
+      derivedTerrain.grid.spacing >
+        terrainQualityPolicy.maxPersistentGridSpacing
+    ) {
+      fail(
+        `derived terrain grid spacing must be <= ${terrainQualityPolicy.maxPersistentGridSpacing} m`,
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        statistics.contourCount,
+      ) ||
+      statistics.contourCount <
+        terrainQualityPolicy.minContourCount
+    ) {
+      fail(
+        `derived terrain must contain at least ${terrainQualityPolicy.minContourCount} contour paths`,
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        statistics.fixedCellCoverage,
+      ) ||
+      statistics.fixedCellCoverage <
+        terrainQualityPolicy.minFixedCellCoverage
+    ) {
+      fail(
+        `derived terrain fixed-cell coverage must be >= ${terrainQualityPolicy.minFixedCellCoverage}`,
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        statistics.finalMaxDelta,
+      ) ||
+      statistics.finalMaxDelta >
+        terrainQualityPolicy.maxSolverDelta
+    ) {
+      fail(
+        `derived terrain solver delta must be <= ${terrainQualityPolicy.maxSolverDelta} m`,
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        statistics.localHeightMax,
+      ) ||
+      !Number.isFinite(
+        statistics.localHeightMin,
+      ) ||
+      statistics.localHeightMax -
+          statistics.localHeightMin <
+        terrainQualityPolicy.minLocalRelief
+    ) {
+      fail(
+        `derived terrain local relief must be >= ${terrainQualityPolicy.minLocalRelief} m`,
+      );
+    }
+  }
+
   const grid = derivedTerrain.grid;
   const terrainBounds = derivedTerrain.bounds;
+  const renderSpacing =
+    siteData.terrain.tileSize /
+    siteData.terrain.subdivisionsPerTile;
+
+  if (
+    !Number.isFinite(renderSpacing) ||
+    renderSpacing <= 0
+  ) {
+    fail(
+      "terrain render spacing must be finite and positive",
+    );
+  } else if (
+    grid &&
+    renderSpacing > grid.spacing + 0.000001
+  ) {
+    fail(
+      `terrain render spacing ${renderSpacing} m is coarser than derived grid spacing ${grid.spacing} m`,
+    );
+  }
 
   if (derivedTerrain.crs !== manifest.localCoordinateSystem.horizontalCrs) {
     fail("derived terrain CRS differs from geospatial manifest");

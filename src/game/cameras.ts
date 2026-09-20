@@ -2,8 +2,13 @@ import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
+import type { Point2 } from "./types";
 
-export function createCameras(scene: Scene, canvas: HTMLCanvasElement) {
+export function createCameras(
+  scene: Scene,
+  canvas: HTMLCanvasElement,
+  streetSpawn: Point2,
+) {
   const aerial = new ArcRotateCamera(
     "camera-aerea",
     -1.22,
@@ -18,8 +23,18 @@ export function createCameras(scene: Scene, canvas: HTMLCanvasElement) {
   aerial.panningSensibility = 80;
   aerial.attachControl(canvas, true);
 
-  const street = new UniversalCamera("camera-praca", new Vector3(74, 66.9, -60), scene);
-  street.setTarget(new Vector3(20, 65.3, -10));
+  const street = new UniversalCamera(
+    "camera-praca",
+    new Vector3(
+      streetSpawn[0],
+      2,
+      streetSpawn[1],
+    ),
+    scene,
+  );
+  street.setTarget(
+    new Vector3(0, 2, 0),
+  );
   street.speed = 1.1;
   street.angularSensibility = 2500;
   street.inertia = 0.72;

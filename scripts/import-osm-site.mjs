@@ -10,11 +10,16 @@ import {
   utm24SToLatLon,
 } from "./lib/utm-wgs84.mjs";
 import { assertUsableOverpassPayload } from "./lib/overpass-integrity.mjs";
+import { parseOsmApiXml } from "./lib/osm-api-xml.mjs";
 
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ];
+
+const OSM_API_ENDPOINT =
+  "https://api.openstreetmap.org/api/0.6/map";
 
 const { manifest, origin, bounds, projected } =
   await loadGeospatialContext();
@@ -76,6 +81,15 @@ const bbox = [south, west, north, east]
   .map((value) => value.toFixed(7))
   .join(",");
 
+const osmApiBbox = [
+  west,
+  south,
+  east,
+  north,
+]
+  .map((value) => value.toFixed(7))
+  .join(",");
+
 const query = `
 [out:json][timeout:45];
 (
@@ -90,7 +104,7 @@ const query = `
   way["leisure"="park"](${bbox});
   way["place"="square"](${bbox});
 );
-out geom center tags;
+out body geom;
 `.trim();
 
 async function queryOverpass() {
@@ -101,10 +115,14 @@ async function queryOverpass() {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
+          accept: "application/json",
           "content-type":
             "application/x-www-form-urlencoded;charset=UTF-8",
+          "user-agent":
+            "salvador-historic-core/1.0 (+https://github.com/washingtonmsdj/salvador-historic-core)",
         },
         body: new URLSearchParams({ data: query }),
+        signal: AbortSignal.timeout(50_000),
       });
 
       if (!response.ok) {
@@ -119,7 +137,11 @@ async function queryOverpass() {
         endpoint,
       );
 
-      return { endpoint, payload };
+      return {
+        endpoint,
+        payload,
+        provider: "overpass",
+      };
     } catch (error) {
       errors.push(
         `${endpoint}: ${
@@ -134,6 +156,80 @@ async function queryOverpass() {
   throw new Error(
     `All Overpass endpoints failed:\n${errors.join("\n")}`,
   );
+}
+
+async function queryOsmApi() {
+  const endpoint =
+    OSM_API_ENDPOINT +
+    "?bbox=" +
+    encodeURIComponent(osmApiBbox);
+  const response = await fetch(
+    endpoint,
+    {
+      headers: {
+        accept:
+          "application/xml,text/xml",
+        "user-agent":
+          "salvador-historic-core/1.0 (+https://github.com/washingtonmsdj/salvador-historic-core)",
+      },
+      signal:
+        AbortSignal.timeout(
+          45_000,
+        ),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `${response.status} ${response.statusText}`,
+    );
+  }
+
+  const payload =
+    parseOsmApiXml(
+      await response.text(),
+    );
+
+  if (
+    !Array.isArray(
+      payload.elements,
+    ) ||
+    payload.elements.length === 0
+  ) {
+    throw new Error(
+      "OSM API bbox returned no usable ways.",
+    );
+  }
+
+  return {
+    endpoint,
+    payload,
+    provider:
+      "openstreetmap-api",
+  };
+}
+
+async function queryOsmSource() {
+  try {
+    return await queryOverpass();
+  } catch (overpassError) {
+    try {
+      return await queryOsmApi();
+    } catch (osmApiError) {
+      throw new Error(
+        [
+          overpassError instanceof Error
+            ? overpassError.message
+            : String(overpassError),
+          OSM_API_ENDPOINT +
+            ": " +
+            (osmApiError instanceof Error
+              ? osmApiError.message
+              : String(osmApiError)),
+        ].join("\n"),
+      );
+    }
+  }
 }
 
 function normalizeElement(element) {
@@ -215,7 +311,11 @@ function normalizeElement(element) {
   };
 }
 
-const { endpoint, payload } = await queryOverpass();
+const {
+  endpoint,
+  payload,
+  provider,
+} = await queryOsmSource();
 
 await mkdir(dirname(rawOutputPath), {
   recursive: true,
@@ -279,7 +379,11 @@ const coverage =
 
 const output = {
   metadata: {
-    source: "OpenStreetMap via Overpass API",
+    source:
+      provider === "openstreetmap-api"
+        ? "OpenStreetMap official bbox API"
+        : "OpenStreetMap via Overpass API",
+    provider,
     sourceCrs: "EPSG:4326",
     normalizedCrs:
       manifest.localCoordinateSystem.horizontalCrs,

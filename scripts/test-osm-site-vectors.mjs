@@ -120,6 +120,23 @@ const derived = deriveOsmSiteVectors({
       osmId: 4,
       geometryType: "polygon",
       points: [
+        [1, 12],
+        [6, 12],
+        [6, 18],
+        [1, 18],
+        [1, 12],
+      ],
+      tags: {
+        leisure: "park",
+        name: "Praça Parque",
+      },
+    },
+    {
+      id: "way/5",
+      osmType: "way",
+      osmId: 5,
+      geometryType: "polygon",
+      points: [
         [10, 10],
         [15, 10],
         [15, 15],
@@ -185,8 +202,17 @@ if (
   failures.push("explicit OSM road width was not preserved");
 }
 
-if (derived.spaces.length !== 1) {
-  failures.push(`expected 1 space, got ${derived.spaces.length}`);
+if (derived.spaces.length !== 2) {
+  failures.push(`expected 2 spaces, got ${derived.spaces.length}`);
+}
+
+const park = derived.spaces.find(
+  (space) => space.id === "way/4",
+);
+if (park?.type !== "osm-park") {
+  failures.push(
+    "leisure=park polygon must remain a persistent public space",
+  );
 }
 
 const building = derived.buildingFootprints[0];

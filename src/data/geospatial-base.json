@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-20T14:10:00.000Z",
+  "generatedAt": "2026-09-20T18:13:39.230Z",
   "crs": "EPSG:32724",
   "units": "meters",
   "origin": {
@@ -15,51 +15,53 @@
     "minZ": -300,
     "maxZ": 300
   },
-  "sources": {
-    "osm": {
-      "kind": "osm",
-      "available": true,
-      "featureCount": 3,
-      "coverage": "seed-partial",
-      "generatedAt": "2026-09-20T14:10:00.000Z",
-      "source": "OpenStreetMap versioned seed from public/data/osm-reference.json"
-    },
-    "contours": {
-      "kind": "conder-contours",
-      "available": false,
-      "featureCount": 0
-    }
-  },
-  "terrain": {
-    "preferred": "official-dem-or-contours",
-    "active": "procedural-fallback",
-    "fallbackActive": true
-  },
-  "vectors": {
-    "preferred": "osm",
-    "active": "geospatial-hybrid",
-    "fallbackActive": true
-  },
-  "derived": {
-    "terrain": {
-      "kind": "terrain-derived",
-      "available": false,
-      "featureCount": 0
-    },
-    "vectors": {
-      "kind": "vectors-derived",
-      "available": true,
-      "featureCount": 3,
-      "coverage": "seed-partial",
-      "generatedAt": "2026-09-20T14:10:00.000Z",
-      "source": "Versioned OSM seed from public/data/osm-reference.json"
-    }
-  },
   "geographicBounds": {
-    "south": -12.976803505072183,
-    "west": -38.5147480015204,
-    "north": -12.971372888117422,
-    "east": -38.511971367113
+    "south": -12.976803504792656,
+    "west": -38.51474800152094,
+    "north": -12.971372887838012,
+    "east": -38.51197136711355
+  },
+  "geographicCorners": {
+    "southWest": {
+      "local": [
+        -150,
+        -300
+      ],
+      "easting": 552627.9809,
+      "northing": 8565379.442,
+      "latitude": -12.976803504792656,
+      "longitude": -38.51473748209367
+    },
+    "southEast": {
+      "local": [
+        150,
+        -300
+      ],
+      "easting": 552927.9809,
+      "northing": 8565379.442,
+      "latitude": -12.976798330730551,
+      "longitude": -38.51197136711355
+    },
+    "northEast": {
+      "local": [
+        150,
+        300
+      ],
+      "easting": 552927.9809,
+      "northing": 8565979.442,
+      "latitude": -12.971372887838012,
+      "longitude": -38.511981946498345
+    },
+    "northWest": {
+      "local": [
+        -150,
+        300
+      ],
+      "easting": 552627.9809,
+      "northing": 8565979.442,
+      "latitude": -12.971378059664037,
+      "longitude": -38.51474800152094
+    }
   },
   "mapReference": {
     "provider": "OpenStreetMap Standard",
@@ -70,46 +72,50 @@
     "attributionUrl": "https://www.openstreetmap.org/copyright",
     "purpose": "runtime alignment/debug reference only; not a source of 3D geometry"
   },
-  "geographicCorners": {
-    "southWest": {
-      "local": [
-        -150,
-        -300
-      ],
-      "easting": 552627.9809,
-      "northing": 8565379.442,
-      "latitude": -12.976803505072183,
-      "longitude": -38.514737482093125
+  "sources": {
+    "osm": {
+      "kind": "osm",
+      "available": true,
+      "featureCount": 340,
+      "coverage": "complete",
+      "generatedAt": "2026-09-20T18:13:39.064Z",
+      "source": "OpenStreetMap via Overpass API"
     },
-    "southEast": {
-      "local": [
-        150,
-        -300
-      ],
-      "easting": 552927.9809,
-      "northing": 8565379.442,
-      "latitude": -12.976798331010077,
-      "longitude": -38.511971367113
-    },
-    "northEast": {
-      "local": [
-        150,
-        300
-      ],
-      "easting": 552927.9809,
-      "northing": 8565979.442,
-      "latitude": -12.971372888117422,
-      "longitude": -38.5119819464978
-    },
-    "northWest": {
-      "local": [
-        -150,
-        300
-      ],
-      "easting": 552627.9809,
-      "northing": 8565979.442,
-      "latitude": -12.971378059943447,
-      "longitude": -38.5147480015204
+    "contours": {
+      "kind": "conder-contours",
+      "available": true,
+      "featureCount": 124,
+      "coverage": "complete",
+      "generatedAt": "2026-09-20T16:18:42.026Z",
+      "source": "CONDER Cartografia Sistemática 1992 — REL_Curva_Nivel_L, MapServer layer 14"
     }
+  },
+  "derived": {
+    "terrain": {
+      "kind": "terrain-derived",
+      "available": true,
+      "featureCount": 29161,
+      "coverage": "complete",
+      "generatedAt": "2026-09-20T16:18:42.269Z",
+      "source": "CONDER Cartografia Sistemática 1992 — REL_Curva_Nivel_L, MapServer layer 14"
+    },
+    "vectors": {
+      "kind": "vectors-derived",
+      "available": true,
+      "featureCount": 327,
+      "coverage": "complete",
+      "generatedAt": "2026-09-20T18:13:39.119Z",
+      "source": "OpenStreetMap via Overpass API"
+    }
+  },
+  "terrain": {
+    "preferred": "official-dem-or-contours",
+    "active": "geospatial-derived",
+    "fallbackActive": false
+  },
+  "vectors": {
+    "preferred": "osm",
+    "active": "geospatial-derived",
+    "fallbackActive": false
   }
 }

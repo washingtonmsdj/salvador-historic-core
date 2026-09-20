@@ -278,6 +278,7 @@ function isSquare(tags) {
   return (
     tags.place === "square" ||
     tags.leisure === "square" ||
+    tags.leisure === "park" ||
     (tags.highway === "pedestrian" && tags.area === "yes")
   );
 }
@@ -351,10 +352,12 @@ export function deriveOsmSiteVectors({
             tags.name ??
             `Espaço OSM ${feature.osmType}/${feature.osmId}`,
           type:
-            tags.place === "square" ||
-            tags.leisure === "square"
-              ? "osm-square"
-              : "osm-pedestrian-area",
+            tags.leisure === "park"
+              ? "osm-park"
+              : tags.place === "square" ||
+                  tags.leisure === "square"
+                ? "osm-square"
+                : "osm-pedestrian-area",
           width: 0,
           source: `OpenStreetMap ${feature.id}`,
           estimated: false,

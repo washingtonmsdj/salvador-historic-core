@@ -5,144 +5,446 @@ import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import type { Scene } from "@babylonjs/core/scene";
 import type { TerrainConfig } from "./types";
 
-type Rgb = readonly [number, number, number];
+type Rgb = readonly [
+  number,
+  number,
+  number,
+];
 
-function clampChannel(value: number) {
-  return Math.max(0, Math.min(255, Math.round(value)));
+type TerrainTextureStyle = {
+  base: Rgb;
+  variation: number;
+  seed: number;
+  striated: boolean;
+  bumpStrength: number;
+  bumpLevel: number;
+};
+
+function clampChannel(
+  value: number,
+) {
+  return Math.max(
+    0,
+    Math.min(
+      255,
+      Math.round(value),
+    ),
+  );
 }
 
-function deterministicNoise(x: number, y: number, seed: number) {
-  const value = Math.sin(x * 12.9898 + y * 78.233 + seed * 37.719) * 43758.5453;
+function deterministicNoise(
+  x: number,
+  y: number,
+  seed: number,
+) {
+  const value =
+    Math.sin(
+      x * 12.9898 +
+        y * 78.233 +
+        seed * 37.719,
+    ) * 43758.5453;
   return value - Math.floor(value);
 }
 
-function createSurfaceTexture(
+function createTerrainTextures(
   scene: Scene,
   name: string,
-  base: Rgb,
-  variation: number,
-  scale: number,
-  seed: number,
-  striated = false,
+  style: TerrainTextureStyle,
 ) {
   const size = 128;
-  const texture = new DynamicTexture(
-    name,
-    { width: size, height: size },
-    scene,
-    false,
-  );
-  const context = texture.getContext();
-  const cell = 4;
+  const diffuse =
+    new DynamicTexture(
+      name + "-diffuse",
+      {
+        width: size,
+        height: size,
+      },
+      scene,
+      false,
+    );
+  const bump =
+    new DynamicTexture(
+      name + "-normal",
+      {
+        width: size,
+        height: size,
+      },
+      scene,
+      false,
+    );
+  const diffuseContext =
+    diffuse.getContext();
+  const bumpContext =
+    bump.getContext();
+  const diffuseImage =
+    diffuseContext.getImageData(
+      0,
+      0,
+      size,
+      size,
+    );
+  const bumpImage =
+    bumpContext.getImageData(
+      0,
+      0,
+      size,
+      size,
+    );
+  const heights =
+    new Float32Array(
+      size * size,
+    );
 
-  for (let y = 0; y < size; y += cell) {
-    for (let x = 0; x < size; x += cell) {
-      const coarse = deterministicNoise(
-        Math.floor(x / 12),
-        Math.floor(y / 12),
-        seed,
-      );
-      const fine = deterministicNoise(x / cell, y / cell, seed + 11);
-      const band = striated
-        ? Math.sin(y * 0.24 + coarse * 2.2) * 0.22
-        : 0;
+  for (
+    let y = 0;
+    y < size;
+    y++
+  ) {
+    for (
+      let x = 0;
+      x < size;
+      x++
+    ) {
+      const coarse =
+        deterministicNoise(
+          Math.floor(x / 10),
+          Math.floor(y / 10),
+          style.seed,
+        );
+      const medium =
+        deterministicNoise(
+          x / 3,
+          y / 3,
+          style.seed + 11,
+        );
+      const fine =
+        deterministicNoise(
+          x,
+          y,
+          style.seed + 37,
+        );
+      const band =
+        style.striated
+          ? Math.sin(
+              y * 0.28 +
+                coarse * 3.1,
+            ) *
+            0.2
+          : 0;
+      const composite =
+        coarse * 0.5 +
+        medium * 0.32 +
+        fine * 0.18 -
+        0.5 +
+        band;
       const delta =
-        (coarse * 0.58 + fine * 0.42 - 0.5 + band) * variation;
-      const red = clampChannel(base[0] + delta);
-      const green = clampChannel(base[1] + delta);
-      const blue = clampChannel(base[2] + delta);
+        composite *
+        style.variation;
+      const offset =
+        (y * size + x) * 4;
 
-      context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
-      context.fillRect(x, y, cell, cell);
+      diffuseImage.data[
+        offset
+      ] = clampChannel(
+        style.base[0] +
+          delta,
+      );
+      diffuseImage.data[
+        offset + 1
+      ] = clampChannel(
+        style.base[1] +
+          delta,
+      );
+      diffuseImage.data[
+        offset + 2
+      ] = clampChannel(
+        style.base[2] +
+          delta,
+      );
+      diffuseImage.data[
+        offset + 3
+      ] = 255;
+
+      heights[y * size + x] =
+        composite;
     }
   }
 
-  if (striated) {
-    context.fillStyle = "rgba(54, 46, 37, 0.14)";
-    for (let y = 8; y < size; y += 13) {
-      context.fillRect(0, y, size, 1);
+  diffuseContext.putImageData(
+    diffuseImage,
+    0,
+    0,
+  );
+
+  const heightAt = (
+    x: number,
+    y: number,
+  ) =>
+    heights[
+      Math.max(
+        0,
+        Math.min(
+          size - 1,
+          y,
+        ),
+      ) *
+        size +
+        Math.max(
+          0,
+          Math.min(
+            size - 1,
+            x,
+          ),
+        )
+    ] ?? 0;
+
+  for (
+    let y = 0;
+    y < size;
+    y++
+  ) {
+    for (
+      let x = 0;
+      x < size;
+      x++
+    ) {
+      const dx =
+        (heightAt(
+          x + 1,
+          y,
+        ) -
+          heightAt(
+            x - 1,
+            y,
+          )) *
+        style.bumpStrength;
+      const dy =
+        (heightAt(
+          x,
+          y + 1,
+        ) -
+          heightAt(
+            x,
+            y - 1,
+          )) *
+        style.bumpStrength;
+      const nx = -dx;
+      const ny = -dy;
+      const nz = 1;
+      const length = Math.max(
+        0.000001,
+        Math.hypot(
+          nx,
+          ny,
+          nz,
+        ),
+      );
+      const offset =
+        (y * size + x) * 4;
+
+      bumpImage.data[
+        offset
+      ] = clampChannel(
+        (nx / length) *
+          127.5 +
+          127.5,
+      );
+      bumpImage.data[
+        offset + 1
+      ] = clampChannel(
+        (ny / length) *
+          127.5 +
+          127.5,
+      );
+      bumpImage.data[
+        offset + 2
+      ] = clampChannel(
+        (nz / length) *
+          127.5 +
+          127.5,
+      );
+      bumpImage.data[
+        offset + 3
+      ] = 255;
     }
   }
 
-  texture.update(false);
-  texture.wrapU = Texture.WRAP_ADDRESSMODE;
-  texture.wrapV = Texture.WRAP_ADDRESSMODE;
-  texture.uScale = scale;
-  texture.vScale = scale;
-  return texture;
+  bumpContext.putImageData(
+    bumpImage,
+    0,
+    0,
+  );
+
+  for (const texture of [
+    diffuse,
+    bump,
+  ]) {
+    texture.update(false);
+    texture.wrapU =
+      Texture.WRAP_ADDRESSMODE;
+    texture.wrapV =
+      Texture.WRAP_ADDRESSMODE;
+  }
+
+  bump.level =
+    style.bumpLevel;
+
+  return {
+    diffuse,
+    bump,
+  };
 }
 
 function createTerrainMaterial(
   scene: Scene,
   name: string,
-  base: Rgb,
-  variation: number,
-  scale: number,
-  seed: number,
-  striated = false,
+  style: TerrainTextureStyle,
   alpha = 1,
 ) {
-  const material = new StandardMaterial(name, scene);
-  material.diffuseTexture = createSurfaceTexture(
-    scene,
-    `${name}-diffuse`,
-    base,
-    variation,
-    scale,
-    seed,
-    striated,
-  );
-  material.diffuseColor = Color3.White();
-  material.specularColor = new Color3(0.025, 0.025, 0.025);
-  material.emissiveColor = Color3.FromInts(base[0], base[1], base[2]).scale(
-    striated ? 0.045 : 0.075,
-  );
+  const existing =
+    scene.getMaterialByName(name);
+  if (
+    existing instanceof
+    StandardMaterial
+  ) {
+    return existing;
+  }
+
+  const material =
+    new StandardMaterial(
+      name,
+      scene,
+    );
+  const textures =
+    createTerrainTextures(
+      scene,
+      name,
+      style,
+    );
+
+  material.diffuseTexture =
+    textures.diffuse;
+  material.bumpTexture =
+    textures.bump;
+  material.diffuseColor =
+    Color3.White();
+  material.specularColor =
+    new Color3(
+      0.018,
+      0.018,
+      0.018,
+    );
+  material.specularPower =
+    style.striated
+      ? 48
+      : 32;
+  material.emissiveColor =
+    Color3.FromInts(
+      style.base[0],
+      style.base[1],
+      style.base[2],
+    ).scale(
+      style.striated
+        ? 0.035
+        : 0.05,
+    );
   material.alpha = alpha;
   return material;
 }
 
-export function createTerrainMaterials(scene: Scene, config: TerrainConfig) {
-  const { textureScale } = config.presentation;
+export function createTerrainMaterials(
+  scene: Scene,
+  _config: TerrainConfig,
+) {
+  const surface =
+    createTerrainMaterial(
+      scene,
+      "terrain-surface",
+      {
+        base: [
+          112,
+          119,
+          91,
+        ],
+        variation: 26,
+        seed: 17,
+        striated: false,
+        bumpStrength: 0.42,
+        bumpLevel: 0.18,
+      },
+    );
 
-  const surface = createTerrainMaterial(
-    scene,
-    "terrain-surface",
-    [126, 136, 105],
-    30,
-    textureScale * 0.85,
-    17,
-  );
+  const cliff =
+    createTerrainMaterial(
+      scene,
+      "terrain-cliff-accent",
+      {
+        base: [
+          116,
+          91,
+          68,
+        ],
+        variation: 38,
+        seed: 29,
+        striated: true,
+        bumpStrength: 0.78,
+        bumpLevel: 0.36,
+      },
+      0.92,
+    );
 
-  const cliff = createTerrainMaterial(
-    scene,
-    "terrain-cliff-accent",
-    [124, 104, 79],
-    42,
-    textureScale,
-    29,
-    true,
-    0.88,
-  );
+  const wall =
+    createTerrainMaterial(
+      scene,
+      "terrain-perimeter-wall",
+      {
+        base: [
+          86,
+          76,
+          63,
+        ],
+        variation: 30,
+        seed: 61,
+        striated: true,
+        bumpStrength: 0.64,
+        bumpLevel: 0.3,
+      },
+      0.68,
+    );
 
-  const wall = createTerrainMaterial(
-    scene,
-    "terrain-perimeter-wall",
-    [92, 81, 65],
-    34,
-    textureScale * 0.72,
-    61,
-    true,
-    0.58,
-  );
+  const existingBase =
+    scene.getMaterialByName(
+      "terrain-base",
+    );
+  const base =
+    existingBase instanceof
+    StandardMaterial
+      ? existingBase
+      : new StandardMaterial(
+          "terrain-base",
+          scene,
+        );
+  base.diffuseColor =
+    new Color3(
+      0.26,
+      0.24,
+      0.21,
+    );
+  base.emissiveColor =
+    new Color3(
+      0.018,
+      0.016,
+      0.014,
+    );
+  base.specularColor =
+    Color3.Black();
 
-  const base = new StandardMaterial("terrain-base", scene);
-  base.diffuseColor = new Color3(0.26, 0.24, 0.21);
-  base.emissiveColor = new Color3(0.018, 0.016, 0.014);
-  base.specularColor = Color3.Black();
-
-  surface.backFaceCulling = false;
-  cliff.backFaceCulling = false;
-  wall.backFaceCulling = false;
+  surface.backFaceCulling =
+    false;
+  cliff.backFaceCulling =
+    false;
+  wall.backFaceCulling =
+    false;
 
   return {
     surface,

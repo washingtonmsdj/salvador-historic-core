@@ -1,358 +1,153 @@
 # Base geoespacial
 
-Esta pasta é a fonte cartográfica do protótipo. A regra daqui em diante é:
+Esta pasta é a fonte cartográfica do protótipo. O contrato é:
 
+```text
+fontes reais/oficiais -> raw -> normalized -> derived -> runtime
 ```
-fontes reais -> raw -> normalized -> derived -> Babylon.js
-```
 
-O terreno procedural antigo continua disponível apenas como fallback de desenvolvimento.
+O runtime normal usa os produtos persistentes de `geospatial/derived/` quando eles passam pelas validações. Consultas live e o terreno procedural existem somente como fallback, diagnóstico e apoio a refresh.
 
-## CRS e origem
+## Sistema de coordenadas
 
-- horizontal: EPSG:32724 (UTM 24S, metros);
+- CRS horizontal: EPSG:32724 (UTM 24S, metros);
 - origem local: centro do Elevador Lacerda;
 - X: deslocamento leste/oeste em metros;
 - Z: deslocamento norte/sul em metros;
-- Y: elevação.
+- Y: elevação local;
+- o perímetro e os quatro cantos também possuem equivalentes WGS84.
 
-O arquivo `manifest.json` registra as fontes, comandos e caminhos oficiais do pipeline.
+O arquivo `manifest.json` registra fontes, políticas, comandos e limites de qualidade.
 
-Cada importação preserva duas camadas:
+## Camadas persistentes ativas
 
-- `raw/`: resposta original da fonte externa, sem transformação;
-- `normalized/`: geometrias transformadas para EPSG:32724 e coordenadas locais em metros.
-
-A camada `derived/` fica reservada para produtos gerados, como TIN/heightfield/GLB.
-
-## Camadas
-
-### OSM
-
-Usado para:
-
-- ruas;
-- praças;
-- footprints;
-- edifícios;
-- referências urbanas.
-
-Importação e derivação:
-
-```bash
-npm run geospatial:import:osm
-npm run geospatial:derive:vectors
-```
+### OpenStreetMap
 
 O produto `geospatial/derived/site-vectors.json` contém:
 
-- centerlines de vias recortadas ao perímetro;
-- praças/espaços explicitamente mapeados;
+- centerlines viárias recortadas ao perímetro;
+- espaços urbanos/polígonos;
 - footprints de edifícios;
-- provenance e tags OSM.
+- identidade OSM, tags, provenance e origem da largura/altura.
 
-Ruas e espaços podem ser usados diretamente no runtime depois da validação. Footprints de
-edifícios não são transformados automaticamente em volumes quando não existe altura/modelo
-confiável.
-
-### CONDER
-
-A camada oficial preparada é `REL_Curva_Nivel_L`, layer 14 da Cartografia Sistemática
-1992/24. Ela trabalha em EPSG:32724 e expõe `ELEVATION`.
-
-Importação:
-
-```bash
-npm run geospatial:import:conder
-```
-
-### Prefeitura de Salvador
-
-A cartografia municipal documenta ortofotos, LiDAR e MDT. Quando um endpoint ou arquivo público
-estável do recorte estiver identificado, o MDT municipal deve ter prioridade sobre a superfície
-derivada apenas de curvas de nível.
-
-## Build derivado
-
-Depois da importação altimétrica:
-
-```bash
-npm run geospatial:derive:terrain
-npm run geospatial:build
-npm run geospatial:validate
-```
-
-O derivador transforma as curvas normalizadas numa grade regular de 2,5 m usando as cotas das
-curvas como restrições fixas e relaxação harmônica apenas entre elas.
-
-Para atualizar por fonte:
-
-```bash
-npm run geospatial:refresh:vectors
-npm run geospatial:refresh:terrain
-```
-
-Para atualizar toda a cadeia:
-
-```bash
-npm run geospatial:refresh
-```
-
-O build gera `src/data/geospatial-base.json`, que informa ao runtime quais camadas foram
-importadas e quais produtos derivados estão realmente prontos para uso.
-
-Importar OSM ou CONDER não muda automaticamente a cena para "base real". O runtime só deixa de
-mostrar fallback depois que existir um produto em `geospatial/derived/` que o Babylon consuma.
-Nenhum fallback procedural pode ser apresentado como dado real.
-
-
-## Blockouts de edifícios OSM
-
-A cena pode promover footprints OSM para blockouts 3D apenas quando **vetores e terreno
-geoespaciais estiverem ativos ao mesmo tempo**.
-
-Critérios automáticos:
-
-- footprint poligonal válido;
-- `height` explícita ou altura derivada de `building:levels`;
-- footprint não pode sobrepor um marco já curado separadamente;
-- variação do terreno sob o footprint não pode ultrapassar 0,75 m;
-- a elevação da fundação é amostrada do terreno geoespacial ativo;
-- qualquer volume automático continua marcado como blockout estimado.
-
-Footprints em encosta forte são deliberadamente ignorados até receberem uma fundação ou modelo
-específico. Quando essa base entra em operação, os placeholders genéricos do tipo `rua-chile`
-são removidos do runtime.
-
-
-## Referência raster no terreno
-
-Enquanto os produtos vetoriais e o MDT/heightfield real ainda estão sendo materializados, o
-Preview pode exibir uma camada raster do OpenStreetMap diretamente sobre a superfície 3D.
-
-Essa camada:
-
-- usa o mesmo bbox WGS84 calculado a partir do perímetro local;
-- é convertida para o mesmo sistema X/Z centrado no Elevador Lacerda;
-- acompanha a altura do terreno apenas para comparação visual;
-- não gera ruas, colisões, edifícios ou gameplay;
-- fica abaixo das superfícies 3D de ruas e praças;
-- possui limite explícito de tiles e attribution visível;
-- pode ser desligada pelo botão `Mapa no terreno`.
-
-A finalidade é detectar imediatamente desalinhamentos entre blockouts e cartografia real. Ela não
-substitui a promoção de OSM/CONDER para `geospatial/derived/`.
-
-
-## Seed OSM versionada
-
-Enquanto o import completo do bbox ainda não pode ser executado neste ambiente, o runtime usa uma
-seed parcial extraída de `public/data/osm-reference.json`.
-
-A seed atual contém somente features já versionadas e verificáveis:
-
-- Rua Chile — OSM way 258560240;
-- Praça Tomé de Souza — OSM way 1263035782;
-- Elevador Lacerda — OSM way 59224731.
-
-O estado do runtime é `geospatial-hybrid`: as features reais substituem/acompanham somente os
-equivalentes cobertos pela seed; features ainda não materializadas continuam explicitamente em
-fallback.
-
-O perímetro Z foi ampliado para ±300 m para conter o trecho verificado de Rua Chile sem mover a
-origem do Elevador.
-
-
-## OSM ao vivo no Preview
-
-O navegador pode consultar um recorte pequeno do Overpass diretamente em runtime. A consulta é
-assíncrona e nunca bloqueia a abertura da cena.
-
-Regras:
-
-- usa somente o bbox atual do projeto;
-- consulta vias, áreas urbanas e footprints de edifícios;
-- transforma WGS84 para a mesma projeção UTM 24S usada pelo projeto;
-- mantém cache apenas na sessão do navegador por 15 minutos;
-- tenta dois endpoints Overpass antes de desistir;
-- se a rede falhar, mantém a seed versionada sem quebrar a cena;
-- quando a consulta funciona, ruas e áreas do Preview são atualizadas automaticamente;
-- footprints de edifícios são mostrados como guias de alinhamento enquanto o terreno oficial ainda
-  não estiver ativo;
-- OSM ao vivo não altera `geospatial/derived/` e não muda a provenance persistida do projeto.
-
-A promoção definitiva continua exigindo importação, revisão e versionamento dos dados.
-
-
-## CONDER ao vivo no Preview
-
-O Preview também pode consultar diretamente a camada oficial `REL_Curva_Nivel_L` da CONDER e
-gerar um heightfield temporário durante a sessão.
-
-Regras do modo live:
-
-- consulta somente o envelope EPSG:32724 do projeto;
-- rejeita respostas ArcGIS marcadas como parciais por `exceededTransferLimit`;
-- recorta as curvas ao perímetro local antes da interpolação;
-- usa grade de 5 m, amostragem de curvas a cada 2,5 m e no máximo 750 iterações;
-- resolve as células não medidas por interpolação harmônica com as curvas como constraints fixas;
-- usa o menor valor derivado como datum vertical temporário;
-- mantém cache somente em `sessionStorage` por 15 minutos;
-- se a consulta ou derivação falhar, conserva o terreno procedural sem interromper a cena;
-- quando funciona, reconstrói terreno, mapa raster, ruas, áreas e guias OSM sobre a nova superfície;
-- não grava nem modifica `geospatial/derived/terrain.json`.
-
-O modo live é uma ferramenta de validação visual. A malha persistida continua exigindo a importação
-oficial, derivação de 2,5 m, validação e versionamento pelo pipeline `geospatial:refresh:terrain`.
-
-
-## Blockouts OSM ao vivo
-
-Quando o Preview dispõe simultaneamente de terrain geoespacial ativo e footprints OSM ao vivo,
-ele pode promover automaticamente apenas edifícios que atendem à política conservadora definida
-em `buildingBlockoutPolicy`.
-
-Um footprint só vira volume quando:
-
-- possui polígono OSM válido;
-- possui `height` explícito ou altura derivável de `building:levels`;
-- não pertence à lista de marcos protegidos;
-- não sobrepõe footprints curados de marcos já modelados;
-- a variação de relevo sob a fundação fica dentro do limite configurado.
-
-Os blocos provisórios da Rua Chile só são removidos se um footprint promovido realmente os
-sobrepuser. Edifícios sem altura ou sobre encosta excessiva permanecem apenas como guia de footprint.
-
-Essa promoção é temporária da sessão. Ela não grava novas dimensões em `site-data.json` nem
-promove dados live para `geospatial/derived/`.
-
-
-## Contrato de fidelidade viária
-
-O Preview não deve desenhar manualmente a via da encosta para “parecer correta”. A **Ladeira da
-Montanha** é tratada como feature geoespacial e só pode entrar pela geometria OSM.
-
-Vias-chave auditadas no recorte:
+O modo `geospatial-derived` só pode ficar ativo quando o produto declara cobertura completa e contém todas as vias críticas definidas no manifesto:
 
 - Rua Chile;
 - Ladeira da Montanha;
 - Rua da Conceição da Praia;
 - Avenida Lafayete Coutinho.
 
-O carregamento vetorial segue esta ordem:
+O runtime persistente é a referência normal. Refresh live não apaga nem substitui silenciosamente features versionadas.
 
-1. Overpass principal;
-2. Overpass alternativo;
-3. API direta `/api/0.6/map?bbox=...` do OpenStreetMap;
-4. seed versionada somente se todas as fontes live falharem.
+### CONDER
 
-A API direta é usada apenas para o bbox pequeno do projeto. Os nós de cada `way` são reconstruídos,
-projetados para UTM 24S e convertidos para X/Z locais. Portanto a posição da rua vem do mapa, não de
-coordenadas inventadas no renderer.
+A fonte altimétrica persistente atual é a camada oficial `REL_Curva_Nivel_L`, layer 14 da Cartografia Sistemática CONDER 1992/24, em EPSG:32724.
 
-Quando uma via não possui `width`, uma largura continua sendo explicitamente estimada. Se houver
-`lanes`, o Preview usa `lanes × 3 m` como estimativa identificada; a geometria do eixo permanece
-a geometria OSM real.
+As curvas normalizadas são convertidas em uma grade regular de 2,5 m por um solver harmônico com as cotas das curvas como restrições fixas. O produto final fica em `geospatial/derived/terrain.json`.
 
-Nas encostas, cada borda da faixa viária amostra separadamente o terreno ativo para evitar que a
-rua atravesse a ribanceira ou flutue por usar apenas a cota do eixo central.
+Essa derivação é geograficamente muito superior ao perfil procedural, mas não deve ser tratada como MDT/LiDAR moderno. Se a Prefeitura de Salvador publicar um MDT/LiDAR estável para o recorte, ele deve ser avaliado como fonte altimétrica preferencial.
 
-## Coordenadas do perímetro
+## Vias e gameplay
 
-Os quatro cantos do terreno são armazenados simultaneamente como:
+As vias derivadas preservam a geometria OSM e amostram o terreno ativo.
 
-- X/Z locais em metros;
-- UTM 24S (EPSG:32724);
-- latitude/longitude WGS84.
+Regras principais:
 
-O runtime também possui transformação inversa X/Z → UTM → WGS84, portanto qualquer ponto da cena
-pode receber coordenadas geográficas sob demanda. No modo Debug, os quatro cantos exibem essas
-coordenadas para conferência visual.
+- espaçamento longitudinal de amostragem: 1,25 m;
+- largura explícita do OSM é preservada quando disponível;
+- largura determinística continua identificada como estimada;
+- crossfall de gameplay é limitado a 6%;
+- depressões podem receber correção vertical limitada, sem cortar o terreno oficial;
+- quando a borda baixa precisa ser elevada, é gerado suporte/contenção;
+- junctions só conectam endpoints compatíveis em layer/bridge/tunnel/elevation mode;
+- a superfície do junction é ajustada às bordas já graduadas das vias;
+- limites de corte, aterro, inclinação e diferença para as bordas são validados automaticamente.
 
+Essas regras produzem uma superfície caminhável coerente sem afirmar que o projeto contém cotas de engenharia civil.
 
-## Endpoint OSM same-origin
+## Máscaras do terreno
 
-O Preview não depende mais apenas de chamadas cross-origin feitas pelo browser. O servidor do app expõe:
+Máscaras são usadas somente quando uma estrutura ou deck precisa substituir visualmente/colisivamente o terreno existente.
 
-`GET /api/geospatial/osm`
+O renderer não remove mais um triângulo-base inteiro de 2,5 m quando ele apenas encosta na máscara. A borda é subdividida adaptativamente até o limite definido em `terrainRenderMaskPolicy.maxBoundaryEdge`.
 
-O endpoint:
+No estado atual:
 
-- usa exclusivamente o bbox versionado do projeto;
-- consulta Overpass no servidor;
-- tenta a API bbox oficial do OpenStreetMap como fallback;
-- devolve JSON Overpass ou XML OSM preservando a geometria original;
-- aplica cache HTTP curto;
-- não aceita bbox arbitrário do cliente e, portanto, não funciona como proxy aberto.
+- a precisão máxima da borda é 8 cm;
+- footprints verificados de estruturas são recortados sem padding externo;
+- junctions usam uma máscara ligeiramente interna ao deck para impedir que o recorte ultrapasse a superfície viária.
 
-O browser tenta essa rota primeiro. Chamadas diretas aos provedores externos ficam apenas como fallback.
+O terreno fora da região de máscara mantém sua malha original.
 
-Com dados OSM ativos, as ruas fallback manuais são substituídas por centerlines reais. O dataset
-curado não contém mais a via inferior inventada nem eixos extrapolados de Rua Chile; quando o
-live falha, a cena mostra apenas vetores já versionados e verificáveis.
+## Espaços públicos
 
+Polígonos de espaço são triangulados e acompanhados sobre o terreno ativo.
 
-## Contrato de cobertura parcial
+`leisure=park` sem tag explícita de superfície rígida não recebe pavimentação inventada. Nesses casos o terreno oficial permanece visível e caminhável.
 
-Uma resposta OSM com features válidas não é automaticamente considerada cobertura completa.
+## Edifícios
 
-As vias críticas do recorte são declaradas uma única vez em `geospatial/manifest.json` e a
-importação persistente registra `criticalRoadCoverage` com contagem, ausências e estado de
-completude. O produto derivado preserva o mesmo metadado.
+Footprints OSM só são promovidos automaticamente para blockouts 3D quando:
 
-No Preview, uma resposta live parcial funciona como **overlay** sobre os vetores versionados:
-features com o mesmo nome são atualizadas pela geometria live, mas ruas versionadas que não vieram
-na resposta não são apagadas. Isso evita o caso em que uma resposta incompleta do Overpass/API
-faz o mapa aparentemente "perder" ruas.
+- o polígono é válido;
+- existe `height` explícito ou altura derivável de `building:levels`;
+- o objeto não está na lista de marcos protegidos;
+- não existe sobreposição indevida com um modelo/footprint curado;
+- o relevo sob a fundação está dentro do limite permitido.
 
-Somente um produto persistente que declare `coverage: "complete"` e contenha todas as vias críticas
-pode ativar o modo `geospatial-derived` sem fallback. O validador cruza o metadado declarado com
-os nomes realmente presentes em `site-vectors.json`; portanto não é possível promover cobertura
-completa apenas aumentando a contagem total de features.
+Footprints em encosta forte permanecem sem volume automático até receberem fundação/modelagem específica.
 
+## Referência raster
 
-## Endpoint CONDER same-origin
+O mapa raster OSM pode ser exibido sobre o terreno apenas para conferência visual de alinhamento.
 
-O Preview tenta primeiro `GET /api/geospatial/conder`.
+Ele:
 
-A rota do app:
+- não cria geometria 3D;
+- não fornece colisão;
+- não substitui ruas/edifícios;
+- não é fonte de elevação;
+- deve manter attribution visível.
 
-- usa exclusivamente o envelope UTM EPSG:32724 versionado do projeto;
-- não aceita envelope ou camada arbitrária enviados pelo cliente;
-- consulta a camada oficial `REL_Curva_Nivel_L` da CONDER;
-- rejeita erro ArcGIS, resposta vazia e `exceededTransferLimit`;
-- aplica cache HTTP curto;
-- devolve as curvas originais em JSON para o mesmo pipeline de normalização do browser.
+## Fallback e refresh
 
-Somente se essa rota falhar o browser tenta a CONDER diretamente. O painel de debug mostra qual
-provedor foi usado.
+O app ainda possui rotas same-origin e loaders live para OSM/CONDER. Eles são úteis para diagnóstico, refresh e recuperação quando um produto persistente não está disponível.
 
-O import persistente segue o mesmo princípio de integridade: respostas parciais são rejeitadas e
-nenhum produto normalizado é promovido se menos de duas curvas utilizáveis sobreviverem.
+Quando o produto persistente válido existe:
 
+- OSM versionado permanece autoritativo para o runtime;
+- CONDER versionado permanece autoritativo para o terreno;
+- live não é a fonte normal da cena;
+- seed parcial não é a arquitetura principal.
 
-## Identidade OSM no overlay
+## Comandos
 
-Vias e áreas derivadas preservam `osmType`, `osmId` e tags de origem até o runtime.
+Importar e derivar OSM:
 
-Quando uma resposta live é mesclada com a base versionada, uma feature geoespacial existente só é
-substituída automaticamente se a mesma identidade OSM estiver presente no overlay. O nome deixa de
-ser a chave primária para features OSM, porque uma rua pode ser composta por vários `way` distintos
-com o mesmo nome.
+```bash
+npm run geospatial:import:osm
+npm run geospatial:derive:vectors
+```
 
-A comparação por nome continua apenas para fallbacks manuais sem identidade OSM. Isso permite que
-um vetor real substitua um placeholder legado sem apagar outros trechos reais homônimos.
+Importar e derivar terreno:
 
+```bash
+npm run geospatial:import:conder
+npm run geospatial:derive:terrain
+```
 
-## Cota vertical dos vetores OSM
+Refresh por fonte:
 
-Geometria OSM não recebe mais cota vertical especial baseada no nome da rua ou praça.
+```bash
+npm run geospatial:refresh:vectors
+npm run geospatial:refresh:terrain
+```
 
-Ruas e áreas derivadas usam `elevationMode: "terrain"` e amostram o terreno ativo. No caso das
-ruas, cada borda da faixa é amostrada separadamente pelo renderer, de modo que a seção transversal
-acompanhe a superfície em vez de usar apenas a altura do eixo central.
+Pipeline completo:
 
-Isso remove exceções anteriores como “Rua Chile = Cidade Alta” e “Praça Tomé de Souza = Cidade
-Alta”. Enquanto o terreno oficial não estiver disponível, a posição vertical continua limitada
-pela qualidade do fallback procedural; quando CONDER/terrain geoespacial está ativo, a mesma
-geometria viária acompanha automaticamente esse heightfield sem coordenadas verticais inventadas.
+```bash
+npm run geospatial:refresh
+npm run geospatial:validate
+```
+
+Nenhum produto deve ser promovido a `geospatial-derived` apenas por existir no disco. O validador precisa confirmar CRS, perímetro, metadata, cobertura crítica, qualidade do terreno e contratos de gameplay.

@@ -1,14 +1,21 @@
 import { useEffect, useRef, useState } from "react";
+import derivedTerrainData from "../../geospatial/derived/terrain.json";
 import derivedVectorsData from "../../geospatial/derived/site-vectors.json";
 import manifestData from "../../geospatial/manifest.json";
 import geospatialBase from "../data/geospatial-base.json";
 import siteData from "../data/site-data.json";
+import { chooseWalkableSpawn } from "../game/walkable-spawn";
+import {
+  deriveRoadJunctions,
+  roadJunctionMaskPolygon,
+} from "../game/road-junctions";
 import type {
   DerivedBuildingFootprint,
   LinearFeature,
   MeasuredObject,
   SceneLevels,
   TerrainConfig,
+  TerrainRenderMask,
 } from "../game/types";
 import type { Engine } from "@babylonjs/core/Engines/engine";
 import type { Scene } from "@babylonjs/core/scene";
@@ -73,12 +80,34 @@ interface GeospatialBaseRuntime {
   };
 }
 
+interface DerivedTerrainRuntime {
+  available: boolean;
+  source: string;
+  grid: null | {
+    spacing: number;
+    columns: number;
+    rows: number;
+    vertexCount: number;
+  };
+  statistics?: {
+    contourCount: number;
+    localHeightMax: number;
+  };
+}
+
 interface DerivedSiteVectors {
   available: boolean;
   metadata?: {
     roadCount: number;
     spaceCount: number;
     buildingFootprintCount: number;
+    coverage?: string;
+    criticalRoadCoverage?: {
+      found: number;
+      total: number;
+      missing: string[];
+      complete: boolean;
+    };
   };
   roads: LinearFeature[];
   spaces: LinearFeature[];
@@ -88,8 +117,74 @@ interface DerivedSiteVectors {
 const data = siteData as unknown as SalvadorSiteData;
 const geo =
   geospatialBase as unknown as GeospatialBaseRuntime;
+const derivedTerrain =
+  derivedTerrainData as unknown as DerivedTerrainRuntime;
 const derivedVectors =
   derivedVectorsData as unknown as DerivedSiteVectors;
+const persistentTerrainActive =
+  geo.terrain.active ===
+    "geospatial-derived" &&
+  geo.terrain.fallbackActive === false &&
+  derivedTerrain.available;
+
+const provisionalUpperElevatorIds =
+  new Set([
+    "lacerda-walkway",
+    "lacerda-upper-access",
+  ]);
+const runtimeElevatorParts =
+  persistentTerrainActive
+    ? data.elevator.filter(
+        (part) =>
+          !provisionalUpperElevatorIds.has(
+            part.id,
+          ),
+      )
+    : data.elevator;
+const runtimeLandmarks =
+  persistentTerrainActive
+    ? data.landmarks.filter(
+        (landmark) =>
+          landmark.id !==
+          "upperEntrance",
+      )
+    : data.landmarks;
+
+const structureTerrainRenderMasks:
+  TerrainRenderMask[] =
+  runtimeElevatorParts.flatMap(
+    (part) =>
+      !part.estimated &&
+      part.footprint
+        ? [
+            {
+              id:
+                part.id +
+                "-terrain-mask",
+              polygon:
+                part.footprint,
+              padding:
+                manifestData
+                  .terrainStructureMaskPolicy
+                  .padding,
+              maxBoundaryEdge:
+                manifestData
+                  .terrainRenderMaskPolicy
+                  .maxBoundaryEdge,
+              source:
+                part.source,
+            },
+          ]
+        : [],
+  );
+const runtimeBarriers =
+  persistentTerrainActive
+    ? data.barriers.filter(
+        (barrier) =>
+          !barrier.estimated,
+      )
+    : data.barriers;
+
 function normalizeFeatureName(name: string) {
   return name.trim().toLocaleLowerCase("pt-BR");
 }
@@ -140,6 +235,16 @@ const derivedVectorsUsable =
   (geo.vectors.active === "geospatial-derived" ||
     geo.vectors.active === "geospatial-hybrid") &&
   derivedVectors.available;
+const persistentVectorsActive =
+  geo.vectors.active ===
+    "geospatial-derived" &&
+  geo.vectors.fallbackActive === false &&
+  derivedVectors.available &&
+  derivedVectors.metadata
+    ?.coverage === "complete" &&
+  derivedVectors.metadata
+    ?.criticalRoadCoverage
+    ?.complete === true;
 const runtimeRoads =
   geo.vectors.active === "geospatial-derived" &&
   derivedVectors.available
@@ -159,6 +264,58 @@ const runtimeSpaces =
         derivedVectors.available
       ? mergeLinearFeatures(data.spaces, derivedVectors.spaces)
       : data.spaces;
+
+const roadJunctionTerrainMasks:
+  TerrainRenderMask[] =
+  persistentVectorsActive
+    ? deriveRoadJunctions(
+        runtimeRoads,
+        {
+          snapDistance:
+            manifestData
+              .roadSurfacePolicy
+              .junctionSnapDistance,
+          overlap:
+            manifestData
+              .roadSurfacePolicy
+              .junctionOverlap,
+        },
+      ).map((junction) => ({
+        id:
+          junction.id +
+          "-terrain-mask",
+        polygon:
+          roadJunctionMaskPolygon(
+            junction,
+            manifestData
+              .roadSurfacePolicy
+              .junctionTerrainMaskInset,
+          ),
+        padding: 0,
+        maxBoundaryEdge:
+          manifestData
+            .terrainRenderMaskPolicy
+            .maxBoundaryEdge,
+        source:
+          "Derived from complete OSM road junction " +
+          junction.connectedFeatureIds.join(
+            ", ",
+          ),
+      }))
+    : [];
+
+const terrainRenderMasks:
+  TerrainRenderMask[] = [
+    ...structureTerrainRenderMasks,
+    ...roadJunctionTerrainMasks,
+  ];
+const streetSpawn =
+  chooseWalkableSpawn(
+    runtimeSpaces,
+    runtimeRoads,
+    "Praça Tomé de Souza",
+  );
+
 const derivedBuildingsEligible =
   derivedVectorsUsable &&
   geo.terrain.active === "geospatial-derived" &&
@@ -187,37 +344,89 @@ export function SalvadorScene() {
   const [cameraMode, setCameraMode] = useState<CameraMode>("aerial");
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
-  const [mapReferenceEnabled, setMapReferenceEnabled] = useState(true);
+  const [mapReferenceEnabled, setMapReferenceEnabled] =
+    useState(false);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [liveOsmState, setLiveOsmState] = useState<
     "loading" | "active" | "cached" | "unavailable"
-  >("loading");
+  >(
+    persistentVectorsActive
+      ? "active"
+      : "loading",
+  );
   const [liveOsmCounts, setLiveOsmCounts] = useState({
-    roads: 0,
-    spaces: 0,
-    buildings: 0,
+    roads:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.roadCount ?? 0
+        : 0,
+    spaces:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.spaceCount ?? 0
+        : 0,
+    buildings:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.buildingFootprintCount ??
+          0
+        : 0,
   });
   const [liveOsmProvider, setLiveOsmProvider] =
-    useState("—");
+    useState(
+      persistentVectorsActive
+        ? "Versionado · OpenStreetMap"
+        : "—",
+    );
   const [
     criticalRoadCoverage,
     setCriticalRoadCoverage,
   ] = useState({
-    found: 0,
-    total: criticalRoadNames.length,
-    missing: [...criticalRoadNames],
+    found:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.criticalRoadCoverage
+            ?.found ?? 0
+        : 0,
+    total:
+      criticalRoadNames.length,
+    missing:
+      persistentVectorsActive
+        ? derivedVectors.metadata
+            ?.criticalRoadCoverage
+            ?.missing ?? []
+        : [...criticalRoadNames],
   });
   const [liveTerrainState, setLiveTerrainState] = useState<
     "loading" | "active" | "cached" | "unavailable"
-  >("loading");
-  const [liveTerrainProvider, setLiveTerrainProvider] =
-    useState("—");
-  const [liveTerrainStats, setLiveTerrainStats] = useState({
-    contours: 0,
-    columns: 0,
-    rows: 0,
-    maxHeight: 0,
+  >(
+    persistentTerrainActive
+      ? "active"
+      : "loading",
+  );
+  const [
+    liveTerrainProvider,
+    setLiveTerrainProvider,
+  ] = useState(
+    persistentTerrainActive
+      ? "Versionado · CONDER"
+      : "—",
+  );
+  const [
+    liveTerrainStats,
+    setLiveTerrainStats,
+  ] = useState({
+    contours:
+      derivedTerrain.statistics
+        ?.contourCount ?? 0,
+    columns:
+      derivedTerrain.grid?.columns ?? 0,
+    rows:
+      derivedTerrain.grid?.rows ?? 0,
+    maxHeight:
+      derivedTerrain.statistics
+        ?.localHeightMax ?? 0,
   });
   const [liveBuildingStats, setLiveBuildingStats] = useState({
     promoted: 0,
@@ -236,6 +445,9 @@ export function SalvadorScene() {
     let engine: Engine | null = null;
     let scene: Scene | null = null;
     let clearRuntimeTerrain: (() => void) | null = null;
+    let disposePlayer: (() => void) | null = null;
+    let syncPlayerToActiveTerrain:
+      (() => void) | null = null;
 
     const handleResize = () => engine?.resize();
 
@@ -260,7 +472,10 @@ export function SalvadorScene() {
           { createBuildingFootprintGuides },
           { loadLiveOsmVectors },
           { loadLiveConderTerrain },
-          { deriveRuntimeBuildingBlockouts },
+          {
+            deriveRuntimeBuildingBlockouts,
+            alignEstimatedBuildingsToTerrain,
+          },
           { createElevatorBlockout, createConnectionPoints },
           { createBarriers },
           { createCameras },
@@ -327,6 +542,7 @@ export function SalvadorScene() {
           scene,
           data.terrain,
           data.levels,
+          terrainRenderMasks,
         );
         let mapReference = createOsmTerrainReference(
           scene,
@@ -336,7 +552,7 @@ export function SalvadorScene() {
           data.terrain,
           data.levels,
         );
-        let mapReferenceRuntimeEnabled = true;
+        let mapReferenceRuntimeEnabled = false;
         mapReference.setEnabled(
           mapReferenceRuntimeEnabled,
         );
@@ -345,6 +561,15 @@ export function SalvadorScene() {
         let activeSpaceFeatures = runtimeSpaces;
         let activeBuildingFootprints:
           DerivedBuildingFootprint[] = [];
+
+        const groundedCuratedBuildings =
+          persistentTerrainActive
+            ? alignEstimatedBuildingsToTerrain(
+                data.buildings,
+                data.terrain,
+                data.levels,
+              )
+            : data.buildings;
 
         let spaceMeshes = createSpaces(
           scene,
@@ -363,21 +588,21 @@ export function SalvadorScene() {
               derivedVectors.buildingFootprints,
               data.terrain,
               data.levels,
-              [...data.buildings, ...data.elevator].flatMap(
+              [...groundedCuratedBuildings, ...runtimeElevatorParts].flatMap(
                 (item) => (item.footprint ? [item.footprint] : []),
               ),
-              data.buildings,
+              groundedCuratedBuildings,
             )
           : null;
         const replacedFallbackIds = new Set(
           derivedBuildingResult?.replacedFallbackIds ?? [],
         );
         const curatedBuildings = derivedBuildingResult
-          ? data.buildings.filter(
+          ? groundedCuratedBuildings.filter(
               (building) =>
                 !replacedFallbackIds.has(building.id),
             )
-          : data.buildings;
+          : groundedCuratedBuildings;
         const runtimeBuildings = [
           ...curatedBuildings,
           ...(derivedBuildingResult?.buildings ?? []),
@@ -424,10 +649,16 @@ export function SalvadorScene() {
         );
         const elevatorMeshes = createElevatorBlockout(
           scene,
-          data.elevator,
+          runtimeElevatorParts,
         );
-        createConnectionPoints(scene, data.landmarks);
-        const barrierMeshes = createBarriers(scene, data.barriers);
+        createConnectionPoints(
+          scene,
+          runtimeLandmarks,
+        );
+        const barrierMeshes = createBarriers(
+          scene,
+          runtimeBarriers,
+        );
 
         const shadows = new ShadowGenerator(2048, sun);
         shadows.useBlurExponentialShadowMap = true;
@@ -454,8 +685,8 @@ export function SalvadorScene() {
           ((items: MeasuredObject[]) => void) |
           null = null;
         const reservedFootprints = [
-          ...data.buildings,
-          ...data.elevator,
+          ...groundedCuratedBuildings,
+          ...runtimeElevatorParts,
         ].flatMap((item) =>
           item.footprint ? [item.footprint] : [],
         );
@@ -476,13 +707,13 @@ export function SalvadorScene() {
               data.terrain,
               data.levels,
               reservedFootprints,
-              data.buildings,
+              groundedCuratedBuildings,
             );
           const replacedIds = new Set(
             result.replacedFallbackIds,
           );
           const nextBuildings = [
-            ...data.buildings.filter(
+            ...groundedCuratedBuildings.filter(
               (building) =>
                 !replacedIds.has(building.id),
             ),
@@ -509,9 +740,9 @@ export function SalvadorScene() {
             nextBuildings;
           updateDebugItems?.([
             ...activeDebugBuildings,
-            ...data.elevator,
-            ...data.landmarks,
-            ...data.barriers,
+            ...runtimeElevatorParts,
+            ...runtimeLandmarks,
+            ...runtimeBarriers,
             ...coordinateDebugItems(),
           ]);
 
@@ -526,14 +757,28 @@ export function SalvadorScene() {
           });
         };
 
-        const cameras = createCameras(scene, canvas);
-        configurePlayer(scene, cameras.street);
+        const cameras = createCameras(
+          scene,
+          canvas,
+          streetSpawn,
+        );
+        const playerController =
+          configurePlayer(
+            scene,
+            cameras.street,
+            data.terrain,
+            data.levels,
+          );
+        disposePlayer =
+          playerController.dispose;
+        syncPlayerToActiveTerrain =
+          playerController.syncToTerrain;
 
         const debug = createDebug(scene, [
           ...activeDebugBuildings,
-          ...data.elevator,
-          ...data.landmarks,
-          ...data.barriers,
+          ...runtimeElevatorParts,
+          ...runtimeLandmarks,
+          ...runtimeBarriers,
           ...coordinateDebugItems(),
         ]);
         debug.setEnabled(false);
@@ -559,132 +804,135 @@ export function SalvadorScene() {
           typeof createBuildingFootprintGuides
         > = [];
 
-        void loadLiveOsmVectors({
-          geographicBounds: geo.geographicBounds,
-          localBounds: data.terrain.bounds,
-          origin: {
-            easting: geo.origin.easting,
-            northing: geo.origin.northing,
-          },
-        })
-          .then((live) => {
-            const liveScene = scene;
-            if (disposed || !liveScene) return;
-
-            if (live.roads.length > 0) {
-              activeRoadFeatures =
-                mergeLinearFeatures(
-                  runtimeRoads,
-                  live.roads,
-                );
-              for (const mesh of roadMeshes) {
-                mesh.dispose();
-              }
-              roadMeshes = createRoads(
-                liveScene,
-                activeRoadFeatures,
-                data.terrain,
-                data.levels,
-              );
-            }
-
-            if (live.spaces.length > 0) {
-              activeSpaceFeatures =
-                mergeLinearFeatures(
-                  runtimeSpaces,
-                  live.spaces,
-                );
-              for (const mesh of spaceMeshes) {
-                mesh.dispose();
-              }
-              spaceMeshes = createSpaces(
-                liveScene,
-                activeSpaceFeatures,
-                data.terrain,
-                data.levels,
-              );
-            }
-
-            activeBuildingFootprints =
-              live.buildingFootprints;
-            for (const mesh of buildingGuideMeshes) {
-              mesh.dispose();
-            }
-            buildingGuideMeshes =
-              createBuildingFootprintGuides(
-                liveScene,
-                activeBuildingFootprints,
-                data.terrain,
-                data.levels,
-              );
-
-            rebuildLiveBuildingBlockouts(
-              liveScene,
-            );
-
-            setLiveOsmCounts({
-              roads: live.roads.length,
-              spaces: live.spaces.length,
-              buildings:
-                live.buildingFootprints.length,
-            });
-            const roadNames = new Set(
-              activeRoadFeatures.map((road) =>
-                normalizeFeatureName(
-                  road.name,
-                ),
-              ),
-            );
-            const missingRoads =
-              criticalRoadNames.filter(
-                (name) =>
-                  !roadNames.has(
-                    normalizeFeatureName(
-                      name,
-                    ),
-                  ),
-              );
-            setCriticalRoadCoverage({
-              found:
-                criticalRoadNames.length -
-                missingRoads.length,
-              total:
-                criticalRoadNames.length,
-              missing: missingRoads,
-            });
-
-            setLiveOsmProvider(
-              live.endpoint.startsWith(
-                "/api/geospatial/osm",
-              )
-                ? live.endpoint.includes(
-                    "openstreetmap-api",
-                  )
-                  ? "Servidor · API bbox"
-                  : "Servidor · Overpass"
-                : live.endpoint.includes(
-                      "api.openstreetmap.org",
-                    )
-                  ? "API bbox"
-                  : "Overpass",
-            );
-            setLiveOsmState(
-              live.source === "session-cache"
-                ? "cached"
-                : "active",
-            );
+        if (!persistentVectorsActive) {
+          void loadLiveOsmVectors({
+            geographicBounds: geo.geographicBounds,
+            localBounds: data.terrain.bounds,
+            origin: {
+              easting: geo.origin.easting,
+              northing: geo.origin.northing,
+            },
           })
-          .catch((error) => {
-            console.warn(
-              "Live OSM vectors unavailable; keeping versioned seed.",
-              error,
-            );
-            if (!disposed) {
-              setLiveOsmState("unavailable");
-            }
-          });
+            .then((live) => {
+              const liveScene = scene;
+              if (disposed || !liveScene) return;
+  
+              if (live.roads.length > 0) {
+                activeRoadFeatures =
+                  mergeLinearFeatures(
+                    runtimeRoads,
+                    live.roads,
+                  );
+                for (const mesh of roadMeshes) {
+                  mesh.dispose();
+                }
+                roadMeshes = createRoads(
+                  liveScene,
+                  activeRoadFeatures,
+                  data.terrain,
+                  data.levels,
+                );
+              }
+  
+              if (live.spaces.length > 0) {
+                activeSpaceFeatures =
+                  mergeLinearFeatures(
+                    runtimeSpaces,
+                    live.spaces,
+                  );
+                for (const mesh of spaceMeshes) {
+                  mesh.dispose();
+                }
+                spaceMeshes = createSpaces(
+                  liveScene,
+                  activeSpaceFeatures,
+                  data.terrain,
+                  data.levels,
+                );
+              }
+  
+              activeBuildingFootprints =
+                live.buildingFootprints;
+              for (const mesh of buildingGuideMeshes) {
+                mesh.dispose();
+              }
+              buildingGuideMeshes =
+                createBuildingFootprintGuides(
+                  liveScene,
+                  activeBuildingFootprints,
+                  data.terrain,
+                  data.levels,
+                );
+  
+              rebuildLiveBuildingBlockouts(
+                liveScene,
+              );
+  
+              setLiveOsmCounts({
+                roads: live.roads.length,
+                spaces: live.spaces.length,
+                buildings:
+                  live.buildingFootprints.length,
+              });
+              const roadNames = new Set(
+                activeRoadFeatures.map((road) =>
+                  normalizeFeatureName(
+                    road.name,
+                  ),
+                ),
+              );
+              const missingRoads =
+                criticalRoadNames.filter(
+                  (name) =>
+                    !roadNames.has(
+                      normalizeFeatureName(
+                        name,
+                      ),
+                    ),
+                );
+              setCriticalRoadCoverage({
+                found:
+                  criticalRoadNames.length -
+                  missingRoads.length,
+                total:
+                  criticalRoadNames.length,
+                missing: missingRoads,
+              });
+  
+              setLiveOsmProvider(
+                live.endpoint.startsWith(
+                  "/api/geospatial/osm",
+                )
+                  ? live.endpoint.includes(
+                      "openstreetmap-api",
+                    )
+                    ? "Servidor · API bbox"
+                    : "Servidor · Overpass"
+                  : live.endpoint.includes(
+                        "api.openstreetmap.org",
+                      )
+                    ? "API bbox"
+                    : "Overpass",
+              );
+              setLiveOsmState(
+                live.source === "session-cache"
+                  ? "cached"
+                  : "active",
+              );
+            })
+            .catch((error) => {
+              console.warn(
+                "Live OSM vectors unavailable; keeping versioned seed.",
+                error,
+              );
+              if (!disposed) {
+                setLiveOsmState("unavailable");
+              }
+            });
+        }
 
-        void loadLiveConderTerrain({
+        if (!persistentTerrainActive) {
+          void loadLiveConderTerrain({
           origin: {
             easting: geo.origin.easting,
             northing: geo.origin.northing,
@@ -706,6 +954,7 @@ export function SalvadorScene() {
                 liveScene,
                 data.terrain,
                 data.levels,
+                terrainRenderMasks,
               );
             } catch (error) {
               setRuntimeDerivedTerrain(null);
@@ -756,6 +1005,8 @@ export function SalvadorScene() {
               data.levels,
             );
 
+            syncPlayerToActiveTerrain?.();
+
             for (const mesh of buildingGuideMeshes) {
               mesh.dispose();
             }
@@ -773,9 +1024,9 @@ export function SalvadorScene() {
             );
             updateDebugItems?.([
               ...activeDebugBuildings,
-              ...data.elevator,
-              ...data.landmarks,
-              ...data.barriers,
+              ...runtimeElevatorParts,
+              ...runtimeLandmarks,
+              ...runtimeBarriers,
               ...coordinateDebugItems(),
             ]);
 
@@ -813,6 +1064,7 @@ export function SalvadorScene() {
               );
             }
           });
+        }
       } catch (error) {
         console.error("Failed to initialize Salvador 3D scene", error);
         if (!disposed) {
@@ -829,6 +1081,7 @@ export function SalvadorScene() {
     return () => {
       disposed = true;
       clearRuntimeTerrain?.();
+      disposePlayer?.();
       controlsRef.current = null;
       window.removeEventListener("resize", handleResize);
       engine?.stopRenderLoop();
@@ -932,14 +1185,14 @@ export function SalvadorScene() {
             {derivedVectors.metadata?.buildingFootprintCount ?? 0} edifícios
           </div>
           <div className="mt-1 text-white/45">
-            OSM ao vivo:{" "}
+            Vetores OSM:{" "}
             {liveOsmState === "loading"
               ? "carregando"
               : liveOsmState === "active"
                 ? "ativo"
                 : liveOsmState === "cached"
                   ? "cache da sessão"
-                  : "indisponível — usando seed"}
+                  : "indisponível — usando fallback geoespacial"}
             {(liveOsmState === "active" ||
               liveOsmState === "cached") && (
               <>
@@ -963,7 +1216,7 @@ export function SalvadorScene() {
               )}
           </div>
           <div className="mt-1 text-white/45">
-            CONDER ao vivo:{" "}
+            Terreno CONDER:{" "}
             {liveTerrainState === "loading"
               ? "carregando"
               : liveTerrainState === "active"
@@ -982,7 +1235,7 @@ export function SalvadorScene() {
             )}
           </div>
           <div className="mt-1 text-white/45">
-            Blockouts OSM live: {liveBuildingStats.promoted}
+            Blockouts OSM: {liveBuildingStats.promoted}
             {liveBuildingStats.noHeight > 0 && (
               <> · {liveBuildingStats.noHeight} sem altura</>
             )}
