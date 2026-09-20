@@ -303,12 +303,26 @@ export function deriveRuntimeBuildingBlockouts(
     });
   }
 
-  const generatedFootprints = buildings.flatMap(
-    (building) =>
-      building.footprint && building.footprint.length >= 3
-        ? [building.footprint]
-        : [],
-  );
+  const verifiedFootprints = footprints
+    .filter(
+      (item) =>
+        !isExcluded(item) &&
+        Array.isArray(item.footprint) &&
+        item.footprint.length >= 3,
+    )
+    .filter(
+      (item) =>
+        !reservedFootprints.some(
+          (reserved) =>
+            reserved.length >= 3 &&
+            polygonsOverlap(
+              item.footprint,
+              reserved,
+            ),
+        ),
+    )
+    .map((item) => item.footprint);
+
   const replacedFallbackIds = fallbackBuildings
     .filter((fallback) =>
       policy.removeFallbackTypesWhenActive.includes(
@@ -316,9 +330,14 @@ export function deriveRuntimeBuildingBlockouts(
       ),
     )
     .filter((fallback) => {
-      const footprint = measuredObjectFootprint(fallback);
-      return generatedFootprints.some((generated) =>
-        polygonsOverlap(footprint, generated),
+      const footprint =
+        measuredObjectFootprint(fallback);
+      return verifiedFootprints.some(
+        (verified) =>
+          polygonsOverlap(
+            footprint,
+            verified,
+          ),
       );
     })
     .map((fallback) => fallback.id);
