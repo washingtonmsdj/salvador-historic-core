@@ -1,0 +1,273 @@
+{
+  "metadata": {
+    "source": "OpenStreetMap versioned seed from public/data/osm-reference.json",
+    "sourceCrs": "EPSG:4326",
+    "normalizedCrs": "EPSG:32724",
+    "transform": "versioned OSM nodes projected to local metres around Elevador Lacerda",
+    "generatedAt": "2026-09-20T14:10:00.000Z",
+    "localOrigin": {
+      "latitude": -12.9740882,
+      "longitude": -38.5133597,
+      "easting": 552777.9809,
+      "northing": 8565679.442
+    },
+    "boundsMeters": {
+      "minX": -150,
+      "maxX": 150,
+      "minZ": -300,
+      "maxZ": 300
+    },
+    "featureCount": 3,
+    "namedTargetCount": 3,
+    "coverage": "seed-partial",
+    "notes": "Partial seed only. Full bbox import is still pending."
+  },
+  "namedTargets": [
+    {
+      "id": "way/59224731",
+      "osmType": "way",
+      "osmId": 59224731,
+      "tags": {
+        "addr:street": "Praça Visconde de Cayru",
+        "building": "yes",
+        "ele": "72",
+        "elevator": "yes",
+        "fee": "no",
+        "height": "72",
+        "historic": "building",
+        "layer": "2",
+        "name": "Elevador Lacerda",
+        "opening_hours": "Mo-Su 07:00-19:30",
+        "postal_code": "40015-170",
+        "start_date": "1873-12-08",
+        "tourism": "attraction",
+        "wikidata": "Q1328348",
+        "wikipedia": "pt:Elevador Lacerda"
+      },
+      "geometryType": "polygon",
+      "points": [
+        [
+          -0.346,
+          -5.374
+        ],
+        [
+          1.544,
+          -3.597
+        ],
+        [
+          3.402,
+          -1.842
+        ],
+        [
+          5.423,
+          0.056
+        ],
+        [
+          0.357,
+          5.374
+        ],
+        [
+          -1.196,
+          3.917
+        ],
+        [
+          -5.412,
+          -0.056
+        ]
+      ]
+    },
+    {
+      "id": "way/1263035782",
+      "osmType": "way",
+      "osmId": 1263035782,
+      "tags": {
+        "leisure": "park",
+        "name": "Praça Tomé de Souza"
+      },
+      "geometryType": "polygon",
+      "points": [
+        [
+          47.083,
+          -50.176
+        ],
+        [
+          31.377,
+          -67.741
+        ],
+        [
+          62.095,
+          -94.584
+        ],
+        [
+          105.359,
+          -43.398
+        ],
+        [
+          73.936,
+          -16.641
+        ],
+        [
+          56.216,
+          -38.239
+        ]
+      ]
+    },
+    {
+      "id": "way/258560240",
+      "osmType": "way",
+      "osmId": 258560240,
+      "tags": {
+        "bicycle:conditional": "yes @ (su 07:00-16:00)",
+        "cycleway:right": "lane",
+        "description": "A rua Chile é tida como a primeira do país. A via foi fundada em 1549 pelo governador Thomé de Souza como Rua Direita dos Mercadores. O atual nome é uma homenagem a quatro embaixadores chilenos que morreram de peste bubônica no Rio, em 1902.",
+        "highway": "secondary",
+        "lanes": "2",
+        "maxspeed": "30",
+        "name": "Rua Chile",
+        "oneway": "no",
+        "oneway:bicycle": "no",
+        "postal_code": "40020-000",
+        "source": "Companhia de Desenvolvimento Urbano dos Estado da Bahia;Livro: Histórias de Salvador nos Nomes das Suas Ruas",
+        "start_date": "1549",
+        "surface": "asphalt",
+        "wikidata": "Q25442475",
+        "wikipedia": "pt:Rua Chile (Salvador)"
+      },
+      "geometryType": "polyline",
+      "points": [
+        [
+          -107.166,
+          -296.277
+        ],
+        [
+          -70.212,
+          -254.61
+        ]
+      ]
+    }
+  ],
+  "features": [
+    {
+      "id": "way/59224731",
+      "osmType": "way",
+      "osmId": 59224731,
+      "tags": {
+        "addr:street": "Praça Visconde de Cayru",
+        "building": "yes",
+        "ele": "72",
+        "elevator": "yes",
+        "fee": "no",
+        "height": "72",
+        "historic": "building",
+        "layer": "2",
+        "name": "Elevador Lacerda",
+        "opening_hours": "Mo-Su 07:00-19:30",
+        "postal_code": "40015-170",
+        "start_date": "1873-12-08",
+        "tourism": "attraction",
+        "wikidata": "Q1328348",
+        "wikipedia": "pt:Elevador Lacerda"
+      },
+      "geometryType": "polygon",
+      "points": [
+        [
+          -0.346,
+          -5.374
+        ],
+        [
+          1.544,
+          -3.597
+        ],
+        [
+          3.402,
+          -1.842
+        ],
+        [
+          5.423,
+          0.056
+        ],
+        [
+          0.357,
+          5.374
+        ],
+        [
+          -1.196,
+          3.917
+        ],
+        [
+          -5.412,
+          -0.056
+        ]
+      ]
+    },
+    {
+      "id": "way/1263035782",
+      "osmType": "way",
+      "osmId": 1263035782,
+      "tags": {
+        "leisure": "park",
+        "name": "Praça Tomé de Souza"
+      },
+      "geometryType": "polygon",
+      "points": [
+        [
+          47.083,
+          -50.176
+        ],
+        [
+          31.377,
+          -67.741
+        ],
+        [
+          62.095,
+          -94.584
+        ],
+        [
+          105.359,
+          -43.398
+        ],
+        [
+          73.936,
+          -16.641
+        ],
+        [
+          56.216,
+          -38.239
+        ]
+      ]
+    },
+    {
+      "id": "way/258560240",
+      "osmType": "way",
+      "osmId": 258560240,
+      "tags": {
+        "bicycle:conditional": "yes @ (su 07:00-16:00)",
+        "cycleway:right": "lane",
+        "description": "A rua Chile é tida como a primeira do país. A via foi fundada em 1549 pelo governador Thomé de Souza como Rua Direita dos Mercadores. O atual nome é uma homenagem a quatro embaixadores chilenos que morreram de peste bubônica no Rio, em 1902.",
+        "highway": "secondary",
+        "lanes": "2",
+        "maxspeed": "30",
+        "name": "Rua Chile",
+        "oneway": "no",
+        "oneway:bicycle": "no",
+        "postal_code": "40020-000",
+        "source": "Companhia de Desenvolvimento Urbano dos Estado da Bahia;Livro: Histórias de Salvador nos Nomes das Suas Ruas",
+        "start_date": "1549",
+        "surface": "asphalt",
+        "wikidata": "Q25442475",
+        "wikipedia": "pt:Rua Chile (Salvador)"
+      },
+      "geometryType": "polyline",
+      "points": [
+        [
+          -107.166,
+          -296.277
+        ],
+        [
+          -70.212,
+          -254.61
+        ]
+      ]
+    }
+  ]
+}
