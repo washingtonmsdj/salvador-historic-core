@@ -1,0 +1,108 @@
+import siteData from "../src/data/site-data.json";
+import {
+  alignEstimatedBuildingsToTerrain,
+  sampleTerrainFootprint,
+} from "../src/game/derived-buildings";
+import type {
+  MeasuredObject,
+  SceneLevels,
+  TerrainConfig,
+} from "../src/game/types";
+
+const data =
+  siteData as unknown as {
+    buildings: MeasuredObject[];
+    terrain: TerrainConfig;
+    levels: SceneLevels;
+  };
+
+const aligned =
+  alignEstimatedBuildingsToTerrain(
+    data.buildings,
+    data.terrain,
+    data.levels,
+  );
+
+if (
+  aligned.length !==
+  data.buildings.length
+) {
+  throw new Error(
+    "Building grounding must preserve building count.",
+  );
+}
+
+let movedCount = 0;
+
+for (
+  let index = 0;
+  index < aligned.length;
+  index++
+) {
+  const before =
+    data.buildings[index];
+  const after = aligned[index];
+
+  if (!before || !after) {
+    continue;
+  }
+
+  if (
+    after.position[0] !==
+      before.position[0] ||
+    after.position[2] !==
+      before.position[2]
+  ) {
+    throw new Error(
+      `Building ${before.id} changed horizontal position.`,
+    );
+  }
+
+  if (
+    !before.estimated ||
+    !before.footprint ||
+    before.footprint.length < 3
+  ) {
+    continue;
+  }
+
+  const stats =
+    sampleTerrainFootprint(
+      before.footprint,
+      data.terrain,
+      data.levels,
+    );
+  const groundedBase =
+    after.position[1] -
+    after.height / 2;
+
+  if (
+    Math.abs(
+      groundedBase -
+        stats.minGround,
+    ) > 0.001
+  ) {
+    throw new Error(
+      `Building ${before.id} base ${groundedBase} does not match sampled terrain minimum ${stats.minGround}.`,
+    );
+  }
+
+  if (
+    Math.abs(
+      after.position[1] -
+        before.position[1],
+    ) > 0.5
+  ) {
+    movedCount += 1;
+  }
+}
+
+if (movedCount < 1) {
+  throw new Error(
+    "Expected at least one estimated curated building to be materially re-grounded.",
+  );
+}
+
+console.log(
+  `Building grounding test passed. materially moved=${movedCount}`,
+);
