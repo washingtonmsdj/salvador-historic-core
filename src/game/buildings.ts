@@ -33,11 +33,7 @@ function orientTopTriangles(points: Point2[], indices: number[]) {
   return flipped;
 }
 
-function createFootprintBuilding(
-  scene: Scene,
-  item: MeasuredObject,
-  footprint: Point2[],
-) {
+function createFootprintBuilding(scene: Scene, item: MeasuredObject, footprint: Point2[]) {
   const mesh = new Mesh(item.id, scene);
   const bottomY = item.position[1] - item.height / 2;
   const topY = item.position[1] + item.height / 2;
