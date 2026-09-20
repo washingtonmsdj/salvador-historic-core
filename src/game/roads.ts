@@ -4,6 +4,7 @@ import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
 import manifestData from "../../geospatial/manifest.json";
 import {
+  retainingWallMaterial,
   roadMaterialFor,
   surfaceMaterialForKind,
 } from "./road-materials";
@@ -499,9 +500,8 @@ function createRoadRibbon(
     );
 
     supportMesh.material =
-      surfaceMaterialForKind(
+      retainingWallMaterial(
         scene,
-        "stone",
       );
     supportMesh.receiveShadows =
       true;
@@ -513,6 +513,8 @@ function createRoadRibbon(
       roadId: feature.id,
       side,
       walkableSurface: false,
+      materialKind:
+        "retaining-wall-masonry",
     };
 
     return supportMesh;
