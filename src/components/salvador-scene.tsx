@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import derivedVectorsData from "../../geospatial/derived/site-vectors.json";
 import geospatialBase from "../data/geospatial-base.json";
 import siteData from "../data/site-data.json";
 import type {
@@ -40,8 +41,27 @@ interface GeospatialBaseRuntime {
   };
 }
 
+interface DerivedSiteVectors {
+  available: boolean;
+  roads: LinearFeature[];
+  spaces: LinearFeature[];
+  buildingFootprints: unknown[];
+}
+
 const data = siteData as unknown as SalvadorSiteData;
 const geo = geospatialBase as GeospatialBaseRuntime;
+const derivedVectors =
+  derivedVectorsData as unknown as DerivedSiteVectors;
+const derivedVectorsActive =
+  geo.vectors.active === "geospatial-derived" &&
+  geo.vectors.fallbackActive === false &&
+  derivedVectors.available;
+const runtimeRoads = derivedVectorsActive
+  ? derivedVectors.roads
+  : data.roads;
+const runtimeSpaces = derivedVectorsActive
+  ? derivedVectors.spaces
+  : data.spaces;
 const geospatialFallback =
   geo.terrain.fallbackActive || geo.vectors.fallbackActive;
 
@@ -130,9 +150,23 @@ export function SalvadorScene() {
         sun.position = new Vector3(120, 180, -80);
         sun.intensity = 0.74;
 
-        const terrainMeshes = createTerrain(scene, data.terrain, data.levels);
-        createSpaces(scene, data.spaces);
-        createRoads(scene, data.roads, data.terrain, data.levels);
+        const terrainMeshes = createTerrain(
+          scene,
+          data.terrain,
+          data.levels,
+        );
+        createSpaces(
+          scene,
+          runtimeSpaces,
+          data.terrain,
+          data.levels,
+        );
+        createRoads(
+          scene,
+          runtimeRoads,
+          data.terrain,
+          data.levels,
+        );
         const buildingMeshes = createBuildings(scene, data.buildings);
         const elevatorMeshes = createElevatorBlockout(scene, data.elevator);
         createConnectionPoints(scene, data.landmarks);
