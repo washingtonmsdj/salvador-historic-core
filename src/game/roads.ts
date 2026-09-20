@@ -1,64 +1,113 @@
 import earcut from "earcut";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 import { material } from "./materials";
 import { terrainHeight } from "./terrain";
 import type { LinearFeature, Point2, SceneLevels, TerrainConfig } from "./types";
 
-const ROAD_THICKNESS = 0.32;
-const SURFACE_GAP = 0.03;
+const SURFACE_GAP = 0.08;
+const ROAD_SAMPLE_SPACING = 5;
 
 function elevationAt(
-  mode: LinearFeature["elevationMode"],
   x: number,
   z: number,
   terrain: TerrainConfig,
   levels: SceneLevels,
 ) {
-  const surface =
-    mode === "upper"
-      ? levels.upperCity.elevation
-      : mode === "lower"
-        ? levels.lowerCity.elevation
-        : terrainHeight(terrain, x, z);
-
-  return surface + ROAD_THICKNESS / 2 + SURFACE_GAP;
+  return terrainHeight(terrain, levels, x, z) + SURFACE_GAP;
 }
 
-function createSegment(
+function samplePolyline(points: Point2[]) {
+  if (points.length < 2) return [...points];
+
+  const sampled: Point2[] = [];
+
+  for (let index = 0; index < points.length - 1; index++) {
+    const a = points[index];
+    const b = points[index + 1];
+    if (!a || !b) continue;
+
+    const dx = b[0] - a[0];
+    const dz = b[1] - a[1];
+    const distance = Math.hypot(dx, dz);
+    const steps = Math.max(1, Math.ceil(distance / ROAD_SAMPLE_SPACING));
+
+    for (let step = 0; step < steps; step++) {
+      const t = step / steps;
+      sampled.push([a[0] + dx * t, a[1] + dz * t]);
+    }
+  }
+
+  const last = points[points.length - 1];
+  if (last) sampled.push(last);
+  return sampled;
+}
+
+function createRoadRibbon(
   scene: Scene,
   feature: LinearFeature,
-  a: Point2,
-  b: Point2,
-  index: number,
   terrain: TerrainConfig,
   levels: SceneLevels,
   roadMaterial: ReturnType<typeof material>,
 ) {
-  const dx = b[0] - a[0];
-  const dz = b[1] - a[1];
-  const length = Math.hypot(dx, dz);
-  const x = (a[0] + b[0]) / 2;
-  const z = (a[1] + b[1]) / 2;
-  const mesh = MeshBuilder.CreateBox(
-    `${feature.id}-${index}`,
-    {
-      width: feature.width,
-      depth: length,
-      height: ROAD_THICKNESS,
-    },
-    scene,
-  );
+  const centers = samplePolyline(feature.points);
+  if (centers.length < 2) return null;
 
-  mesh.position = new Vector3(
-    x,
-    elevationAt(feature.elevationMode, x, z, terrain, levels),
-    z,
-  );
-  mesh.rotation.y = Math.atan2(dx, dz);
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+  let travelled = 0;
+
+  for (let index = 0; index < centers.length; index++) {
+    const center = centers[index];
+    if (!center) continue;
+
+    const previous = centers[Math.max(0, index - 1)] ?? center;
+    const next = centers[Math.min(centers.length - 1, index + 1)] ?? center;
+    const dx = next[0] - previous[0];
+    const dz = next[1] - previous[1];
+    const length = Math.max(0.001, Math.hypot(dx, dz));
+    const perpendicularX = -dz / length;
+    const perpendicularZ = dx / length;
+    const halfWidth = feature.width / 2;
+    const y = elevationAt(center[0], center[1], terrain, levels);
+
+    if (index > 0) {
+      const before = centers[index - 1];
+      if (before) travelled += Math.hypot(center[0] - before[0], center[1] - before[1]);
+    }
+
+    positions.push(
+      center[0] + perpendicularX * halfWidth,
+      y,
+      center[1] + perpendicularZ * halfWidth,
+      center[0] - perpendicularX * halfWidth,
+      y,
+      center[1] - perpendicularZ * halfWidth,
+    );
+    uvs.push(0, travelled / 10, 1, travelled / 10);
+  }
+
+  for (let index = 0; index < centers.length - 1; index++) {
+    const left = index * 2;
+    const right = left + 1;
+    const nextLeft = left + 2;
+    const nextRight = left + 3;
+    indices.push(left, nextLeft, right, right, nextLeft, nextRight);
+  }
+
+  VertexData.ComputeNormals(positions, indices, normals);
+
+  const mesh = new Mesh(feature.id, scene);
+  const vertexData = new VertexData();
+  vertexData.positions = positions;
+  vertexData.indices = indices;
+  vertexData.normals = normals;
+  vertexData.uvs = uvs;
+  vertexData.applyToMesh(mesh);
+
   mesh.material = roadMaterial;
   mesh.receiveShadows = true;
   mesh.checkCollisions = true;
@@ -147,26 +196,12 @@ export function createRoads(
   levels: SceneLevels,
 ) {
   const roadMaterial = material(scene, "road");
+  roadMaterial.backFaceCulling = false;
 
-  return roads.flatMap((road) =>
-    road.points.slice(0, -1).flatMap((point, index) => {
-      const nextPoint = road.points[index + 1];
-      if (!nextPoint) return [];
-
-      return [
-        createSegment(
-          scene,
-          road,
-          point,
-          nextPoint,
-          index,
-          terrain,
-          levels,
-          roadMaterial,
-        ),
-      ];
-    }),
-  );
+  return roads.flatMap((road) => {
+    const mesh = createRoadRibbon(scene, road, terrain, levels, roadMaterial);
+    return mesh ? [mesh] : [];
+  });
 }
 
 export function createSpaces(scene: Scene, spaces: LinearFeature[]) {

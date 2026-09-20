@@ -112,7 +112,7 @@ export function SalvadorScene() {
         sun.position = new Vector3(120, 180, -80);
         sun.intensity = 0.72;
 
-        createTerrain(scene, data.terrain);
+        createTerrain(scene, data.terrain, data.levels);
         createSpaces(scene, data.spaces);
         createRoads(scene, data.roads, data.terrain, data.levels);
         createBuildings(scene, data.buildings);

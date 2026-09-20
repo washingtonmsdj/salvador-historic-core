@@ -26,21 +26,33 @@ export interface LinearFeature {
   elevation?: number;
 }
 
+export interface TerrainProfile {
+  z: number;
+  toeX: number;
+  cliffX: number;
+  shoulderX: number;
+  lowerOffset?: number;
+  upperOffset?: number;
+}
+
 export interface TerrainConfig {
   tileSize: number;
+  subdivisionsPerTile: number;
   bounds: {
     minX: number;
     maxX: number;
     minZ: number;
     maxZ: number;
   };
-  cliffTransition: {
-    lowX: number;
-    highX: number;
-    lowerY: number;
-    upperY: number;
-    source: string;
-    estimated: boolean;
+  profiles: TerrainProfile[];
+  lowerGrade: {
+    risePerMeterX: number;
+    maxRise: number;
+  };
+  upperGrade: {
+    risePerMeterX: number;
+    risePerMeterZ: number;
+    maxVariation: number;
   };
   source: string;
   estimated: boolean;
