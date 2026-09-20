@@ -168,5 +168,9 @@
     "maxSolverDelta": 0.002,
     "minLocalRelief": 40,
     "notes": "Persistent official terrain must preserve the 2.5 m grid or better, retain broad contour coverage, converge below 2 mm solver delta and represent meaningful Cidade Baixa/Cidade Alta relief. These thresholds validate the derived product, not the source survey accuracy."
+  },
+  "terrainStructureMaskPolicy": {
+    "padding": 0.35,
+    "notes": "Verified structure footprints may mask terrain render/collision triangles beneath their volume without changing source terrain elevations. Padding is presentation-only and prevents terrain triangles from poking through structure walls."
   }
 }
