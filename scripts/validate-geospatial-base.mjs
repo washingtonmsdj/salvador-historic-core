@@ -1120,6 +1120,16 @@ if (derivedVectors?.available === true) {
   )
     ? derivedVectors.elevatedCorridors
     : [];
+  const terrainLines = Array.isArray(
+    derivedVectors.terrainLines,
+  )
+    ? derivedVectors.terrainLines
+    : [];
+  const terrainAreas = Array.isArray(
+    derivedVectors.terrainAreas,
+  )
+    ? derivedVectors.terrainAreas
+    : [];
   const spaces = Array.isArray(derivedVectors.spaces)
     ? derivedVectors.spaces
     : [];
@@ -1193,6 +1203,8 @@ if (derivedVectors?.available === true) {
   const expectedCount =
     roads.length +
     elevatedCorridors.length +
+    terrainLines.length +
+    terrainAreas.length +
     spaces.length +
     buildings.length;
 
@@ -1240,6 +1252,45 @@ if (derivedVectors?.available === true) {
     ) {
       fail(
         `${corridor.id} is not a valid preserved indoor corridor`,
+      );
+    }
+  }
+
+  if (
+    derivedVectors.metadata?.terrainLineCount !==
+    terrainLines.length ||
+    derivedVectors.metadata?.terrainAreaCount !==
+    terrainAreas.length
+  ) {
+    fail(
+      "derived terrain feature metadata counts do not match their collections",
+    );
+  }
+
+  for (const feature of terrainLines) {
+    if (
+      !Array.isArray(feature.points) ||
+      feature.points.length < 2 ||
+      !feature.points.every(inBounds) ||
+      typeof feature.kind !== "string" ||
+      feature.kind.length === 0
+    ) {
+      fail(
+        `${feature.id} is not a valid terrain line`,
+      );
+    }
+  }
+
+  for (const feature of terrainAreas) {
+    if (
+      !Array.isArray(feature.points) ||
+      feature.points.length < 3 ||
+      !feature.points.every(inBounds) ||
+      typeof feature.kind !== "string" ||
+      feature.kind.length === 0
+    ) {
+      fail(
+        `${feature.id} is not a valid terrain area`,
       );
     }
   }
