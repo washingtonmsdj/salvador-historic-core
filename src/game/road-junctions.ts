@@ -9,6 +9,7 @@ export interface RoadJunction {
   radius: number;
   feature: LinearFeature;
   connectedFeatureIds: string[];
+  connectedFeatures: LinearFeature[];
 }
 
 interface RoadEndpoint {
@@ -226,6 +227,8 @@ export function deriveRoadJunctions(
         connected.map(
           (road) => road.id,
         ),
+      connectedFeatures:
+        connected,
     });
   }
 
