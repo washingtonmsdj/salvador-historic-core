@@ -7,10 +7,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "vite dev",
-    "dev:host": "vite dev --host 0.0.0.0",
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
+    "dev": "vite dev --configLoader runner",
+    "dev:host": "vite dev --configLoader runner --host 0.0.0.0",
+    "build": "node scripts/build-host.mjs",
+    "build:dev": "node scripts/build-host.mjs --mode development",
     "preview": "vite preview",
     "preview:host": "vite preview --host 0.0.0.0",
     "start": "node scripts/start-host.mjs",

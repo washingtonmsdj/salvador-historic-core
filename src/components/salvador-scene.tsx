@@ -345,6 +345,7 @@ export function SalvadorScene() {
     async function boot() {
       try {
         const [
+          _collisionCoordinator,
           { Engine },
           { Scene },
           { HemisphericLight },
@@ -375,6 +376,7 @@ export function SalvadorScene() {
           { createMissionMarker },
           { createDebug },
         ] = await Promise.all([
+          import("@babylonjs/core/Collisions/collisionCoordinator"),
           import("@babylonjs/core/Engines/engine"),
           import("@babylonjs/core/scene"),
           import("@babylonjs/core/Lights/hemisphericLight"),
@@ -619,14 +621,19 @@ export function SalvadorScene() {
           });
         };
 
-        const cameras = createCameras(scene, canvas, streetSpawn);
+        const runtimeScene = scene;
+        if (!runtimeScene) {
+          throw new Error("Babylon scene was not initialized.");
+        }
+
+        const cameras = createCameras(runtimeScene, canvas, streetSpawn);
         let activeCameraMode: CameraMode = "aerial";
-        const playerController = configurePlayer(scene, cameras.street, data.terrain, data.levels, {
+        const playerController = configurePlayer(runtimeScene, cameras.street, data.terrain, data.levels, {
           onPositionChange: (position) => gameSession.updatePlayerPosition(position),
           isActive: () => activeCameraMode === "street",
         });
         const thirdPersonPlayer = createThirdPersonPlayer({
-          scene,
+          scene: runtimeScene,
           camera: cameras.thirdPerson,
           spawn: streetSpawn,
           terrain: data.terrain,
@@ -634,8 +641,8 @@ export function SalvadorScene() {
           onPositionChange: (position) => gameSession.updatePlayerPosition(position),
           onInteract: () => gameSession.interact(),
         });
-        const missionMarker = createMissionMarker(scene, (x, z) =>
-          walkableSurfaceHeight(scene, data.terrain, data.levels, x, z),
+        const missionMarker = createMissionMarker(runtimeScene, (x, z) =>
+          walkableSurfaceHeight(runtimeScene, data.terrain, data.levels, x, z),
         );
         const updateMissionMarker = () =>
           missionMarker.setTarget(gameSession.getSnapshot().currentStep?.target ?? null);
