@@ -541,7 +541,7 @@ export function surfaceMaterialForKind(
       style.base[0],
       style.base[1],
       style.base[2],
-    ).scale(0.028);
+    ).scale(0.075);
   material.specularColor =
     kind === "asphalt"
       ? new Color3(
@@ -617,7 +617,7 @@ export function retainingWallMaterial(
         .base[1],
       retainingWallStyle
         .base[2],
-    ).scale(0.018);
+    ).scale(0.05);
   material.specularColor =
     new Color3(
       0.015,

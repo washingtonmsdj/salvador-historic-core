@@ -434,8 +434,8 @@ export function SalvadorScene() {
         scene.imageProcessingConfiguration.contrast = terrainPresentation.toneMappingContrast;
 
         const ambient = new HemisphericLight("ambient-light", new Vector3(0.2, 1, 0.1), scene);
-        ambient.intensity = 0.78;
-        ambient.groundColor = new Color3(0.16, 0.14, 0.12);
+        ambient.intensity = 0.92;
+        ambient.groundColor = new Color3(0.26, 0.23, 0.19);
 
         const sun = new DirectionalLight("sun-light", new Vector3(-0.55, -1, 0.35), scene);
         sun.position = new Vector3(120, 180, -80);

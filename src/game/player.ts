@@ -44,7 +44,10 @@ export function walkableSurfaceHeight(
   );
 
   if (hit?.hit && hit.pickedPoint) {
-    return hit.pickedPoint.y;
+    // Road/public-space meshes can be slightly below the terrain while their
+    // grading data is being reconciled. Never place the player under the
+    // geospatial surface or the third-person camera renders inside the soil.
+    return Math.max(fallback, hit.pickedPoint.y);
   }
 
   return fallback;
