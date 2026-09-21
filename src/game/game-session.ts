@@ -201,11 +201,6 @@ export function createGameSession(
     };
   };
 
-  const initialEvent = {
-    id: ++eventId,
-    message: "Rota histórica disponível. Vá até o Elevador Lacerda.",
-    tone: "info",
-  } satisfies SessionEvent;
   const serverSession: PersistedSession = {
     version: PERSISTED_VERSION,
     currentStepIndex: 0,
@@ -213,11 +208,8 @@ export function createGameSession(
     xp: 0,
     playerPosition: [0, 0],
   };
-  const serverSnapshot = buildSnapshot(serverSession, {
-    ...initialEvent,
-    id: 0,
-  });
-  let currentSnapshot = buildSnapshot(session, initialEvent);
+  const serverSnapshot = buildSnapshot(serverSession, null);
+  let currentSnapshot = buildSnapshot(session, null);
 
   const emit = (event: SessionEvent | null = currentSnapshot.event) => {
     currentSnapshot = buildSnapshot(session, event);

@@ -8,6 +8,7 @@ import { chooseWalkableSpawn } from "../game/walkable-spawn";
 import { createGameSession, createHistoricRouteMission } from "../game/game-session";
 import { GameHud } from "./game-hud";
 import { hydrateMeasuredObjectFootprints } from "../game/derived-buildings";
+import type { ThirdPersonInputState } from "../game/third-person-player";
 import { deriveRoadJunctions, roadJunctionMaskPolygon } from "../game/road-junctions";
 import type {
   DerivedBuildingFootprint,
@@ -40,6 +41,8 @@ interface SceneControls {
   setDebug: (enabled: boolean) => void;
   setMapReference: (enabled: boolean) => void;
   setInputEnabled: (enabled: boolean) => void;
+  setVirtualInput: (input: ThirdPersonInputState) => void;
+  interact: () => void;
 }
 
 interface GeospatialBaseRuntime {
@@ -692,6 +695,8 @@ export function SalvadorScene() {
           activateCamera,
           setDebug: debug.setEnabled,
           setInputEnabled: thirdPersonPlayer.setInputEnabled,
+          setVirtualInput: thirdPersonPlayer.setVirtualInput,
+          interact: thirdPersonPlayer.interact,
           setMapReference: (enabled) => {
             mapReferenceRuntimeEnabled = enabled;
             mapReference.setEnabled(enabled);
@@ -990,7 +995,14 @@ export function SalvadorScene() {
         </section>
       )}
 
-      {!mapVisible && <GameHud snapshot={gameSnapshot} onReset={() => gameSession.reset()} />}
+      {!mapVisible && (
+        <GameHud
+          snapshot={gameSnapshot}
+          cameraMode={cameraMode}
+          onVirtualInput={(input) => controlsRef.current?.setVirtualInput(input)}
+          onInteract={() => controlsRef.current?.interact()}
+        />
+      )}
 
       {debugEnabled && (
         <header className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-start justify-between gap-4 p-4 sm:p-6">
@@ -1093,7 +1105,7 @@ export function SalvadorScene() {
         <p className="mt-2 text-white/45">Y = altura · X = leste/oeste · Z = norte/sul</p>
       </aside>
 
-      <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/10 bg-black/70 p-2 shadow-2xl backdrop-blur-md">
+      <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/70 p-1.5 shadow-2xl backdrop-blur-md sm:bottom-4 sm:gap-2 sm:p-2">
         <button
           type="button"
           onClick={() => changeCamera("aerial")}
@@ -1104,7 +1116,8 @@ export function SalvadorScene() {
               : "bg-white/5 text-white/75 hover:bg-white/10"
           } disabled:cursor-not-allowed disabled:opacity-40`}
         >
-          Vista aérea
+          <span className="sm:hidden">Aérea</span>
+          <span className="hidden sm:inline">Vista aérea</span>
         </button>
         <button
           type="button"
@@ -1116,7 +1129,8 @@ export function SalvadorScene() {
               : "bg-white/5 text-white/75 hover:bg-white/10"
           } disabled:cursor-not-allowed disabled:opacity-40`}
         >
-          3ª pessoa
+          <span className="sm:hidden">Jogar</span>
+          <span className="hidden sm:inline">3ª pessoa</span>
         </button>
         <button
           type="button"
@@ -1128,43 +1142,44 @@ export function SalvadorScene() {
               : "bg-white/5 text-white/75 hover:bg-white/10"
           } disabled:cursor-not-allowed disabled:opacity-40`}
         >
-          Nível da rua
+          <span className="sm:hidden">Rua</span>
+          <span className="hidden sm:inline">Nível da rua</span>
         </button>
         <button
           type="button"
           onClick={toggleDebug}
           disabled={loadState !== "ready"}
           aria-pressed={debugEnabled}
-          className={`rounded-xl px-3 py-2 text-xs font-medium transition ${
+          className={`hidden rounded-xl px-3 py-2 text-xs font-medium transition sm:inline-flex ${
             debugEnabled ? "bg-[#b25e49] text-white" : "bg-white/5 text-white/75 hover:bg-white/10"
           } disabled:cursor-not-allowed disabled:opacity-40`}
         >
-          Debug
+          <span className="hidden sm:inline">Debug</span>
         </button>
         <button
           type="button"
           onClick={toggleMapReference}
           disabled={loadState !== "ready" || mapVisible}
           aria-pressed={mapReferenceEnabled}
-          className={`rounded-xl px-3 py-2 text-xs font-medium transition ${
+          className={`hidden rounded-xl px-3 py-2 text-xs font-medium transition sm:inline-flex ${
             mapReferenceEnabled
               ? "bg-[#75b884] text-[#0c2114]"
               : "bg-white/5 text-white/75 hover:bg-white/10"
           } disabled:cursor-not-allowed disabled:opacity-40`}
         >
-          Mapa no terreno
+          <span className="hidden sm:inline">Mapa no terreno</span>
         </button>
         <button
           type="button"
           onClick={toggleMapView}
           aria-pressed={mapVisible}
-          className={`rounded-xl px-3 py-2 text-xs font-medium transition ${
+          className={`hidden rounded-xl px-3 py-2 text-xs font-medium transition sm:inline-flex ${
             mapVisible
               ? "bg-[#75b884] text-[#0c2114]"
               : "bg-white/5 text-white/75 hover:bg-white/10"
           }`}
         >
-          {mapVisible ? "Voltar ao 3D" : "Mapa real"}
+          <span className="hidden sm:inline">{mapVisible ? "Voltar ao 3D" : "Mapa real"}</span>
         </button>
       </div>
 
@@ -1177,7 +1192,7 @@ export function SalvadorScene() {
             href={geo.mapReference.attributionUrl}
             target="_blank"
             rel="noreferrer"
-            className="absolute bottom-4 right-4 z-20 rounded-md bg-black/70 px-2 py-1 text-[10px] text-white/75 underline-offset-2 hover:underline"
+            className="absolute bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] right-3 z-20 hidden rounded-md bg-black/70 px-2 py-1 text-[10px] text-white/75 underline-offset-2 hover:underline sm:block sm:bottom-4 sm:right-4"
           >
             {geo.mapReference.attribution}
           </a>

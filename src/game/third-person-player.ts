@@ -23,6 +23,13 @@ export interface ThirdPersonInputState {
   right: boolean;
 }
 
+const EMPTY_INPUT: ThirdPersonInputState = {
+  forward: false,
+  backward: false,
+  left: false,
+  right: false,
+};
+
 export interface ThirdPersonPlayerOptions {
   scene: Scene;
   camera: ArcRotateCamera;
@@ -120,6 +127,7 @@ export function createThirdPersonPlayer({
   };
 
   const keys = new Set<string>();
+  let virtualInput: ThirdPersonInputState = EMPTY_INPUT;
   let active = false;
   let inputEnabled = true;
 
@@ -171,7 +179,14 @@ export function createThirdPersonPlayer({
     }
 
     const forward = camera.getForwardRay(1).direction;
-    const [moveX, moveZ] = thirdPersonMovementDirection([forward.x, forward.z], keyInput(keys));
+    const keyboardInput = keyInput(keys);
+    const input: ThirdPersonInputState = {
+      forward: keyboardInput.forward || virtualInput.forward,
+      backward: keyboardInput.backward || virtualInput.backward,
+      left: keyboardInput.left || virtualInput.left,
+      right: keyboardInput.right || virtualInput.right,
+    };
+    const [moveX, moveZ] = thirdPersonMovementDirection([forward.x, forward.z], input);
 
     if (Math.abs(moveX) > 0.000001 || Math.abs(moveZ) > 0.000001) {
       const seconds = Math.min(MAX_FRAME_SECONDS, scene.getEngine().getDeltaTime() / 1000);
@@ -191,6 +206,7 @@ export function createThirdPersonPlayer({
       player.setEnabled(next);
       if (!next) {
         keys.clear();
+        virtualInput = EMPTY_INPUT;
       } else {
         syncToTerrain();
       }
@@ -199,8 +215,13 @@ export function createThirdPersonPlayer({
       inputEnabled = next;
       if (!next) {
         keys.clear();
+        virtualInput = EMPTY_INPUT;
       }
     },
+    setVirtualInput: (next: ThirdPersonInputState) => {
+      virtualInput = inputEnabled ? next : EMPTY_INPUT;
+    },
+    interact: () => onInteract?.(),
     syncToTerrain,
     syncFromStreetCamera: (street: UniversalCamera) => {
       setHorizontalPosition(street.position.x, street.position.z);
